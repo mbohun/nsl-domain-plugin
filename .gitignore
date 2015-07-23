@@ -1,0 +1,19 @@
+# don't git the targets
+/target*
+
+# don't git the artifacts produced by the maven release plugin
+/plugin.xml
+/*.zip
+/*.zip.sha1
+
+# ignore OSX artifacts
+.DS_Store
+
+target/
+out/
+.idea/
+/*.iml
+.classpath
+.project
+.settings/
+atlassian-ide-plugin.xml

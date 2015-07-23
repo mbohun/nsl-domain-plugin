@@ -1,0 +1,130 @@
+package au.org.biodiversity.nsl
+
+import java.sql.Timestamp
+
+class Name {
+
+    String nameElement
+    String statusSummary
+    String verbatimRank
+
+    String fullName
+    String fullNameHtml
+    String simpleName
+    String simpleNameHtml
+
+    Boolean orthVar = false
+
+    NameType nameType
+    NameStatus nameStatus
+    NameRank nameRank
+
+    Name parent
+    Name secondParent
+
+    Author author
+    Author baseAuthor
+    Author exAuthor
+    Author exBaseAuthor
+
+    Author sanctioningAuthor
+
+    WhyIsThisHere whyIsThisHere
+
+    Boolean validRecord = false
+
+    Long sourceDupOfId
+    Name duplicateOf
+
+    Long sourceId
+    String sourceSystem
+    String sourceIdString
+    Namespace namespace
+
+    String updatedBy
+    Timestamp updatedAt
+    String createdBy
+    Timestamp createdAt
+
+    Boolean trash = false
+
+    static hasMany = [
+            externalRefs  : ExternalRef,
+            instances     : Instance,
+            nameParts     : NamePart,
+            childNameParts: NamePart,
+            comments      : Comment,
+            tags          : NameTagName
+    ]
+
+    static mappedBy = [
+            nameParts     : "name",
+            childNameParts: "precedingName",
+            comments      : "name"
+    ]
+
+    static belongsTo = [NameRank, NameStatus, NameType, Namespace]
+
+    static mapping = {
+        datasource 'nsl'
+
+        id generator: 'native', params: [sequence: 'nsl_global_seq'], defaultValue: "nextval('nsl_global_seq')"
+        version column: 'lock_version', defaultValue: "0"
+        validRecord defaultvalue: "false"
+        trash defaultvalue: "false"
+        orthVar defaultvalue: "false"
+
+        nameElement index: 'Name_Name_Element_Index'
+        fullName index: 'Name_Full_Name_Index'
+        simpleName index: 'Name_Simple_Name_Index'
+
+        sourceId index: 'Name_Source_Index'
+        sourceIdString index: 'Name_Source_String_Index'
+        sourceSystem index: 'Name_Source_Index,Name_System_Index'
+        namespace index: 'Name_Source_Index'
+
+//        FK indexes
+        nameType index: 'Name_Type_Index'
+        nameStatus index: 'Name_Status_Index'
+        nameRank index: 'Name_Rank_Index'
+        author index: 'Name_author_Index'
+        baseAuthor index: 'Name_baseAuthor_Index'
+        exAuthor index: 'Name_exAuthor_Index'
+        exBaseAuthor index: 'Name_exBaseAuthor_Index'
+        sanctioningAuthor index: 'Name_sanctioningAuthor_Index'
+        whyIsThisHere index: "Name_whyIsThisHere_Index"
+
+        updatedAt sqlType: 'timestamp with time zone'
+        createdAt sqlType: 'timestamp with time zone'
+    }
+
+    static constraints = {
+        nameElement nullable: true
+        statusSummary nullable: true, maxSize: 50
+        updatedBy maxSize: 50
+        createdBy maxSize: 50
+        sourceSystem nullable: true, maxSize: 50
+        sourceIdString nullable: true, maxSize: 100
+        sourceId nullable: true
+        fullName nullable: true, maxSize: 512
+        fullNameHtml nullable: true, maxSize: 2048
+        simpleName nullable: true, maxSize: 250
+        simpleNameHtml nullable: true, maxSize: 2048
+        sanctioningAuthor nullable: true
+        exBaseAuthor nullable: true
+        author nullable: true
+        baseAuthor nullable: true
+        exAuthor nullable: true
+        sourceDupOfId nullable: true
+        duplicateOf nullable: true
+        parent nullable: true
+        secondParent nullable: true
+        whyIsThisHere nullable: true
+        verbatimRank nullable: true, maxSize: 50
+    }
+
+    @Override
+    String toString() {
+        "Name $id: ${fullName ?: nameElement}"
+    }
+}
