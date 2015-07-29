@@ -165,6 +165,9 @@
         drop constraint if exists FK_kquvd2hkcl7aj2vhylvp1k7vb;
 
     alter table if exists nsl_simple_name 
+        drop constraint if exists FK_59i6is32bt6v19i51ql9n2r9i;
+
+    alter table if exists nsl_simple_name 
         drop constraint if exists FK_mvjeehgt584v9ep11ixe1iyok;
 
     alter table if exists nsl_simple_name 
@@ -710,6 +713,7 @@
         authority varchar(255),
         autonym boolean default false,
         base_name_author varchar(255),
+        basionym varchar(512),
         classifications varchar(255),
         classis varchar(255),
         created_at timestamp,
@@ -738,10 +742,13 @@
         nom_inval boolean default false,
         nom_stat varchar(255) not null,
         parent_nsl_id int8,
+        proto_citation varchar(512),
+        proto_instance_id int8,
         proto_year int2,
         rank varchar(255) not null,
         rank_abbrev varchar(255),
         rank_sort_order int4,
+        replaced_synonym varchar(512),
         sanctioning_author varchar(255),
         scientific boolean default false,
         second_parent_nsl_id int8,
@@ -1416,6 +1423,11 @@
         add constraint FK_kquvd2hkcl7aj2vhylvp1k7vb 
         foreign key (parent_nsl_id) 
         references name;
+
+    alter table if exists nsl_simple_name 
+        add constraint FK_59i6is32bt6v19i51ql9n2r9i 
+        foreign key (proto_instance_id) 
+        references instance;
 
     alter table if exists nsl_simple_name 
         add constraint FK_mvjeehgt584v9ep11ixe1iyok 

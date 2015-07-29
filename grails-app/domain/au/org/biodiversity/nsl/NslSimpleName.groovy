@@ -1,3 +1,18 @@
+/*
+    Copyright 2015 Australian National Botanic Gardens
+
+    This file is part of NSL-domain-plugin.
+
+    Licensed under the Apache License, Version 2.0 (the "License"); you may not
+    use this file except in compliance with the License. You may obtain a copy
+    of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+*/
 package au.org.biodiversity.nsl
 
 import java.sql.Timestamp
@@ -12,6 +27,9 @@ class NslSimpleName implements Serializable {
     String simpleNameHtml   //name.simplenNameHtml
     String fullNameHtml     //name.fullNameHtml
     String nameTypeName     //name.nameType.name
+    String basionym         //basionym instance name.fullName
+    String replacedSynonym  //Replaced synonym instance name
+
     NameType nameType       //name.nameType
     Boolean homonym
     Boolean autonym
@@ -35,6 +53,8 @@ class NslSimpleName implements Serializable {
     String classifications  //list of trees this name is in
     Boolean apni            //is it in APNI Y/N
 
+    String protoCitation    //protologue reference citation
+    Instance protoInstance  //protologue instance
     Short protoYear         //year of the protologue instance reference
     String nomStat          //name.nameStatus.name
     NameStatus nameStatus
@@ -96,6 +116,9 @@ class NslSimpleName implements Serializable {
         simpleNameHtml nullable: true, maxSize: 2048
         nameElement nullable: true, maxSize: 255
         cultivarName nullable: true, maxSize: 255
+        basionym nullable: true, maxSize: 512
+        replacedSynonym nullable: true, maxSize: 512
+
         nameTypeName maxSize: 255
         homonym nullable: true
         autonym nullable: true
@@ -118,6 +141,8 @@ class NslSimpleName implements Serializable {
         classifications nullable: true
         apni nullable: true
 
+        protoCitation nullable: true, maxSize: 512
+        protoInstance nullable: true
         protoYear nullable: true
         nomStat maxSize: 255
         nomIlleg nullable: true
@@ -144,11 +169,11 @@ class NslSimpleName implements Serializable {
         species nullable: true, maxSize: 255
         infraspecies nullable: true, maxSize: 255
 
-        apcInstance nullable : true
-        apcName nullable : true, maxSize : 512
-        apcRelationshipType nullable : true, maxSize : 255
-        apcComment nullable : true, maxSize : 4000
-        apcDistribution nullable : true, maxSize : 4000
+        apcInstance nullable: true
+        apcName nullable: true, maxSize: 512
+        apcRelationshipType nullable: true, maxSize: 255
+        apcComment nullable: true, maxSize: 4000
+        apcDistribution nullable: true, maxSize: 4000
     }
 }
 
