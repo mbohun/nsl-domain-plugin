@@ -109,7 +109,7 @@ class Reference {
         year nullable: true, min: 0, max: 2999
         volume nullable: true, maxSize: 50
         edition nullable: true, maxSize: 50
-        pages nullable: true, maxSize: 100
+        pages nullable: true, maxSize: 255
         verbatimReference nullable: true, maxSize: 1000
         verbatimCitation nullable: true, maxSize: 2000
         verbatimAuthor nullable: true, maxSize: 1000

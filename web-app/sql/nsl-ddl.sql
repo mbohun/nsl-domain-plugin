@@ -801,7 +801,7 @@
         language_id int8 not null,
         namespace_id int8 not null,
         notes varchar(1000),
-        pages varchar(100),
+        pages varchar(255),
         parent_id int8,
         publication_date varchar(50),
         published boolean default false not null,
