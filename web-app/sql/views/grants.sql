@@ -34,6 +34,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON nsl_simple_name TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON notification TO web;
 GRANT INSERT, UPDATE, DELETE, SELECT ON name_tag TO web;
 GRANT INSERT, UPDATE, DELETE, SELECT ON name_tag_name TO web;
+GRANT INSERT, UPDATE, DELETE, SELECT ON comment TO web;
 GRANT SELECT, UPDATE ON nsl_global_seq TO web;
 GRANT SELECT, UPDATE ON hibernate_sequence TO web;
 
@@ -72,3 +73,4 @@ GRANT SELECT ON nsl_simple_name TO read_only;
 GRANT SELECT ON notification TO read_only;
 GRANT INSERT ON name_tag TO read_only;
 GRANT INSERT ON name_tag_name TO read_only;
+GRANT INSERT ON comment TO read_only;

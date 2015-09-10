@@ -1569,7 +1569,11 @@
     create sequence hibernate_sequence;
 
     
--- 
+alter table instance ADD CONSTRAINT citescheck check (cites_id is null or cited_by_id is not null);
+
+create index name_lower_f_unaccent_full_name_like on name (lower(f_unaccent(full_name)) varchar_pattern_ops);
+
+insert into db_version (id, version) values (1, 10);-- 
 -- This script sets up the base data for the boatree app. This includes the 'end' tree, out in-house namespaces, and the empty nsl/apc/afd trees
 --
 
@@ -2020,6 +2024,22 @@ alter table tree_link add constraint chk_tree_link_synthetic_yn CHECK (is_synthe
 alter table tree_link add constraint chk_tree_link_sup_not_end  check (supernode_id <> 0);
 alter table tree_link add constraint chk_tree_link_sub_not_end  check (subnode_id <> 0);
 
+-- fixing the column ordering in these indexes. Big effects on performance.
+
+DROP INDEX idx_tree_node_taxon_in;
+CREATE INDEX idx_tree_node_taxon_in ON tree_node (taxon_uri_id_part, taxon_uri_ns_part_id, tree_arrangement_id);
+
+DROP INDEX idx_tree_node_name_in;
+CREATE INDEX idx_tree_node_name_in ON tree_node (name_uri_id_part, name_uri_ns_part_id, tree_arrangement_id);
+
+DROP INDEX idx_tree_node_resource_in;
+CREATE INDEX idx_tree_node_resource_in ON tree_node (resource_uri_id_part, resource_uri_ns_part_id, tree_arrangement_id);
+
+DROP INDEX idx_tree_node_name_id_in;
+CREATE INDEX idx_tree_node_name_id_in ON tree_node (name_id, tree_arrangement_id);
+
+DROP INDEX idx_tree_node_instance_id_in;
+CREATE INDEX idx_tree_node_instance_id_in ON tree_node (instance_id, tree_arrangement_id);
 -- grant to the web user as required
 GRANT SELECT, INSERT, UPDATE, DELETE ON tree_arrangement TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON tree_link TO web;
@@ -2056,6 +2076,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON nsl_simple_name TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON notification TO web;
 GRANT INSERT, UPDATE, DELETE, SELECT ON name_tag TO web;
 GRANT INSERT, UPDATE, DELETE, SELECT ON name_tag_name TO web;
+GRANT INSERT, UPDATE, DELETE, SELECT ON comment TO web;
 GRANT SELECT, UPDATE ON nsl_global_seq TO web;
 GRANT SELECT, UPDATE ON hibernate_sequence TO web;
 
@@ -2094,6 +2115,7 @@ GRANT SELECT ON nsl_simple_name TO read_only;
 GRANT SELECT ON notification TO read_only;
 GRANT INSERT ON name_tag TO read_only;
 GRANT INSERT ON name_tag_name TO read_only;
+GRANT INSERT ON comment TO read_only;
 -- An audit history is important on most tables. Provide an audit trigger that logs to
 -- a dedicated audit table for the major relations.
 --
@@ -2344,23 +2366,3 @@ $body$;
 -- select audit.audit_table('instance');
 -- select audit.audit_table('name');
 -- select audit.audit_table('reference');
-alter table instance ADD CONSTRAINT citescheck check (cites_id is null or cited_by_id is not null);
-
--- fixing the column ordering in these indexes. Big effects on performance.
-
-DROP INDEX idx_tree_node_taxon_in;
-CREATE INDEX idx_tree_node_taxon_in ON tree_node (taxon_uri_id_part, taxon_uri_ns_part_id, tree_arrangement_id);
-
-DROP INDEX idx_tree_node_name_in;
-CREATE INDEX idx_tree_node_name_in ON tree_node (name_uri_id_part, name_uri_ns_part_id, tree_arrangement_id);
-
-DROP INDEX idx_tree_node_resource_in;
-CREATE INDEX idx_tree_node_resource_in ON tree_node (resource_uri_id_part, resource_uri_ns_part_id, tree_arrangement_id);
-
-DROP INDEX idx_tree_node_name_id_in;
-CREATE INDEX idx_tree_node_name_id_in ON tree_node (name_id, tree_arrangement_id);
-
-DROP INDEX idx_tree_node_instance_id_in;
-CREATE INDEX idx_tree_node_instance_id_in ON tree_node (instance_id, tree_arrangement_id);
-
-create index name_lower_f_unaccent_full_name_like on name (lower(f_unaccent(full_name)) varchar_pattern_ops);

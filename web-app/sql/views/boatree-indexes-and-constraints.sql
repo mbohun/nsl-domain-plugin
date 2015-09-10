@@ -78,3 +78,19 @@ alter table tree_link add constraint chk_tree_link_synthetic_yn CHECK (is_synthe
 alter table tree_link add constraint chk_tree_link_sup_not_end  check (supernode_id <> 0);
 alter table tree_link add constraint chk_tree_link_sub_not_end  check (subnode_id <> 0);
 
+-- fixing the column ordering in these indexes. Big effects on performance.
+
+DROP INDEX idx_tree_node_taxon_in;
+CREATE INDEX idx_tree_node_taxon_in ON tree_node (taxon_uri_id_part, taxon_uri_ns_part_id, tree_arrangement_id);
+
+DROP INDEX idx_tree_node_name_in;
+CREATE INDEX idx_tree_node_name_in ON tree_node (name_uri_id_part, name_uri_ns_part_id, tree_arrangement_id);
+
+DROP INDEX idx_tree_node_resource_in;
+CREATE INDEX idx_tree_node_resource_in ON tree_node (resource_uri_id_part, resource_uri_ns_part_id, tree_arrangement_id);
+
+DROP INDEX idx_tree_node_name_id_in;
+CREATE INDEX idx_tree_node_name_id_in ON tree_node (name_id, tree_arrangement_id);
+
+DROP INDEX idx_tree_node_instance_id_in;
+CREATE INDEX idx_tree_node_instance_id_in ON tree_node (instance_id, tree_arrangement_id);
