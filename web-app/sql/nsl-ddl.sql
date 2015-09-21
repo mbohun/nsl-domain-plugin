@@ -1038,7 +1038,11 @@
 
     create index Name_Source_Index on name (namespace_id, source_id, source_system);
 
+    create index name_parent_id_Index on name (parent_id);
+
     create index Name_sanctioningAuthor_Index on name (sanctioning_author_id);
+
+    create index name_second_parent_id_Index on name (second_parent_id);
 
     create index Name_Simple_Name_Index on name (simple_name);
 
@@ -1569,11 +1573,11 @@
     create sequence hibernate_sequence;
 
     
-alter table instance ADD CONSTRAINT citescheck check (cites_id is null or cited_by_id is not null);
+ALTER TABLE instance ADD CONSTRAINT citescheck CHECK (cites_id IS NULL OR cited_by_id IS NOT NULL);
 
-create index name_lower_f_unaccent_full_name_like on name (lower(f_unaccent(full_name)) varchar_pattern_ops);
+CREATE INDEX name_lower_f_unaccent_full_name_like ON name (lower(f_unaccent(full_name)) varchar_pattern_ops);
 
-insert into db_version (id, version) values (1, 10);-- 
+INSERT INTO db_version (id, version) VALUES (1, 10);-- 
 -- This script sets up the base data for the boatree app. This includes the 'end' tree, out in-house namespaces, and the empty nsl/apc/afd trees
 --
 

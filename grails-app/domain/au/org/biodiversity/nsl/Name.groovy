@@ -108,6 +108,8 @@ class Name {
         exBaseAuthor index: 'Name_exBaseAuthor_Index'
         sanctioningAuthor index: 'Name_sanctioningAuthor_Index'
         whyIsThisHere index: "Name_whyIsThisHere_Index"
+        parent index: "name_parent_id_Index"
+        secondParent index: "name_second_parent_id_Index"
 
         updatedAt sqlType: 'timestamp with time zone'
         createdAt sqlType: 'timestamp with time zone'
