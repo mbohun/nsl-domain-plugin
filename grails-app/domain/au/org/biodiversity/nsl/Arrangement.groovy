@@ -16,6 +16,7 @@
 package au.org.biodiversity.nsl
 
 class Arrangement {
+	Namespace namespace
 	ArrangementType arrangementType
 	String label
 	String title
@@ -31,12 +32,14 @@ class Arrangement {
 		version column: 'lock_version', defaultValue: "0"
 
 		arrangementType column: 'tree_type', sqlType: 'bpchar', length: 1
+		namespace index: 'tree_arrangement_label', unique: true, nullable: true
 		label index: 'tree_arrangement_label', unique: true, nullable: true
 		synthetic column: 'is_synthetic', sqlType: 'bpchar', length: 1
 		node index: 'tree_arrangement_node'
 	}
 
 	static constraints = {
+		namespace nullable: true //
 		node nullable: true // this is needed for chicken-and-egg reasons.
 		label maxSize: 50, nullable: true // some tree roots are synthetic and have no label
 		title maxSize: 50, nullable: true

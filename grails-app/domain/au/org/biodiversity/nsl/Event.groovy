@@ -18,6 +18,7 @@ package au.org.biodiversity.nsl
 import java.sql.Timestamp
 
 class Event {
+	Namespace namespace
 	Timestamp timeStamp
 	String authUser
 	String note
@@ -33,5 +34,8 @@ class Event {
     }
 
 
-	static constraints = {  note nullable:true  }
+	static constraints = {
+		namespace nullable: true //
+		note nullable:true  //
+	}
 }
