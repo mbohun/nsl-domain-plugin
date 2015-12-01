@@ -81,7 +81,7 @@ class Node {
 		literal index: 'idx_tree_node_literal'
 
 
-		synthetic column: 'internal_type', sqlType: 'bpchar', length: 1
+		internalType column: 'internal_type', sqlType: 'bpchar', length: 1
 		synthetic column: 'is_synthetic', sqlType: 'bpchar', length: 1, type: 'yes_no'
 	}
 

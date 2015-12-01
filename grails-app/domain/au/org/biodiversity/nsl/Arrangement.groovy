@@ -32,8 +32,8 @@ class Arrangement {
 		version column: 'lock_version', defaultValue: "0"
 
 		arrangementType column: 'tree_type', sqlType: 'bpchar', length: 1
-		namespace index: 'tree_arrangement_label', unique: true, nullable: true
-		label index: 'tree_arrangement_label', unique: true, nullable: true
+		namespace index: 'tree_arrangement_label'
+		label index: 'tree_arrangement_label'
 		synthetic column: 'is_synthetic', sqlType: 'bpchar', length: 1
 		node index: 'tree_arrangement_node'
 	}
