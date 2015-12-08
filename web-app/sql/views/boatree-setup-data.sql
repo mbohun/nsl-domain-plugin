@@ -235,7 +235,7 @@ update tree_arrangement set node_id = 0;
 
 -- create TMP tree (used for testing, dev)
 
-insert into tree_arrangement(id, lock_version, tree_type, is_synthetic, label, description) 
+insert into tree_arrangement(id, lock_version, tree_type, is_synthetic, label, description)
 values (nextval('nsl_global_seq'), 1, 'P', 'N', 'TMP','Temp classification for testing forms');
 
 insert into tree_node(id, internal_type, lock_version, is_synthetic, tree_arrangement_id, type_uri_ns_part_id, type_uri_id_part) 
@@ -286,5 +286,12 @@ insert into tree_event (id, lock_version, time_stamp, auth_user, note)
 values (nextval('nsl_global_seq'), 1, now(), 'NSL SCHEMA', 'Initial trees');
 
 update tree_node set checked_in_at_id = currval('nsl_global_seq') where id <> 0;
+
+
+-- I am assuming that we are using the APNI shard.
+
+update tree_event set namespace_id = (select id from namespace where name = 'APNI') where id <> 0;
+
+update tree_arrangement set namespace_id = (select id from namespace where name = 'APNI') where id <> 0;
 
 commit;
