@@ -333,6 +333,7 @@
     drop table if exists why_is_this_here cascade;
 
     drop sequence hibernate_sequence;
+    create sequence hibernate_sequence;
 
     drop sequence nsl_global_seq;
     create sequence nsl_global_seq minvalue 1000 maxvalue 10000000;
@@ -1585,9 +1586,566 @@
         foreign key (owner_uri_ns_part_id) 
         references tree_uri_ns;
 
-    create sequence hibernate_sequence;
+    
 
     
+ALTER TABLE instance ADD CONSTRAINT citescheck CHECK (cites_id IS NULL OR cited_by_id IS NOT NULL);
+
+CREATE INDEX name_lower_f_unaccent_full_name_like ON name (lower(f_unaccent(full_name)) varchar_pattern_ops);
+
+CREATE INDEX ref_citation_text_index ON reference USING gin(to_tsvector('english'::regconfig,f_unaccent(coalesce((citation)::text,''::text))));
+
+INSERT INTO db_version (id, version) VALUES (1, 11);
+-- 
+-- This script sets up the base data for the boatree app. This includes the 'end' tree, out in-house namespaces, and the empty nsl/apc/afd trees
+--
+
+delete from tree_link;
+update tree_arrangement set node_id = null;
+delete from tree_node;
+delete from tree_arrangement;
+delete from tree_event;
+delete from tree_uri_ns;
+
+
+-- THESE IDS ARE SYSTEM-WIDE CONSTANTS. THEY MAY APPEAR AS MAGIC NUMBERS IN CODE.
+-- LABELS ARE ALSO MAGIC NUMBERS, USUALLY FETCHED BY THE tree_get_ns_id() FUNCTION.
+-- It's 12:03 AM, and the labels I pick right now are what we are stuck with forever. I'll make 'em short.
+
+-- I use ID zero because the 'no namespace' namespace is a null object. Its purpose is so that we don't have to outer join
+-- every time we write a query that (for instance) constructs the taxon_uri for a node
+-- we include this explicitly so that we dont have to outer join all over the shop.
+
+insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
+	0, 1,
+	'', 
+	'none', 'no namespace',
+	'No namespace - the ID contains the full URI.',
+	0, null,
+	null, null
+);
+
+-- we include this exoplicitly so that the null tree and node URI reliably have ids (1,0)
+insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
+	1, 1,
+	'http://biodiversity.org.au/voc/boatree/BOATREE#', 
+	'boatree-voc',
+	'BOATREE',
+	'Top level BOATREE vocabulary.',
+	0, 'http://biodiversity.org.au/voc/boatree/BOATREE',
+	null, null
+);
+
+insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
+	nextval('nsl_global_seq'), 1, 
+	'http://biodiversity.org.au/boatree/voc/', 
+	'voc', 'voc namespace',
+	'Namespace of the vocabularies served by this instance.',
+	0, null,
+	null, null
+);
+
+update tree_uri_ns
+set owner_uri_ns_part_id = (select id from tree_uri_ns where label = 'voc'),
+	owner_uri_id_part = 'voc'
+where label = 'voc';
+
+insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
+	nextval('nsl_global_seq'), 1, 
+	'http://biodiversity.org.au/boatree/voc/ns#', 
+	'ns', 'uri_ns namespace',
+	'Namespace of the uri namespaces.',
+	(select id from tree_uri_ns where label = 'voc'), 'ns',
+	null, null
+);
+
+insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
+	nextval('nsl_global_seq'), 1, 
+	'http://biodiversity.org.au/boatree/classification/', 
+	'clsf', 'classification namespace',
+	'Namespace for top-level public trees, by text identifier.',
+	(select id from tree_uri_ns where label = 'voc'), 'classification',
+	null, null
+);
+
+insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
+	nextval('nsl_global_seq'), 1, 
+	'http://biodiversity.org.au/boatree/arrangement/', 
+	'arr', 'arrangement namespace',
+	'Namespace for all arrangemnts, by physical id.',
+	0, null,
+	null, null
+);
+
+insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
+	nextval('nsl_global_seq'), 1, 
+	'http://biodiversity.org.au/boatree/node/', 
+	'node', 'arrangement node namespace',
+	'Namespace for arrangement nodes.',
+	0, null,
+	null, null
+);
+
+insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
+	nextval('nsl_global_seq'), 1, 
+	'http://www.w3.org/2001/XMLSchema#', 
+	'xs', 'XML Schema',
+	'Base datatypes.',
+	0, 'http://www.w3.org/1999/02/22-rdf-syntax-ns',
+	null, null
+);
+
+insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
+	nextval('nsl_global_seq'), 1, 
+	'http://www.w3.org/1999/02/22-rdf-syntax-ns#', 
+	'rdf', 'rdf namespace',
+	'Namespace for rdf.',
+	0, 'http://www.w3.org/1999/02/22-rdf-syntax-ns',
+	null, null
+);
+
+insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
+	nextval('nsl_global_seq'), 1, 
+	'http://www.w3.org/2000/01/rdf-schema#', 
+	'rdfs', 'rdf schema namespace',
+	'Namespace for rdf schema.',
+	0, 'http://www.w3.org/2000/01/rdf-schema',
+	null, null
+);
+
+insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
+	nextval('nsl_global_seq'), 1, 
+	'http://purl.org/dc/elements/1.1/', 
+	'dc', 'dublin core',
+	'Namespace for Dublin Core.',
+	0, 'http://purl.org/dc/elements/1.1',
+	null, null
+);
+
+insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
+	nextval('nsl_global_seq'), 1, 
+	'http://purl.org/dc/terms/', 
+	'dcterms', 'dublin core terms',
+	'Namespace for Dublin Core terms.',
+	0, 'http://purl.org/dc/terms',
+	null, null
+);
+
+insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
+	nextval('nsl_global_seq'), 1, 
+	'http://www.w3.org/2002/07/owl#', 
+	'owl', 'Web Ontology Language',
+	'Namespace for Web Ontology Language (OWL).',
+	0, 'http://www.w3.org/2002/07/owl',
+	null, null
+);
+
+-- not sure about these. Is Greg's stuff keeping the apni ids? Do we need a new namespace for
+-- APC names/taxa?
+
+insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
+	nextval('nsl_global_seq'), 1, 
+	'http://biodiversity.org.au/apni.name/', 
+	'apni-name', 'APNI name', 
+	'An APNI name.',
+	0, null,
+	1, 'PLANT_NAME'
+);
+
+insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
+	nextval('nsl_global_seq'), 1, 
+	'http://biodiversity.org.au/apni.taxon/', 
+	'apni-taxon', 'APNI taxon',
+	'An APNI taxon.',
+	0, null,
+	null, null
+);
+
+insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
+	nextval('nsl_global_seq'), 1, 
+	'http://biodiversity.org.au/afd.name/', 
+	'afd-name', 'AFD name', 
+	'An AFD name.',
+	0, null,
+	null, null
+);
+
+insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
+	nextval('nsl_global_seq'), 1, 
+	'http://biodiversity.org.au/afd.taxon/', 
+	'afd-taxon', 'AFD taxon',
+	'An AFD taxon.',
+	0, null,
+	null, null
+);
+
+insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
+	nextval('nsl_global_seq'), 1, 
+	'http://biodiversity.org.au/nsl.name/', 
+	'nsl-name', 'NSL name',
+	'An NSL name.',
+	0, null,
+	null, null
+);
+
+insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
+	nextval('nsl_global_seq'), 1, 
+	'http://biodiversity.org.au/nsl.instance/', 
+	'nsl-instance', 'NSL instance',
+	'An NSL instance.',
+	0, null,
+	null, null
+);
+
+insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
+	nextval('nsl_global_seq'), 1, 
+	'http://biodiversity.org.au/voc/apc/APC#', 
+	'apc-voc', 'APC vocabulary',
+	'Vocabulary terms relating specifically to the APC tree.',
+	0, null,
+	null, null
+);
+
+insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
+	nextval('nsl_global_seq'), 1, 
+	'http://biodiversity.org.au/voc/apc/concept/', 
+	'apc-concept', 'APC placement',
+	'APC_CONCEPT.APC_ID from APNI.',
+	0, null,
+	null, null
+);
+
+-- create the end node. global across all graphs that make use of this structure and ontology
+-- the physical id of the end tree and the node are both zero.
+-- THIS IS A  MAGIC NUMBER AND MAY APPEAR IN CODE.
+
+-- the end node is a null object. It means "this node has been replaced and is no longer current, but is has not been replaced by anything".
+-- If I did not have an end node, then I would have to keep a "status" field on the node table - I'd be spreading the info over two fields, two
+-- rdf and json properties, and creating a situation where inconsistent data becomes possible.
+
+insert into tree_arrangement(id, lock_version, tree_type, is_synthetic, label, description) 
+values (0, 1, 'E', 'N', 'END-TREE', 'The END tree. This tree is the same abstract object across all instances of this data structure.');
+
+insert into tree_node(id, internal_type, lock_version, is_synthetic, tree_arrangement_id, type_uri_ns_part_id, type_uri_id_part) 
+values (0, 'S', 1, 'N', 0, 1, 'EndNode');
+
+update tree_arrangement set node_id = 0;
+
+-- create TMP tree (used for testing, dev)
+
+insert into tree_arrangement(id, lock_version, tree_type, is_synthetic, label, description)
+values (nextval('nsl_global_seq'), 1, 'P', 'N', 'TMP','Temp classification for testing forms');
+
+insert into tree_node(id, internal_type, lock_version, is_synthetic, tree_arrangement_id, type_uri_ns_part_id, type_uri_id_part) 
+values (
+	nextval('nsl_global_seq'), 'S', 1, 'N',
+	(select id from tree_arrangement where tree_type = 'P' and label = 'TMP'),
+	(select id from tree_uri_ns where label='boatree-voc'), 'classification-node'
+);
+
+update tree_arrangement set node_id = currval('nsl_global_seq') 
+where tree_type = 'P' and label = 'TMP';
+
+insert into tree_node(id, internal_type, lock_version, is_synthetic, tree_arrangement_id, type_uri_ns_part_id, type_uri_id_part) 
+values (
+	nextval('nsl_global_seq'), 'T', 1, 'N',
+	(select id from tree_arrangement where tree_type = 'P' and label = 'TMP'),
+	(select id from tree_uri_ns where label='boatree-voc'), 'classification-root'
+);
+
+-- link all classification root nodes to the classifictaion node nodes. Note that the classifications created above (AFD, NSL, APC, TMP)
+-- are not complete until this step is done.
+
+insert into tree_link(id, lock_version, is_synthetic, supernode_id, subnode_id,  type_uri_ns_part_id, type_uri_id_part, versioning_method, link_seq)
+select
+	nextval('nsl_global_seq'), 1, 'N',
+	t.node_id, r_node.id,
+	(select id from tree_uri_ns where label='boatree-voc'), 'classification-root-link',
+	'T', 1
+from tree_arrangement t, tree_node r_node
+where
+t.id = r_node.tree_arrangement_id
+and r_node.type_uri_id_part = 'classification-root';
+
+-- finally, create a tree event for this current load and set it as the event for the various setup operations
+-- that we have just done
+-- I will use 'NSL-SCHEMA' as the username for now
+
+-- zero event for the creation of the end node and tree
+
+insert into tree_event (id, lock_version, time_stamp, auth_user, note)
+values (0, 1, now(), 'NSL SCHEMA', 'Event zero - construction of end node');
+
+update tree_node set checked_in_at_id = 0 where id = 0;
+
+-- event for the creation of the site-specific AFD, APC, NSL and TMP trees
+
+insert into tree_event (id, lock_version, time_stamp, auth_user, note)
+values (nextval('nsl_global_seq'), 1, now(), 'NSL SCHEMA', 'Initial trees');
+
+update tree_node set checked_in_at_id = currval('nsl_global_seq') where id <> 0;
+
+
+-- I am assuming that we are using the APNI shard.
+
+update tree_event set namespace_id = (select id from namespace where name = 'APNI') where id <> 0;
+
+update tree_arrangement set namespace_id = (select id from namespace where name = 'APNI') where id <> 0;
+
+commit;
+CREATE OR REPLACE FUNCTION name_notification()
+  RETURNS TRIGGER AS $name_note$
+BEGIN
+  IF (TG_OP = 'DELETE')
+  THEN
+    INSERT INTO notification (id, version, message, object_id)
+      SELECT
+        nextval('hibernate_sequence'),
+        0,
+        'name deleted',
+        OLD.id;
+    RETURN OLD;
+  ELSIF (TG_OP = 'UPDATE')
+    THEN
+      INSERT INTO notification (id, version, message, object_id)
+        SELECT
+          nextval('hibernate_sequence'),
+          0,
+          'name updated',
+          NEW.id;
+      RETURN NEW;
+  ELSIF (TG_OP = 'INSERT')
+    THEN
+      INSERT INTO notification (id, version, message, object_id)
+        SELECT
+          nextval('hibernate_sequence'),
+          0,
+          'name created',
+          NEW.id;
+      RETURN NEW;
+  END IF;
+  RETURN NULL;
+END;
+$name_note$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER name_update
+AFTER INSERT OR UPDATE OR DELETE ON name
+FOR EACH ROW
+EXECUTE PROCEDURE name_notification();
+
+CREATE OR REPLACE FUNCTION author_notification()
+  RETURNS TRIGGER AS $author_note$
+BEGIN
+  IF (TG_OP = 'DELETE')
+  THEN
+    INSERT INTO notification (id, version, message, object_id)
+      SELECT
+        nextval('hibernate_sequence'),
+        0,
+        'author deleted',
+        OLD.id;
+    RETURN OLD;
+  ELSIF (TG_OP = 'UPDATE')
+    THEN
+      INSERT INTO notification (id, version, message, object_id)
+        SELECT
+          nextval('hibernate_sequence'),
+          0,
+          'author updated',
+          NEW.id;
+      RETURN NEW;
+  ELSIF (TG_OP = 'INSERT')
+    THEN
+      INSERT INTO notification (id, version, message, object_id)
+        SELECT
+          nextval('hibernate_sequence'),
+          0,
+          'author created',
+          NEW.id;
+      RETURN NEW;
+  END IF;
+  RETURN NULL;
+END;
+$author_note$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER author_update
+AFTER INSERT OR UPDATE OR DELETE ON author
+FOR EACH ROW
+EXECUTE PROCEDURE author_notification();
+-- 
+-- this script assumes that we are using POSTGRES
+-- 
+
+-- Namespace
+
+-- Event
+
+
+-- Arrangement
+
+alter table tree_arrangement add constraint chk_tree_arrangement_type check (tree_type IN ('E','P','U','Z'));
+
+alter table tree_arrangement add constraint chk_classification_has_label check (
+	tree_type not in ('E', 'P')
+	or (
+		label is not null
+	)
+);
+
+-- Node
+
+alter table tree_node add constraint chk_arrangement_synthetic_yn check (is_synthetic IN ('N','Y'));
+alter table tree_node add constraint chk_internal_type_enum check (internal_type IN ('S','Z','T','D','V'));
+
+alter table tree_node add constraint chk_internal_type_S check ( 
+  	internal_type <> 'S'
+  	or (
+	  		name_uri_ns_part_id is null 
+	  	and taxon_uri_ns_part_id is null 
+	  	and resource_uri_ns_part_id is null
+	  	and literal is null
+  	)
+);
+
+alter table tree_node add constraint chk_internal_type_T check ( 
+  	internal_type <> 'T'
+  	or (
+	  	literal is null
+  	)
+);
+
+alter table tree_node add constraint chk_internal_type_D check ( 
+  	internal_type <> 'D'
+  	or (
+	  		name_uri_ns_part_id is null 
+	  	and taxon_uri_ns_part_id is null 
+	  	and literal is null
+  	)
+);
+
+alter table tree_node add constraint chk_internal_type_V check ( 
+  	internal_type <> 'V'
+  	or (
+	  		name_uri_ns_part_id is null 
+	  	and taxon_uri_ns_part_id is null 
+	  	and (
+	  		(resource_uri_ns_part_id is not null and literal is null)
+	  		or
+	  		(resource_uri_ns_part_id is null and literal is not null)
+	  	)
+  	)
+);
+
+alter table tree_node add constraint chk_tree_node_synthetic_yn check (is_synthetic IN ('N','Y'));
+
+alter table tree_node add constraint chk_tree_node_name_matches check (name_id is null or cast(name_id as varchar)=name_uri_id_part);
+
+alter table tree_node add constraint chk_tree_node_instance_matches check (instance_id is null or cast(instance_id as varchar)=taxon_uri_id_part);
+
+-- Link
+
+-- a node may only have one link for each link_seq number
+create unique index idx_tree_link_seq on tree_link(supernode_id, link_seq);
+alter table tree_link add constraint chk_tree_link_seq_positive CHECK (link_seq >= 1);
+alter table tree_link add constraint chk_tree_link_vmethod CHECK (versioning_method IN ('F','V','T'));
+alter table tree_link add constraint chk_tree_link_synthetic_yn CHECK (is_synthetic IN ('N','Y'));
+alter table tree_link add constraint chk_tree_link_sup_not_end  check (supernode_id <> 0);
+alter table tree_link add constraint chk_tree_link_sub_not_end  check (subnode_id <> 0);
+
+-- fixing the column ordering in these indexes. Big effects on performance.
+
+DROP INDEX idx_tree_node_taxon_in;
+CREATE INDEX idx_tree_node_taxon_in ON tree_node (taxon_uri_id_part, taxon_uri_ns_part_id, tree_arrangement_id);
+
+DROP INDEX idx_tree_node_name_in;
+CREATE INDEX idx_tree_node_name_in ON tree_node (name_uri_id_part, name_uri_ns_part_id, tree_arrangement_id);
+
+DROP INDEX idx_tree_node_resource_in;
+CREATE INDEX idx_tree_node_resource_in ON tree_node (resource_uri_id_part, resource_uri_ns_part_id, tree_arrangement_id);
+
+DROP INDEX idx_tree_node_name_id_in;
+CREATE INDEX idx_tree_node_name_id_in ON tree_node (name_id, tree_arrangement_id);
+
+DROP INDEX idx_tree_node_instance_id_in;
+CREATE INDEX idx_tree_node_instance_id_in ON tree_node (instance_id, tree_arrangement_id);
+-- grant to the web user as required
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_arrangement TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_link TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_node TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_uri_ns TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_tree_path TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON id_mapper TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON author TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON delayed_jobs TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON external_ref TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON help_topic TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON instance TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON instance_type TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON instance_note TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON instance_note_key TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON language TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON locale TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON name TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_category TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_group TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_part TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_rank TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_status TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_type TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON namespace TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON nomenclatural_event_type TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ref_author_role TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ref_type TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON reference TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON trashed_item TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON trashing_event TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON user_query TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON nsl_simple_name TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON notification TO web;
+GRANT INSERT, UPDATE, DELETE, SELECT ON name_tag TO web;
+GRANT INSERT, UPDATE, DELETE, SELECT ON name_tag_name TO web;
+GRANT INSERT, UPDATE, DELETE, SELECT ON comment TO web;
+GRANT SELECT, UPDATE ON nsl_global_seq TO web;
+GRANT SELECT, UPDATE ON hibernate_sequence TO web;
+
+GRANT SELECT ON tree_arrangement TO read_only;
+GRANT SELECT ON tree_link TO read_only;
+GRANT SELECT ON tree_node TO read_only;
+GRANT SELECT ON tree_uri_ns TO read_only;
+GRANT SELECT ON name_tree_path TO read_only;
+GRANT SELECT ON id_mapper TO read_only;
+GRANT SELECT ON author TO read_only;
+GRANT SELECT ON delayed_jobs TO read_only;
+GRANT SELECT ON external_ref TO read_only;
+GRANT SELECT ON help_topic TO read_only;
+GRANT SELECT ON instance TO read_only;
+GRANT SELECT ON instance_type TO read_only;
+GRANT SELECT ON instance_note TO read_only;
+GRANT SELECT ON instance_note_key TO read_only;
+GRANT SELECT ON language TO read_only;
+GRANT SELECT ON locale TO read_only;
+GRANT SELECT ON name TO read_only;
+GRANT SELECT ON name_category TO read_only;
+GRANT SELECT ON name_group TO read_only;
+GRANT SELECT ON name_part TO read_only;
+GRANT SELECT ON name_rank TO read_only;
+GRANT SELECT ON name_status TO read_only;
+GRANT SELECT ON name_type TO read_only;
+GRANT SELECT ON namespace TO read_only;
+GRANT SELECT ON nomenclatural_event_type TO read_only;
+GRANT SELECT ON ref_author_role TO read_only;
+GRANT SELECT ON ref_type TO read_only;
+GRANT SELECT ON reference TO read_only;
+GRANT SELECT ON trashed_item TO read_only;
+GRANT SELECT ON trashing_event TO read_only;
+GRANT SELECT ON user_query TO read_only;
+GRANT SELECT ON nsl_simple_name TO read_only;
+GRANT SELECT ON notification TO read_only;
+GRANT INSERT ON name_tag TO read_only;
+GRANT INSERT ON name_tag_name TO read_only;
+GRANT INSERT ON comment TO read_only;
 -- An audit history is important on most tables. Provide an audit trigger that logs to
 -- a dedicated audit table for the major relations.
 --
@@ -1838,550 +2396,3 @@ $body$;
 -- select audit.audit_table('instance');
 -- select audit.audit_table('name');
 -- select audit.audit_table('reference');
--- 
--- this script assumes that we are using POSTGRES
--- 
-
--- Namespace
-
--- Event
-
-
--- Arrangement
-
-alter table tree_arrangement add constraint chk_tree_arrangement_type check (tree_type IN ('E','P','U','Z'));
-
-alter table tree_arrangement add constraint chk_classification_has_label check (
-	tree_type not in ('E', 'P')
-	or (
-		label is not null
-	)
-);
-
--- Node
-
-alter table tree_node add constraint chk_arrangement_synthetic_yn check (is_synthetic IN ('N','Y'));
-alter table tree_node add constraint chk_internal_type_enum check (internal_type IN ('S','Z','T','D','V'));
-
-alter table tree_node add constraint chk_internal_type_S check ( 
-  	internal_type <> 'S'
-  	or (
-	  		name_uri_ns_part_id is null 
-	  	and taxon_uri_ns_part_id is null 
-	  	and resource_uri_ns_part_id is null
-	  	and literal is null
-  	)
-);
-
-alter table tree_node add constraint chk_internal_type_T check ( 
-  	internal_type <> 'T'
-  	or (
-	  	literal is null
-  	)
-);
-
-alter table tree_node add constraint chk_internal_type_D check ( 
-  	internal_type <> 'D'
-  	or (
-	  		name_uri_ns_part_id is null 
-	  	and taxon_uri_ns_part_id is null 
-	  	and literal is null
-  	)
-);
-
-alter table tree_node add constraint chk_internal_type_V check ( 
-  	internal_type <> 'V'
-  	or (
-	  		name_uri_ns_part_id is null 
-	  	and taxon_uri_ns_part_id is null 
-	  	and (
-	  		(resource_uri_ns_part_id is not null and literal is null)
-	  		or
-	  		(resource_uri_ns_part_id is null and literal is not null)
-	  	)
-  	)
-);
-
-alter table tree_node add constraint chk_tree_node_synthetic_yn check (is_synthetic IN ('N','Y'));
-
-alter table tree_node add constraint chk_tree_node_name_matches check (name_id is null or cast(name_id as varchar)=name_uri_id_part);
-
-alter table tree_node add constraint chk_tree_node_instance_matches check (instance_id is null or cast(instance_id as varchar)=taxon_uri_id_part);
-
--- Link
-
--- a node may only have one link for each link_seq number
-create unique index idx_tree_link_seq on tree_link(supernode_id, link_seq);
-alter table tree_link add constraint chk_tree_link_seq_positive CHECK (link_seq >= 1);
-alter table tree_link add constraint chk_tree_link_vmethod CHECK (versioning_method IN ('F','V','T'));
-alter table tree_link add constraint chk_tree_link_synthetic_yn CHECK (is_synthetic IN ('N','Y'));
-alter table tree_link add constraint chk_tree_link_sup_not_end  check (supernode_id <> 0);
-alter table tree_link add constraint chk_tree_link_sub_not_end  check (subnode_id <> 0);
-
--- fixing the column ordering in these indexes. Big effects on performance.
-
-DROP INDEX idx_tree_node_taxon_in;
-CREATE INDEX idx_tree_node_taxon_in ON tree_node (taxon_uri_id_part, taxon_uri_ns_part_id, tree_arrangement_id);
-
-DROP INDEX idx_tree_node_name_in;
-CREATE INDEX idx_tree_node_name_in ON tree_node (name_uri_id_part, name_uri_ns_part_id, tree_arrangement_id);
-
-DROP INDEX idx_tree_node_resource_in;
-CREATE INDEX idx_tree_node_resource_in ON tree_node (resource_uri_id_part, resource_uri_ns_part_id, tree_arrangement_id);
-
-DROP INDEX idx_tree_node_name_id_in;
-CREATE INDEX idx_tree_node_name_id_in ON tree_node (name_id, tree_arrangement_id);
-
-DROP INDEX idx_tree_node_instance_id_in;
-CREATE INDEX idx_tree_node_instance_id_in ON tree_node (instance_id, tree_arrangement_id);
--- 
--- This script sets up the base data for the boatree app. This includes the 'end' tree, out in-house namespaces, and the empty nsl/apc/afd trees
---
-
-delete from tree_link;
-update tree_arrangement set node_id = null;
-delete from tree_node;
-delete from tree_arrangement;
-delete from tree_event;
-delete from tree_uri_ns;
-
-
--- THESE IDS ARE SYSTEM-WIDE CONSTANTS. THEY MAY APPEAR AS MAGIC NUMBERS IN CODE.
--- LABELS ARE ALSO MAGIC NUMBERS, USUALLY FETCHED BY THE tree_get_ns_id() FUNCTION.
--- It's 12:03 AM, and the labels I pick right now are what we are stuck with forever. I'll make 'em short.
-
--- I use ID zero because the 'no namespace' namespace is a null object. Its purpose is so that we don't have to outer join
--- every time we write a query that (for instance) constructs the taxon_uri for a node
--- we include this explicitly so that we dont have to outer join all over the shop.
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	0, 1,
-	'', 
-	'none', 'no namespace',
-	'No namespace - the ID contains the full URI.',
-	0, null,
-	null, null
-);
-
--- we include this exoplicitly so that the null tree and node URI reliably have ids (1,0)
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	1, 1,
-	'http://biodiversity.org.au/voc/boatree/BOATREE#', 
-	'boatree-voc',
-	'BOATREE',
-	'Top level BOATREE vocabulary.',
-	0, 'http://biodiversity.org.au/voc/boatree/BOATREE',
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/boatree/voc/', 
-	'voc', 'voc namespace',
-	'Namespace of the vocabularies served by this instance.',
-	0, null,
-	null, null
-);
-
-update tree_uri_ns
-set owner_uri_ns_part_id = (select id from tree_uri_ns where label = 'voc'),
-	owner_uri_id_part = 'voc'
-where label = 'voc';
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/boatree/voc/ns#', 
-	'ns', 'uri_ns namespace',
-	'Namespace of the uri namespaces.',
-	(select id from tree_uri_ns where label = 'voc'), 'ns',
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/boatree/classification/', 
-	'clsf', 'classification namespace',
-	'Namespace for top-level public trees, by text identifier.',
-	(select id from tree_uri_ns where label = 'voc'), 'classification',
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/boatree/arrangement/', 
-	'arr', 'arrangement namespace',
-	'Namespace for all arrangemnts, by physical id.',
-	0, null,
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/boatree/node/', 
-	'node', 'arrangement node namespace',
-	'Namespace for arrangement nodes.',
-	0, null,
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://www.w3.org/2001/XMLSchema#', 
-	'xs', 'XML Schema',
-	'Base datatypes.',
-	0, 'http://www.w3.org/1999/02/22-rdf-syntax-ns',
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://www.w3.org/1999/02/22-rdf-syntax-ns#', 
-	'rdf', 'rdf namespace',
-	'Namespace for rdf.',
-	0, 'http://www.w3.org/1999/02/22-rdf-syntax-ns',
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://www.w3.org/2000/01/rdf-schema#', 
-	'rdfs', 'rdf schema namespace',
-	'Namespace for rdf schema.',
-	0, 'http://www.w3.org/2000/01/rdf-schema',
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://purl.org/dc/elements/1.1/', 
-	'dc', 'dublin core',
-	'Namespace for Dublin Core.',
-	0, 'http://purl.org/dc/elements/1.1',
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://purl.org/dc/terms/', 
-	'dcterms', 'dublin core terms',
-	'Namespace for Dublin Core terms.',
-	0, 'http://purl.org/dc/terms',
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://www.w3.org/2002/07/owl#', 
-	'owl', 'Web Ontology Language',
-	'Namespace for Web Ontology Language (OWL).',
-	0, 'http://www.w3.org/2002/07/owl',
-	null, null
-);
-
--- not sure about these. Is Greg's stuff keeping the apni ids? Do we need a new namespace for
--- APC names/taxa?
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/apni.name/', 
-	'apni-name', 'APNI name', 
-	'An APNI name.',
-	0, null,
-	1, 'PLANT_NAME'
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/apni.taxon/', 
-	'apni-taxon', 'APNI taxon',
-	'An APNI taxon.',
-	0, null,
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/afd.name/', 
-	'afd-name', 'AFD name', 
-	'An AFD name.',
-	0, null,
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/afd.taxon/', 
-	'afd-taxon', 'AFD taxon',
-	'An AFD taxon.',
-	0, null,
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/nsl.name/', 
-	'nsl-name', 'NSL name',
-	'An NSL name.',
-	0, null,
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/nsl.instance/', 
-	'nsl-instance', 'NSL instance',
-	'An NSL instance.',
-	0, null,
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/voc/apc/APC#', 
-	'apc-voc', 'APC vocabulary',
-	'Vocabulary terms relating specifically to the APC tree.',
-	0, null,
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/voc/apc/concept/', 
-	'apc-concept', 'APC placement',
-	'APC_CONCEPT.APC_ID from APNI.',
-	0, null,
-	null, null
-);
-
--- create the end node. global across all graphs that make use of this structure and ontology
--- the physical id of the end tree and the node are both zero.
--- THIS IS A  MAGIC NUMBER AND MAY APPEAR IN CODE.
-
--- the end node is a null object. It means "this node has been replaced and is no longer current, but is has not been replaced by anything".
--- If I did not have an end node, then I would have to keep a "status" field on the node table - I'd be spreading the info over two fields, two
--- rdf and json properties, and creating a situation where inconsistent data becomes possible.
-
-insert into tree_arrangement(id, lock_version, tree_type, is_synthetic, label, description) 
-values (0, 1, 'E', 'N', 'END-TREE', 'The END tree. This tree is the same abstract object across all instances of this data structure.');
-
-insert into tree_node(id, internal_type, lock_version, is_synthetic, tree_arrangement_id, type_uri_ns_part_id, type_uri_id_part) 
-values (0, 'S', 1, 'N', 0, 1, 'EndNode');
-
-update tree_arrangement set node_id = 0;
-
--- create TMP tree (used for testing, dev)
-
-insert into tree_arrangement(id, lock_version, tree_type, is_synthetic, label, description) 
-values (nextval('nsl_global_seq'), 1, 'P', 'N', 'TMP','Temp classification for testing forms');
-
-insert into tree_node(id, internal_type, lock_version, is_synthetic, tree_arrangement_id, type_uri_ns_part_id, type_uri_id_part) 
-values (
-	nextval('nsl_global_seq'), 'S', 1, 'N',
-	(select id from tree_arrangement where tree_type = 'P' and label = 'TMP'),
-	(select id from tree_uri_ns where label='boatree-voc'), 'classification-node'
-);
-
-update tree_arrangement set node_id = currval('nsl_global_seq') 
-where tree_type = 'P' and label = 'TMP';
-
-insert into tree_node(id, internal_type, lock_version, is_synthetic, tree_arrangement_id, type_uri_ns_part_id, type_uri_id_part) 
-values (
-	nextval('nsl_global_seq'), 'T', 1, 'N',
-	(select id from tree_arrangement where tree_type = 'P' and label = 'TMP'),
-	(select id from tree_uri_ns where label='boatree-voc'), 'classification-root'
-);
-
--- link all classification root nodes to the classifictaion node nodes. Note that the classifications created above (AFD, NSL, APC, TMP)
--- are not complete until this step is done.
-
-insert into tree_link(id, lock_version, is_synthetic, supernode_id, subnode_id,  type_uri_ns_part_id, type_uri_id_part, versioning_method, link_seq)
-select
-	nextval('nsl_global_seq'), 1, 'N',
-	t.node_id, r_node.id,
-	(select id from tree_uri_ns where label='boatree-voc'), 'classification-root-link',
-	'T', 1
-from tree_arrangement t, tree_node r_node
-where
-t.id = r_node.tree_arrangement_id
-and r_node.type_uri_id_part = 'classification-root';
-
--- finally, create a tree event for this current load and set it as the event for the various setup operations
--- that we have just done
--- I will use 'NSL-SCHEMA' as the username for now
-
--- zero event for the creation of the end node and tree
-
-insert into tree_event (id, lock_version, time_stamp, auth_user, note)
-values (0, 1, now(), 'NSL SCHEMA', 'Event zero - construction of end node');
-
-update tree_node set checked_in_at_id = 0 where id = 0;
-
--- event for the creation of the site-specific AFD, APC, NSL and TMP trees
-
-insert into tree_event (id, lock_version, time_stamp, auth_user, note)
-values (nextval('nsl_global_seq'), 1, now(), 'NSL SCHEMA', 'Initial trees');
-
-update tree_node set checked_in_at_id = currval('nsl_global_seq') where id <> 0;
-
-commit;
--- grant to the web user as required
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_arrangement TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_link TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_node TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_uri_ns TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON name_tree_path TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON id_mapper TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON author TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON delayed_jobs TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON external_ref TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON help_topic TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON instance TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON instance_type TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON instance_note TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON instance_note_key TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON language TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON locale TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON name TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON name_category TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON name_group TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON name_part TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON name_rank TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON name_status TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON name_type TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON namespace TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON nomenclatural_event_type TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ref_author_role TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ref_type TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON reference TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON trashed_item TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON trashing_event TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON user_query TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON nsl_simple_name TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON notification TO web;
-GRANT INSERT, UPDATE, DELETE, SELECT ON name_tag TO web;
-GRANT INSERT, UPDATE, DELETE, SELECT ON name_tag_name TO web;
-GRANT INSERT, UPDATE, DELETE, SELECT ON comment TO web;
-GRANT SELECT, UPDATE ON nsl_global_seq TO web;
-GRANT SELECT, UPDATE ON hibernate_sequence TO web;
-
-GRANT SELECT ON tree_arrangement TO read_only;
-GRANT SELECT ON tree_link TO read_only;
-GRANT SELECT ON tree_node TO read_only;
-GRANT SELECT ON tree_uri_ns TO read_only;
-GRANT SELECT ON name_tree_path TO read_only;
-GRANT SELECT ON id_mapper TO read_only;
-GRANT SELECT ON author TO read_only;
-GRANT SELECT ON delayed_jobs TO read_only;
-GRANT SELECT ON external_ref TO read_only;
-GRANT SELECT ON help_topic TO read_only;
-GRANT SELECT ON instance TO read_only;
-GRANT SELECT ON instance_type TO read_only;
-GRANT SELECT ON instance_note TO read_only;
-GRANT SELECT ON instance_note_key TO read_only;
-GRANT SELECT ON language TO read_only;
-GRANT SELECT ON locale TO read_only;
-GRANT SELECT ON name TO read_only;
-GRANT SELECT ON name_category TO read_only;
-GRANT SELECT ON name_group TO read_only;
-GRANT SELECT ON name_part TO read_only;
-GRANT SELECT ON name_rank TO read_only;
-GRANT SELECT ON name_status TO read_only;
-GRANT SELECT ON name_type TO read_only;
-GRANT SELECT ON namespace TO read_only;
-GRANT SELECT ON nomenclatural_event_type TO read_only;
-GRANT SELECT ON ref_author_role TO read_only;
-GRANT SELECT ON ref_type TO read_only;
-GRANT SELECT ON reference TO read_only;
-GRANT SELECT ON trashed_item TO read_only;
-GRANT SELECT ON trashing_event TO read_only;
-GRANT SELECT ON user_query TO read_only;
-GRANT SELECT ON nsl_simple_name TO read_only;
-GRANT SELECT ON notification TO read_only;
-GRANT INSERT ON name_tag TO read_only;
-GRANT INSERT ON name_tag_name TO read_only;
-GRANT INSERT ON comment TO read_only;
-ALTER TABLE instance ADD CONSTRAINT citescheck CHECK (cites_id IS NULL OR cited_by_id IS NOT NULL);
-
-CREATE INDEX name_lower_f_unaccent_full_name_like ON name (lower(f_unaccent(full_name)) varchar_pattern_ops);
-
-INSERT INTO db_version (id, version) VALUES (1, 10);CREATE OR REPLACE FUNCTION name_notification()
-  RETURNS TRIGGER AS $name_note$
-BEGIN
-  IF (TG_OP = 'DELETE')
-  THEN
-    INSERT INTO notification (id, version, message, object_id)
-      SELECT
-        nextval('hibernate_sequence'),
-        0,
-        'name deleted',
-        OLD.id;
-    RETURN OLD;
-  ELSIF (TG_OP = 'UPDATE')
-    THEN
-      INSERT INTO notification (id, version, message, object_id)
-        SELECT
-          nextval('hibernate_sequence'),
-          0,
-          'name updated',
-          NEW.id;
-      RETURN NEW;
-  ELSIF (TG_OP = 'INSERT')
-    THEN
-      INSERT INTO notification (id, version, message, object_id)
-        SELECT
-          nextval('hibernate_sequence'),
-          0,
-          'name created',
-          NEW.id;
-      RETURN NEW;
-  END IF;
-  RETURN NULL;
-END;
-$name_note$ LANGUAGE plpgsql;
-
-
-CREATE TRIGGER name_update
-AFTER INSERT OR UPDATE OR DELETE ON name
-FOR EACH ROW
-EXECUTE PROCEDURE name_notification();
-
-CREATE OR REPLACE FUNCTION author_notification()
-  RETURNS TRIGGER AS $author_note$
-BEGIN
-  IF (TG_OP = 'DELETE')
-  THEN
-    INSERT INTO notification (id, version, message, object_id)
-      SELECT
-        nextval('hibernate_sequence'),
-        0,
-        'author deleted',
-        OLD.id;
-    RETURN OLD;
-  ELSIF (TG_OP = 'UPDATE')
-    THEN
-      INSERT INTO notification (id, version, message, object_id)
-        SELECT
-          nextval('hibernate_sequence'),
-          0,
-          'author updated',
-          NEW.id;
-      RETURN NEW;
-  ELSIF (TG_OP = 'INSERT')
-    THEN
-      INSERT INTO notification (id, version, message, object_id)
-        SELECT
-          nextval('hibernate_sequence'),
-          0,
-          'author created',
-          NEW.id;
-      RETURN NEW;
-  END IF;
-  RETURN NULL;
-END;
-$author_note$ LANGUAGE plpgsql;
-
-
-CREATE TRIGGER author_update
-AFTER INSERT OR UPDATE OR DELETE ON author
-FOR EACH ROW
-EXECUTE PROCEDURE author_notification();
