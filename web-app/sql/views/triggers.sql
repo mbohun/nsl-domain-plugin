@@ -79,3 +79,44 @@ CREATE TRIGGER author_update
 AFTER INSERT OR UPDATE OR DELETE ON author
 FOR EACH ROW
 EXECUTE PROCEDURE author_notification();
+
+CREATE OR REPLACE FUNCTION reference_notification()
+  RETURNS TRIGGER AS $ref_note$
+BEGIN
+  IF (TG_OP = 'DELETE')
+  THEN
+    INSERT INTO notification (id, version, message, object_id)
+      SELECT
+        nextval('hibernate_sequence'),
+        0,
+        'reference deleted',
+        OLD.id;
+    RETURN OLD;
+  ELSIF (TG_OP = 'UPDATE')
+    THEN
+      INSERT INTO notification (id, version, message, object_id)
+        SELECT
+          nextval('hibernate_sequence'),
+          0,
+          'reference updated',
+          NEW.id;
+      RETURN NEW;
+  ELSIF (TG_OP = 'INSERT')
+    THEN
+      INSERT INTO notification (id, version, message, object_id)
+        SELECT
+          nextval('hibernate_sequence'),
+          0,
+          'reference created',
+          NEW.id;
+      RETURN NEW;
+  END IF;
+  RETURN NULL;
+END;
+$ref_note$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER reference_update
+AFTER INSERT OR UPDATE OR DELETE ON author
+FOR EACH ROW
+EXECUTE PROCEDURE reference_notification();
