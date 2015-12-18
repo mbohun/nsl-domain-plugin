@@ -1,12 +1,8 @@
--- 
+-- boatree indexes and constraints
 -- this script assumes that we are using POSTGRES
--- 
 
 -- Namespace
-
 -- Event
-
-
 -- Arrangement
 
 alter table tree_arrangement add constraint chk_tree_arrangement_type check (tree_type IN ('E','P','U','Z'));

@@ -1,4 +1,4 @@
--- 
+-- boatree setup data
 -- This script sets up the base data for the boatree app. This includes the 'end' tree, out in-house namespaces, and the empty nsl/apc/afd trees
 --
 

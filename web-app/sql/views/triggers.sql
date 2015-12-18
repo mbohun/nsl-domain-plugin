@@ -1,3 +1,4 @@
+--triggers
 CREATE OR REPLACE FUNCTION name_notification()
   RETURNS TRIGGER AS $name_note$
 BEGIN

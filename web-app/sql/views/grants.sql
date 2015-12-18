@@ -1,3 +1,4 @@
+-- grants
 -- grant to the web user as required
 GRANT SELECT, INSERT, UPDATE, DELETE ON tree_arrangement TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON tree_link TO web;
