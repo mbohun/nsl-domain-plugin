@@ -1782,7 +1782,7 @@ insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns
 
 insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
 	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/nsl.name/', 
+	'e/http://id.biodiversity.org.au/name/nsl/',
 	'nsl-name', 'NSL name',
 	'An NSL name.',
 	0, null,
@@ -1791,7 +1791,7 @@ insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns
 
 insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
 	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/nsl.instance/', 
+	'http://id.biodiversity.org.au/instance/nsl/',
 	'nsl-instance', 'NSL instance',
 	'An NSL instance.',
 	0, null,

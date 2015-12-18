@@ -35,3 +35,16 @@ delete from mapper.identifier where name_space in ('APC', 'tree');
 
 delete from mapper.match
 where uri like '%/APC/%' or uri like '%/tree/%';
+
+
+-- ADDENDUM - new domain for namespaces.
+
+-- this needs to be different for the different shards because the code shares the tree_ns_id table
+-- the correct fix would be to use different namespace prefixes and to have a config item
+-- for 'what uri prefix to use for your names', or even to have it in the namespace table.
+
+update tree_uri_ns set uri = 'http://id.biodiversity.org.au/name/apni/' where label='nsl-name';
+update tree_uri_ns set uri = 'http://id.biodiversity.org.au/instance/apni/' where label='nsl-instance';
+
+--update tree_uri_ns set uri = 'http://id.biodiversity.org.au/name/ausmoss/' where label='nsl-name';
+--update tree_uri_ns set uri = 'http://id.biodiversity.org.au/instance/ausmoss/' where label='nsl-instance';
