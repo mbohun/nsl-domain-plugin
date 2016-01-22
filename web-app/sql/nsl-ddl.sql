@@ -2029,7 +2029,8 @@ EXECUTE PROCEDURE reference_notification();
 --namespace
 INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'APNI', '(description of <b>APNI</b>)', 'apni');
 INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'ANHSIR', '(description of <b>ANHSIR</b>)', 'anhsir');
-INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'AMANI', '(description of <b>AMANI</b>)', 'amani');
+INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'AUSMOSS', '(description of <b>AUSMOSS</b>)', 'ausmoss');
+INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'AUSALGAE', '(description of <b>AUSALGAE</b>)', 'ausalgae');
 --language
 INSERT INTO public.language (id, lock_version, iso6391code, iso6393code, name) VALUES (nextval('nsl_global_seq'), 0, null, 'mul', 'Multiple languages');
 INSERT INTO public.language (id, lock_version, iso6391code, iso6393code, name) VALUES (nextval('nsl_global_seq'), 0, null, 'zxx', 'No linguistic content');
@@ -2422,6 +2423,10 @@ INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_o
 INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, 'EPBC Advice', 9, '(description of <b>EPBC Advice</b>)', 'epbc-advice');
 INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, true, 'APNI', 100, '(description of <b>APNI</b>)', 'apni');
 INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, 'Type herbarium', 11, '(description of <b>Type herbarium</b>)', 'type-herbarium');
+INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, 'AMANI dist.', 11, '(description of <b>AMANI distribution</b>)', 'amani-distribution');
+INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, 'AMANI comment', 11, '(description of <b>AMANI comment</b>)', 'amani-comment');
+INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, 'Type locality', 11, '(description of <b>Type locality</b>)', 'type-locality');
+INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, 'Type specimen', 11, '(description of <b>Type specimen</b>)', 'type-specimen');
 -- instance type
 INSERT INTO public.instance_type (id, lock_version, citing, deprecated, doubtful, misapplied, name, nomenclatural, primary_instance, pro_parte, protologue, relationship, secondary_instance, sort_order, standalone, synonym, taxonomic, unsourced, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, false, false, false, '[default]', false, false, false, false, false, false, 400, false, false, false, false, '(description of <b>[default]</b>)', 'default');
 INSERT INTO public.instance_type (id, lock_version, citing, deprecated, doubtful, misapplied, name, nomenclatural, primary_instance, pro_parte, protologue, relationship, secondary_instance, sort_order, standalone, synonym, taxonomic, unsourced, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, false, false, false, '[unknown]', false, false, false, false, false, false, 400, false, false, false, false, '(description of <b>[unknown]</b>)', 'unknown');
