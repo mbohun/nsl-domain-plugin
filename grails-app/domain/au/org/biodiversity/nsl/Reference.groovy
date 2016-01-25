@@ -107,22 +107,22 @@ class Reference {
         displayTitle maxSize: 2000
         abbrevTitle nullable: true, maxSize: 2000
         year nullable: true, min: 0, max: 2999
-        volume nullable: true, maxSize: 50
-        edition nullable: true, maxSize: 50
-        pages nullable: true, maxSize: 255
+        volume nullable: true, maxSize: 100
+        edition nullable: true, maxSize: 100
+        pages nullable: true, maxSize: 1000
         verbatimReference nullable: true, maxSize: 1000
         verbatimCitation nullable: true, maxSize: 2000
         verbatimAuthor nullable: true, maxSize: 1000
         notes nullable: true, maxSize: 1000
-        publisher nullable: true, maxSize: 100
-        publishedLocation nullable: true, maxSize: 50
+        publisher nullable: true, maxSize: 1000
+        publishedLocation nullable: true, maxSize: 1000
         publicationDate nullable: true, maxSize: 50
         isbn nullable: true, maxSize: 16
         issn nullable: true, maxSize: 16
         bhlUrl nullable: true, maxSize: 4000
         tl2 nullable: true, maxSize: 30
-        citation nullable: true, maxSize: 512
-        citationHtml nullable: true, maxSize: 512
+        citation nullable: true, maxSize: 4000
+        citationHtml nullable: true, maxSize: 4000
 
         updatedBy maxSize: 1000
         sourceSystem nullable: true, maxSize: 50

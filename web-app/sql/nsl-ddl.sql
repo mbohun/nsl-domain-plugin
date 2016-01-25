@@ -797,25 +797,25 @@
         abbrev_title varchar(2000),
         author_id int8 not null,
         bhl_url varchar(4000),
-        citation varchar(512),
-        citation_html varchar(512),
+        citation varchar(4000),
+        citation_html varchar(4000),
         created_at timestamp with time zone not null,
         created_by varchar(255) not null,
         display_title varchar(2000) not null,
         doi varchar(255),
         duplicate_of_id int8,
-        edition varchar(50),
+        edition varchar(100),
         isbn varchar(16),
         issn varchar(16),
         language_id int8 not null,
         namespace_id int8 not null,
         notes varchar(1000),
-        pages varchar(255),
+        pages varchar(1000),
         parent_id int8,
         publication_date varchar(50),
         published boolean default false not null,
-        published_location varchar(50),
-        publisher varchar(100),
+        published_location varchar(1000),
+        publisher varchar(1000),
         ref_author_role_id int8 not null,
         ref_type_id int8 not null,
         source_id int8,
@@ -830,7 +830,7 @@
         verbatim_author varchar(1000),
         verbatim_citation varchar(2000),
         verbatim_reference varchar(1000),
-        volume varchar(50),
+        volume varchar(100),
         year int4,
         primary key (id)
     );
@@ -1604,7 +1604,7 @@ CREATE INDEX name_lower_f_unaccent_full_name_like ON name (lower(f_unaccent(full
 
 CREATE INDEX ref_citation_text_index ON reference USING gin(to_tsvector('english'::regconfig,f_unaccent(coalesce((citation)::text,''::text))));
 
-INSERT INTO db_version (id, version) VALUES (1, 11);
+INSERT INTO db_version (id, version) VALUES (1, 12);
 -- boatree setup data
 -- This script sets up the base data for the boatree app. This includes the 'end' tree, out in-house namespaces, and the empty nsl/apc/afd trees
 --
