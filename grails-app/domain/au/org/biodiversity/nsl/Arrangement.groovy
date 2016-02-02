@@ -21,6 +21,7 @@ class Arrangement {
 	String label
 	String title
 	String description
+	String owner
 	Node node
 
 	String synthetic  //todo make this a boolean
