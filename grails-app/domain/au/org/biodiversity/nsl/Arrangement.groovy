@@ -23,6 +23,7 @@ class Arrangement {
 	String description
 	String owner
 	Node node
+	Node workingRoot
 
 	String synthetic  //todo make this a boolean
 
@@ -37,6 +38,7 @@ class Arrangement {
 		label index: 'tree_arrangement_label'
 		synthetic column: 'is_synthetic', sqlType: 'bpchar', length: 1
 		node index: 'tree_arrangement_node'
+		workingRoot index: 'tree_arrangement_working_root'
 	}
 
 	static constraints = {
@@ -45,5 +47,6 @@ class Arrangement {
 		label maxSize: 50, nullable: true // some tree roots are synthetic and have no label
 		title maxSize: 50, nullable: true
 		description maxSize: 255,  nullable: true
+		workingRoot nullable: true
 	}
 }
