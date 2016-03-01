@@ -348,7 +348,7 @@
         duplicate_of_id int8,
         full_name varchar(255),
         ipni_id varchar(50),
-        name varchar(255),
+        name varchar(1000),
         namespace_id int8 not null,
         notes varchar(1000),
         source_id int8,
