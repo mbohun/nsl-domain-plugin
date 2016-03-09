@@ -81,7 +81,7 @@ class Author {
 
     static constraints = {
         abbrev nullable: true, maxSize: 100
-        name nullable: true
+        name nullable: true, maxSize: 1000
         fullName nullable: true
         dateRange nullable: true, maxSize: 50
         notes nullable: true, maxSize: 1000

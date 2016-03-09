@@ -348,7 +348,7 @@
         duplicate_of_id int8,
         full_name varchar(255),
         ipni_id varchar(50),
-        name varchar(255),
+        name varchar(1000),
         namespace_id int8 not null,
         notes varchar(1000),
         source_id int8,
@@ -797,25 +797,25 @@
         abbrev_title varchar(2000),
         author_id int8 not null,
         bhl_url varchar(4000),
-        citation varchar(512),
-        citation_html varchar(512),
+        citation varchar(4000),
+        citation_html varchar(4000),
         created_at timestamp with time zone not null,
         created_by varchar(255) not null,
         display_title varchar(2000) not null,
         doi varchar(255),
         duplicate_of_id int8,
-        edition varchar(50),
+        edition varchar(100),
         isbn varchar(16),
         issn varchar(16),
         language_id int8 not null,
         namespace_id int8 not null,
         notes varchar(1000),
-        pages varchar(255),
+        pages varchar(1000),
         parent_id int8,
         publication_date varchar(50),
         published boolean default false not null,
-        published_location varchar(50),
-        publisher varchar(100),
+        published_location varchar(1000),
+        publisher varchar(1000),
         ref_author_role_id int8 not null,
         ref_type_id int8 not null,
         source_id int8,
@@ -830,7 +830,7 @@
         verbatim_author varchar(1000),
         verbatim_citation varchar(2000),
         verbatim_reference varchar(1000),
-        volume varchar(50),
+        volume varchar(100),
         year int4,
         primary key (id)
     );
@@ -1604,7 +1604,7 @@ CREATE INDEX name_lower_f_unaccent_full_name_like ON name (lower(f_unaccent(full
 
 CREATE INDEX ref_citation_text_index ON reference USING gin(to_tsvector('english'::regconfig,f_unaccent(coalesce((citation)::text,''::text))));
 
-INSERT INTO db_version (id, version) VALUES (1, 11);
+INSERT INTO db_version (id, version) VALUES (1, 12);
 -- boatree setup data
 -- This script sets up the base data for the boatree app. This includes the 'end' tree, out in-house namespaces, and the empty nsl/apc/afd trees
 --
@@ -2029,7 +2029,8 @@ EXECUTE PROCEDURE reference_notification();
 --namespace
 INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'APNI', '(description of <b>APNI</b>)', 'apni');
 INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'ANHSIR', '(description of <b>ANHSIR</b>)', 'anhsir');
-INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'AMANI', '(description of <b>AMANI</b>)', 'amani');
+INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'AusMoss', '(description of <b>AUSMOSS</b>)', 'ausmoss');
+INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'AusAlgae', '(description of <b>AUSALGAE</b>)', 'ausalgae');
 --language
 INSERT INTO public.language (id, lock_version, iso6391code, iso6393code, name) VALUES (nextval('nsl_global_seq'), 0, null, 'mul', 'Multiple languages');
 INSERT INTO public.language (id, lock_version, iso6391code, iso6393code, name) VALUES (nextval('nsl_global_seq'), 0, null, 'zxx', 'No linguistic content');
@@ -2422,6 +2423,17 @@ INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_o
 INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, 'EPBC Advice', 9, '(description of <b>EPBC Advice</b>)', 'epbc-advice');
 INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, true, 'APNI', 100, '(description of <b>APNI</b>)', 'apni');
 INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, 'Type herbarium', 11, '(description of <b>Type herbarium</b>)', 'type-herbarium');
+INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, 'AMANI dist.', 16, '(description of <b>AMANI distribution</b>)', 'amani-distribution');
+INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, 'AMANI comment', 17, '(description of <b>AMANI comment</b>)', 'amani-comment');
+INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, 'Type locality', 12, '(description of <b>Type locality</b>)', 'type-locality');
+INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, 'Type specimen', 13, '(description of <b>Type specimen</b>)', 'type-specimen');
+INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, 'Culture collection', 100, '(description of <b>Culture collection</b>)', 'culture-collection');
+INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, 'Graphic', 100, '(description of <b>Graphic</b>)', 'graphic');
+INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, 'Habit', 100, '(description of <b>Habit</b>)', 'habit');
+INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, 'Habitat', 100, '(description of <b>Habitat</b>)', 'habitat');
+INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, 'Nutrition', 100, '(description of <b>Nutrition</b>)', 'nutrition');
+INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, 'Type comment', 14, '(description of <b>Type comment</b>)', 'type-comment');
+INSERT INTO public.instance_note_key (id, lock_version, deprecated, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, 'Type illustration', 15, '(description of <b>Type illustration</b>)', 'type-illustration');
 -- instance type
 INSERT INTO public.instance_type (id, lock_version, citing, deprecated, doubtful, misapplied, name, nomenclatural, primary_instance, pro_parte, protologue, relationship, secondary_instance, sort_order, standalone, synonym, taxonomic, unsourced, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, false, false, false, '[default]', false, false, false, false, false, false, 400, false, false, false, false, '(description of <b>[default]</b>)', 'default');
 INSERT INTO public.instance_type (id, lock_version, citing, deprecated, doubtful, misapplied, name, nomenclatural, primary_instance, pro_parte, protologue, relationship, secondary_instance, sort_order, standalone, synonym, taxonomic, unsourced, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, false, false, false, false, '[unknown]', false, false, false, false, false, false, 400, false, false, false, false, '(description of <b>[unknown]</b>)', 'unknown');
@@ -2564,7 +2576,7 @@ INSERT INTO public.name_type (id, lock_version, autonym, connector, cultivar, fo
 INSERT INTO public.name_type (id, lock_version, autonym, connector, cultivar, formula, hybrid, name, name_category_id, name_group_id, scientific, sort_order, description_html, rdf_id, deprecated) VALUES (nextval('nsl_global_seq'), 0, true, null, false, false, false, 'autonym', (select id from name_category where name = 'scientific'), (select id from name_group where name = 'botanical'), true, 13, '(description of <b>autonym</b>)', 'autonym', false);
 INSERT INTO public.name_type (id, lock_version, autonym, connector, cultivar, formula, hybrid, name, name_category_id, name_group_id, scientific, sort_order, description_html, rdf_id, deprecated) VALUES (nextval('nsl_global_seq'), 0, false, null, true, false, false, 'cultivar', (select id from name_category where name = 'cultivar'), (select id from name_group where name = 'botanical'), false, 16, '(description of <b>cultivar</b>)', 'cultivar', false);
 INSERT INTO public.name_type (id, lock_version, autonym, connector, cultivar, formula, hybrid, name, name_category_id, name_group_id, scientific, sort_order, description_html, rdf_id, deprecated) VALUES (nextval('nsl_global_seq'), 0, false, null, true, false, true, 'cultivar hybrid', (select id from name_category where name = 'cultivar'), (select id from name_group where name = 'botanical'), false, 17, '(description of <b>cultivar hybrid</b>)', 'cultivar-hybrid', false);
-INSERT INTO public.name_type (id, lock_version, autonym, connector, cultivar, formula, hybrid, name, name_category_id, name_group_id, scientific, sort_order, description_html, rdf_id, deprecated) VALUES (nextval('nsl_global_seq'), 0, false, null, false, false, false, 'informal', (select id from name_category where name = 'informat'), (select id from name_group where name = 'botanical'), false, 26, '(description of <b>informal</b>)', 'informal', false);
+INSERT INTO public.name_type (id, lock_version, autonym, connector, cultivar, formula, hybrid, name, name_category_id, name_group_id, scientific, sort_order, description_html, rdf_id, deprecated) VALUES (nextval('nsl_global_seq'), 0, false, null, false, false, false, 'informal', (select id from name_category where name = 'informal'), (select id from name_group where name = 'botanical'), false, 26, '(description of <b>informal</b>)', 'informal', false);
 INSERT INTO public.name_type (id, lock_version, autonym, connector, cultivar, formula, hybrid, name, name_category_id, name_group_id, scientific, sort_order, description_html, rdf_id, deprecated) VALUES (nextval('nsl_global_seq'), 0, false, null, false, false, false, 'common', (select id from name_category where name = 'common'), (select id from name_group where name = 'botanical'), false, 15, '(description of <b>common</b>)', 'common', false);
 INSERT INTO public.name_type (id, lock_version, autonym, connector, cultivar, formula, hybrid, name, name_category_id, name_group_id, scientific, sort_order, description_html, rdf_id, deprecated) VALUES (nextval('nsl_global_seq'), 0, false, '+', true, true, false, 'graft/chimera', (select id from name_category where name = 'cultivar'), (select id from name_group where name = 'botanical'), false, 25, '(description of <b>graft / chimera</b>)', 'graft-chimera', false);
 INSERT INTO public.name_type (id, lock_version, autonym, connector, cultivar, formula, hybrid, name, name_category_id, name_group_id, scientific, sort_order, description_html, rdf_id, deprecated) VALUES (nextval('nsl_global_seq'), 0, false, null, true, false, false, 'acra', (select id from name_category where name = 'cultivar'), (select id from name_group where name = 'botanical'), false, 19, '(description of <b>acra</b>)', 'acra', true);

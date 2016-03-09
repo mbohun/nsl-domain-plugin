@@ -40,4 +40,10 @@ class Namespace {
         rdfId maxSize: 50, nullable: true
         descriptionHtml nullable: true
     }
+
+    static transients = ['matches']
+
+    Boolean matches(String nameSpaceName, boolean exact = false) {
+        return nameSpaceName.toLowerCase() == name.toLowerCase()
+    }
 }
