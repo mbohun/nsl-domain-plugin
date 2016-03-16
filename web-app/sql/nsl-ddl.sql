@@ -958,6 +958,9 @@
         primary key (id)
     );
 
+    alter table if exists author 
+        add constraint UK_9kovg6nyb11658j2tv2yv4bsi  unique (abbrev);
+
     create index Author_Abbrev_Index on author (abbrev);
 
     create index Author_Name_Index on author (name);
