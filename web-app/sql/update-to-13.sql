@@ -19,6 +19,9 @@ CREATE TABLE name_tree_path (
 CREATE INDEX name_tree_path_treename_index ON name_tree_path (name_id, tree_id);
 DROP INDEX IF EXISTS name_tree_path_treepath_index;
 
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_tree_path TO web;
+GRANT SELECT ON name_tree_path TO read_only;
+
 UPDATE db_version
 SET version = 13
 WHERE id = 1;
