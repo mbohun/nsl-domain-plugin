@@ -647,14 +647,13 @@
     );
 
     create table name_tree_path (
-        id int8 not null,
+        id int8 default nextval('hibernate_sequence') not null,
         version int8 not null,
         inserted int8 not null,
         name_id int8 not null,
         name_id_path TEXT not null,
         name_path TEXT not null,
         next_id int8,
-        node_id_path TEXT not null,
         parent_id int8,
         rank_path TEXT not null,
         tree_id int8 not null,
@@ -1084,9 +1083,9 @@
 
     create index name_tree_path_name_index on name_tree_path (name_id);
 
-    create index name_tree_path_path_index on name_tree_path (name_id_path);
+    create index name_tree_path_treename_index on name_tree_path (name_id, tree_id);
 
-    create index name_tree_path_treepath_index on name_tree_path (node_id_path);
+    create index name_tree_path_path_index on name_tree_path (name_id_path);
 
     alter table if exists name_type 
         add constraint UK_314uhkq8i7r46050kd1nfrs95  unique (name);
@@ -1607,7 +1606,7 @@ CREATE INDEX name_lower_f_unaccent_full_name_like ON name (lower(f_unaccent(full
 
 CREATE INDEX ref_citation_text_index ON reference USING gin(to_tsvector('english'::regconfig,f_unaccent(coalesce((citation)::text,''::text))));
 
-INSERT INTO db_version (id, version) VALUES (1, 12);
+INSERT INTO db_version (id, version) VALUES (1, 13);
 -- boatree setup data
 -- This script sets up the base data for the boatree app. This includes the 'end' tree, out in-house namespaces, and the empty nsl/apc/afd trees
 --

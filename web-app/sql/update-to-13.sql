@@ -1,0 +1,24 @@
+DROP MATERIALIZED VIEW IF EXISTS apc_taxon_view;
+DROP MATERIALIZED VIEW IF EXISTS name_view;
+DROP TABLE IF EXISTS name_tree_path;
+
+CREATE TABLE name_tree_path (
+  id           INT8 DEFAULT nextval('hibernate_sequence') NOT NULL,
+  version      INT8                                       NOT NULL,
+  inserted     INT8                                       NOT NULL,
+  name_id      INT8                                       NOT NULL,
+  name_id_path TEXT                                       NOT NULL,
+  name_path    TEXT                                       NOT NULL,
+  next_id      INT8,
+  parent_id    INT8,
+  rank_path    TEXT                                       NOT NULL,
+  tree_id      INT8                                       NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE INDEX name_tree_path_treename_index ON name_tree_path (name_id, tree_id);
+DROP INDEX IF EXISTS name_tree_path_treepath_index;
+
+UPDATE db_version
+SET version = 13
+WHERE id = 1;
