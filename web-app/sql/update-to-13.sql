@@ -22,6 +22,12 @@ DROP INDEX IF EXISTS name_tree_path_treepath_index;
 GRANT SELECT, INSERT, UPDATE, DELETE ON name_tree_path TO web;
 GRANT SELECT ON name_tree_path TO read_only;
 
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX name_lower_full_name_gin_trgm ON name USING GIN (lower(full_name) gin_trgm_ops);
+CREATE INDEX name_lower_simple_name_gin_trgm ON name USING GIN (lower(simple_name) gin_trgm_ops);
+CREATE INDEX name_lower_unacent_full_name_gin_trgm ON name USING GIN (lower(f_unaccent(full_name)) gin_trgm_ops);
+CREATE INDEX name_lower_unacent_simple_name_gin_trgm ON name USING GIN (lower(f_unaccent(simple_name)) gin_trgm_ops);
+
 UPDATE db_version
 SET version = 13
 WHERE id = 1;
