@@ -27,6 +27,7 @@ class Name {
     String fullNameHtml
     String simpleName
     String simpleNameHtml
+    String sortName
 
     Boolean orthVar = false
 
@@ -126,6 +127,7 @@ class Name {
         fullName nullable: true, maxSize: 512
         fullNameHtml nullable: true, maxSize: 2048
         simpleName nullable: true, maxSize: 250
+        sortName nullable: true, maxSize: 250
         simpleNameHtml nullable: true, maxSize: 2048
         sanctioningAuthor nullable: true
         exBaseAuthor nullable: true
