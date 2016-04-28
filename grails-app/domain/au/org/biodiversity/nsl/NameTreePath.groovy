@@ -25,10 +25,9 @@ package au.org.biodiversity.nsl
 
 class NameTreePath {
 
-    static transients = ['namesInBranch', 'namePathIds', 'nodesInBranch', 'nodePathIds']
+    static transients = ['namesInBranch', 'namePathIds']
 
     Arrangement tree
-    String nodeIdPath  //String of nameTree Path or tree node ids separated by dots
     String nameIdPath  //String of name ids separated by dots
     String namePath    //String of canonical simple name separated by ' > '
     String rankPath    //String of name rank names separated by ' > '
@@ -41,12 +40,12 @@ class NameTreePath {
 
     static mapping = {
         datasource 'nsl'
-        id column: "id", generator: "assigned"
+        id generator: 'native', params: [sequence: 'hibernate_sequence'], defaultValue: "nextval('hibernate_sequence')"
         nameIdPath index: 'name_tree_path_path_index', sqlType: 'TEXT'
-        nodeIdPath index: 'name_tree_path_treepath_index', sqlType: 'TEXT'
         namePath sqlType: 'TEXT'
         rankPath sqlType: 'TEXT'
-        name index: 'name_tree_path_name_index'
+        name index: 'name_tree_path_name_index,name_tree_path_treename_index'
+        tree index: 'name_tree_path_treename_index'
     }
 
     static constraints = {
@@ -67,16 +66,34 @@ class NameTreePath {
         return Name.getAll(ids)
     }
 
-    public List<Long> nodePathIds() {
-        List<Long> ids = nodeIdPath.split(/\./).collect{ String id ->
-            id.toLong()
-        }
-        return ids
+    boolean equals(o) {
+        if (this.is(o)) return true
+        if (getClass() != o.class) return false
+
+        NameTreePath that = (NameTreePath) o
+
+        if (inserted != that.inserted) return false
+        if (name != that.name) return false
+        if (nameIdPath != that.nameIdPath) return false
+        if (namePath != that.namePath) return false
+        if (next != that.next) return false
+        if (parent != that.parent) return false
+        if (rankPath != that.rankPath) return false
+        if (tree != that.tree) return false
+
+        return true
     }
 
-    public List<Node> nodesInBranch() {
-        List<Long> ids = nodePathIds()
-        //noinspection UnnecessaryQualifiedReference,GroovyAssignabilityCheck
-        return Node.getAll(ids)
+    int hashCode() {
+        int result
+        result = tree.hashCode()
+        result = 31 * result + nameIdPath.hashCode()
+        result = 31 * result + namePath.hashCode()
+        result = 31 * result + rankPath.hashCode()
+        result = 31 * result + (next != null ? next.hashCode() : 0)
+        result = 31 * result + (parent != null ? parent.hashCode() : 0)
+        result = 31 * result + inserted.hashCode()
+        result = 31 * result + name.hashCode()
+        return result
     }
 }
