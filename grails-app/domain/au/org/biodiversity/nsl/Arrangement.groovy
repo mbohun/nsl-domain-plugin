@@ -21,6 +21,7 @@ class Arrangement {
 	String label
 	String title
 	String description
+	String owner
 	Node node
 
 	String synthetic  //todo make this a boolean
@@ -43,6 +44,7 @@ class Arrangement {
 		node nullable: true // this is needed for chicken-and-egg reasons.
 		label maxSize: 50, nullable: true // some tree roots are synthetic and have no label
 		title maxSize: 50, nullable: true
+		owner nullable: true //
 		description maxSize: 255,  nullable: true
 	}
 }
