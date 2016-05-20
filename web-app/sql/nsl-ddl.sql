@@ -1593,348 +1593,30 @@
     
 
     
--- An audit history is important on most tables. Provide an audit trigger that logs to
--- a dedicated audit table for the major relations.
---
--- This file should be generic and not depend on application roles or structures,
--- as it's being listed here:
---
---    https://wiki.postgresql.org/wiki/Audit_trigger_91plus
---
--- This trigger was originally based on
---   http://wiki.postgresql.org/wiki/Audit_trigger
--- but has been completely rewritten.
---
--- Should really be converted into a relocatable EXTENSION, with control and upgrade files.
+--other setup
+ALTER TABLE instance
+  ADD CONSTRAINT citescheck CHECK (cites_id IS NULL OR cited_by_id IS NOT NULL);
 
-CREATE EXTENSION IF NOT EXISTS hstore;
+CREATE EXTENSION IF NOT EXISTS unaccent;
 
-CREATE SCHEMA if NOT EXISTS audit;
+CREATE OR REPLACE FUNCTION f_unaccent(TEXT)
+  RETURNS TEXT AS
+$func$
+SELECT unaccent('unaccent', $1)
+$func$ LANGUAGE SQL IMMUTABLE SET search_path = public, pg_temp;
 
-drop table if exists audit.logged_actions cascade;
+CREATE INDEX name_lower_f_unaccent_full_name_like ON name (lower(f_unaccent(full_name)) varchar_pattern_ops);
+CREATE INDEX ref_citation_text_index ON reference USING GIN (to_tsvector('english' :: REGCONFIG, f_unaccent(
+    coalesce((citation) :: TEXT, '' :: TEXT))));
 
-REVOKE ALL ON SCHEMA audit FROM public;
+-- pg_trgm indexs for like and regex queries NSL-1773
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX name_lower_full_name_gin_trgm ON name USING GIN (lower(full_name) gin_trgm_ops);
+CREATE INDEX name_lower_simple_name_gin_trgm ON name USING GIN (lower(simple_name) gin_trgm_ops);
+CREATE INDEX name_lower_unacent_full_name_gin_trgm ON name USING GIN (lower(f_unaccent(full_name)) gin_trgm_ops);
+CREATE INDEX name_lower_unacent_simple_name_gin_trgm ON name USING GIN (lower(f_unaccent(simple_name)) gin_trgm_ops);
 
-COMMENT ON SCHEMA audit IS 'Out-of-table audit/history logging tables and trigger functions';
-
---
--- Audited data. Lots of information is available, it's just a matter of how much
--- you really want to record. See:
---
---   http://www.postgresql.org/docs/9.1/static/functions-info.html
---
--- Remember, every column you add takes up more audit table space and slows audit
--- inserts.
---
--- Every index you add has a big impact too, so avoid adding indexes to the
--- audit table unless you REALLY need them. The hstore GIST indexes are
--- particularly expensive.
---
--- It is sometimes worth copying the audit table, or a coarse subset of it that
--- you're interested in, into a temporary table where you CREATE any useful
--- indexes and do your analysis.
---
-CREATE TABLE audit.logged_actions (
-  event_id bigserial primary key,
-  schema_name text not null,
-  table_name text not null,
-  relid oid not null,
-  session_user_name text,
-  action_tstamp_tx TIMESTAMP WITH TIME ZONE NOT NULL,
-  action_tstamp_stm TIMESTAMP WITH TIME ZONE NOT NULL,
-  action_tstamp_clk TIMESTAMP WITH TIME ZONE NOT NULL,
-  transaction_id bigint,
-  application_name text,
-  client_addr inet,
-  client_port integer,
-  client_query text,
-  action TEXT NOT NULL CHECK (action IN ('I','D','U', 'T')),
-  row_data hstore,
-  changed_fields hstore,
-  statement_only boolean not null
-);
-
-REVOKE ALL ON audit.logged_actions FROM public;
-
-COMMENT ON TABLE audit.logged_actions IS 'History of auditable actions on audited tables, from audit.if_modified_func()';
-COMMENT ON COLUMN audit.logged_actions.event_id IS 'Unique identifier for each auditable event';
-COMMENT ON COLUMN audit.logged_actions.schema_name IS 'Database schema audited table for this event is in';
-COMMENT ON COLUMN audit.logged_actions.table_name IS 'Non-schema-qualified table name of table event occured in';
-COMMENT ON COLUMN audit.logged_actions.relid IS 'Table OID. Changes with drop/create. Get with ''tablename''::regclass';
-COMMENT ON COLUMN audit.logged_actions.session_user_name IS 'Login / session user whose statement caused the audited event';
-COMMENT ON COLUMN audit.logged_actions.action_tstamp_tx IS 'Transaction start timestamp for tx in which audited event occurred';
-COMMENT ON COLUMN audit.logged_actions.action_tstamp_stm IS 'Statement start timestamp for tx in which audited event occurred';
-COMMENT ON COLUMN audit.logged_actions.action_tstamp_clk IS 'Wall clock time at which audited event''s trigger call occurred';
-COMMENT ON COLUMN audit.logged_actions.transaction_id IS 'Identifier of transaction that made the change. May wrap, but unique paired with action_tstamp_tx.';
-COMMENT ON COLUMN audit.logged_actions.client_addr IS 'IP address of client that issued query. Null for unix domain socket.';
-COMMENT ON COLUMN audit.logged_actions.client_port IS 'Remote peer IP port address of client that issued query. Undefined for unix socket.';
-COMMENT ON COLUMN audit.logged_actions.client_query IS 'Top-level query that caused this auditable event. May be more than one statement.';
-COMMENT ON COLUMN audit.logged_actions.application_name IS 'Application name set when this audit event occurred. Can be changed in-session by client.';
-COMMENT ON COLUMN audit.logged_actions.action IS 'Action type; I = insert, D = delete, U = update, T = truncate';
-COMMENT ON COLUMN audit.logged_actions.row_data IS 'Record value. Null for statement-level trigger. For INSERT this is the new tuple. For DELETE and UPDATE it is the old tuple.';
-COMMENT ON COLUMN audit.logged_actions.changed_fields IS 'New values of fields changed by UPDATE. Null except for row-level UPDATE events.';
-COMMENT ON COLUMN audit.logged_actions.statement_only IS '''t'' if audit event is from an FOR EACH STATEMENT trigger, ''f'' for FOR EACH ROW';
-
-CREATE INDEX logged_actions_relid_idx ON audit.logged_actions(relid);
-CREATE INDEX logged_actions_action_tstamp_tx_stm_idx ON audit.logged_actions(action_tstamp_stm);
-CREATE INDEX logged_actions_action_idx ON audit.logged_actions(action);
-
-CREATE OR REPLACE FUNCTION audit.if_modified_func() RETURNS TRIGGER AS $body$
-DECLARE
-    audit_row audit.logged_actions;
-    include_values boolean;
-    log_diffs boolean;
-    h_old hstore;
-    h_new hstore;
-    excluded_cols text[] = ARRAY[]::text[];
-BEGIN
-    IF TG_WHEN <> 'AFTER' THEN
-        RAISE EXCEPTION 'audit.if_modified_func() may only run as an AFTER trigger';
-    END IF;
-
-    audit_row = ROW(
-        nextval('audit.logged_actions_event_id_seq'), -- event_id
-        TG_TABLE_SCHEMA::text,                        -- schema_name
-        TG_TABLE_NAME::text,                          -- table_name
-        TG_RELID,                                     -- relation OID for much quicker searches
-        session_user::text,                           -- session_user_name
-        current_timestamp,                            -- action_tstamp_tx
-        statement_timestamp(),                        -- action_tstamp_stm
-        clock_timestamp(),                            -- action_tstamp_clk
-        txid_current(),                               -- transaction ID
-        current_setting('application_name'),          -- client application
-        inet_client_addr(),                           -- client_addr
-        inet_client_port(),                           -- client_port
-        current_query(),                              -- top-level query or queries (if multistatement) from client
-        substring(TG_OP,1,1),                         -- action
-        NULL, NULL,                                   -- row_data, changed_fields
-        'f'                                           -- statement_only
-        );
-
-    IF NOT TG_ARGV[0]::boolean IS DISTINCT FROM 'f'::boolean THEN
-        audit_row.client_query = NULL;
-    END IF;
-
-    IF TG_ARGV[1] IS NOT NULL THEN
-        excluded_cols = TG_ARGV[1]::text[];
-    END IF;
-
-    IF (TG_OP = 'UPDATE' AND TG_LEVEL = 'ROW') THEN
-        audit_row.row_data = hstore(OLD.*);
-        audit_row.changed_fields =  (hstore(NEW.*) - audit_row.row_data) - excluded_cols;
-        IF audit_row.changed_fields = hstore('') THEN
-            -- All changed fields are ignored. Skip this update.
-            RETURN NULL;
-        END IF;
-    ELSIF (TG_OP = 'DELETE' AND TG_LEVEL = 'ROW') THEN
-        audit_row.row_data = hstore(OLD.*) - excluded_cols;
-    ELSIF (TG_OP = 'INSERT' AND TG_LEVEL = 'ROW') THEN
-        audit_row.row_data = hstore(NEW.*) - excluded_cols;
-    ELSIF (TG_LEVEL = 'STATEMENT' AND TG_OP IN ('INSERT','UPDATE','DELETE','TRUNCATE')) THEN
-        audit_row.statement_only = 't';
-    ELSE
-        RAISE EXCEPTION '[audit.if_modified_func] - Trigger func added as trigger for unhandled case: %, %',TG_OP, TG_LEVEL;
-        RETURN NULL;
-    END IF;
-    INSERT INTO audit.logged_actions VALUES (audit_row.*);
-    RETURN NULL;
-END;
-$body$
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = pg_catalog, public;
-
-
-COMMENT ON FUNCTION audit.if_modified_func() IS $body$
-Track changes to a table at the statement and/or row level.
-
-Optional parameters to trigger in CREATE TRIGGER call:
-
-param 0: boolean, whether to log the query text. Default 't'.
-
-param 1: text[], columns to ignore in updates. Default [].
-
-         Updates to ignored cols are omitted from changed_fields.
-
-         Updates with only ignored cols changed are not inserted
-         into the audit log.
-
-         Almost all the processing work is still done for updates
-         that ignored. If you need to save the load, you need to use
-         WHEN clause on the trigger instead.
-
-         No warning or error is issued if ignored_cols contains columns
-         that do not exist in the target table. This lets you specify
-         a standard set of ignored columns.
-
-There is no parameter to disable logging of values. Add this trigger as
-a 'FOR EACH STATEMENT' rather than 'FOR EACH ROW' trigger if you do not
-want to log row values.
-
-Note that the user name logged is the login role for the session. The audit trigger
-cannot obtain the active role because it is reset by the SECURITY DEFINER invocation
-of the audit trigger its self.
-$body$;
-
-
-
-CREATE OR REPLACE FUNCTION audit.audit_table(target_table regclass, audit_rows boolean, audit_query_text boolean, ignored_cols text[]) RETURNS void AS $body$
-DECLARE
-  stm_targets text = 'INSERT OR UPDATE OR DELETE OR TRUNCATE';
-  _q_txt text;
-  _ignored_cols_snip text = '';
-BEGIN
-    EXECUTE 'DROP TRIGGER IF EXISTS audit_trigger_row ON ' || target_table;
-    EXECUTE 'DROP TRIGGER IF EXISTS audit_trigger_stm ON ' || target_table;
-
-    IF audit_rows THEN
-        IF array_length(ignored_cols,1) > 0 THEN
-            _ignored_cols_snip = ', ' || quote_literal(ignored_cols);
-        END IF;
-        _q_txt = 'CREATE TRIGGER audit_trigger_row AFTER INSERT OR UPDATE OR DELETE ON ' ||
-                 target_table ||
-                 ' FOR EACH ROW EXECUTE PROCEDURE audit.if_modified_func(' ||
-                 quote_literal(audit_query_text) || _ignored_cols_snip || ');';
-        RAISE NOTICE '%',_q_txt;
-        EXECUTE _q_txt;
-        stm_targets = 'TRUNCATE';
-    ELSE
-    END IF;
-
-    _q_txt = 'CREATE TRIGGER audit_trigger_stm AFTER ' || stm_targets || ' ON ' ||
-             target_table ||
-             ' FOR EACH STATEMENT EXECUTE PROCEDURE audit.if_modified_func('||
-             quote_literal(audit_query_text) || ');';
-    RAISE NOTICE '%',_q_txt;
-    EXECUTE _q_txt;
-
-END;
-$body$
-language 'plpgsql';
-
-COMMENT ON FUNCTION audit.audit_table(regclass, boolean, boolean, text[]) IS $body$
-Add auditing support to a table.
-
-Arguments:
-   target_table:     Table name, schema qualified if not on search_path
-   audit_rows:       Record each row change, or only audit at a statement level
-   audit_query_text: Record the text of the client query that triggered the audit event?
-   ignored_cols:     Columns to exclude from update diffs, ignore updates that change only ignored cols.
-$body$;
-
--- Pg doesn't allow variadic calls with 0 params, so provide a wrapper
-CREATE OR REPLACE FUNCTION audit.audit_table(target_table regclass, audit_rows boolean, audit_query_text boolean) RETURNS void AS $body$
-SELECT audit.audit_table($1, $2, $3, ARRAY[]::text[]);
-$body$ LANGUAGE SQL;
-
--- And provide a convenience call wrapper for the simplest case
--- of row-level logging with no excluded cols and query logging enabled.
---
-CREATE OR REPLACE FUNCTION audit.audit_table(target_table regclass) RETURNS void AS $$
-SELECT audit.audit_table($1, BOOLEAN 't', BOOLEAN 't');
-$$ LANGUAGE 'sql';
-
-COMMENT ON FUNCTION audit.audit_table(regclass) IS $body$
-Add auditing support to the given table. Row-level changes will be logged with full client query text. No cols are ignored.
-$body$;
-
--- set up triggers using the following selects after import
--- select audit.audit_table('author');
--- select audit.audit_table('instance');
--- select audit.audit_table('name');
--- select audit.audit_table('reference');
--- boatree indexes and constraints
--- this script assumes that we are using POSTGRES
-
--- Namespace
--- Event
--- Arrangement
-
-alter table tree_arrangement add constraint chk_tree_arrangement_type check (tree_type IN ('E','P','U','Z'));
-
-alter table tree_arrangement add constraint chk_classification_has_label check (
-	tree_type not in ('E', 'P')
-	or (
-		label is not null
-	)
-);
-
--- Node
-
-alter table tree_node add constraint chk_arrangement_synthetic_yn check (is_synthetic IN ('N','Y'));
-alter table tree_node add constraint chk_internal_type_enum check (internal_type IN ('S','Z','T','D','V'));
-
-alter table tree_node add constraint chk_internal_type_S check ( 
-  	internal_type <> 'S'
-  	or (
-	  		name_uri_ns_part_id is null 
-	  	and taxon_uri_ns_part_id is null 
-	  	and resource_uri_ns_part_id is null
-	  	and literal is null
-  	)
-);
-
-alter table tree_node add constraint chk_internal_type_T check ( 
-  	internal_type <> 'T'
-  	or (
-	  	literal is null
-  	)
-);
-
-alter table tree_node add constraint chk_internal_type_D check ( 
-  	internal_type <> 'D'
-  	or (
-	  		name_uri_ns_part_id is null 
-	  	and taxon_uri_ns_part_id is null 
-	  	and literal is null
-  	)
-);
-
-alter table tree_node add constraint chk_internal_type_V check ( 
-  	internal_type <> 'V'
-  	or (
-	  		name_uri_ns_part_id is null 
-	  	and taxon_uri_ns_part_id is null 
-	  	and (
-	  		(resource_uri_ns_part_id is not null and literal is null)
-	  		or
-	  		(resource_uri_ns_part_id is null and literal is not null)
-	  	)
-  	)
-);
-
-alter table tree_node add constraint chk_tree_node_synthetic_yn check (is_synthetic IN ('N','Y'));
-
-alter table tree_node add constraint chk_tree_node_name_matches check (name_id is null or cast(name_id as varchar)=name_uri_id_part);
-
-alter table tree_node add constraint chk_tree_node_instance_matches check (instance_id is null or cast(instance_id as varchar)=taxon_uri_id_part);
-
--- Link
-
--- a node may only have one link for each link_seq number
-create unique index idx_tree_link_seq on tree_link(supernode_id, link_seq);
-alter table tree_link add constraint chk_tree_link_seq_positive CHECK (link_seq >= 1);
-alter table tree_link add constraint chk_tree_link_vmethod CHECK (versioning_method IN ('F','V','T'));
-alter table tree_link add constraint chk_tree_link_synthetic_yn CHECK (is_synthetic IN ('N','Y'));
-alter table tree_link add constraint chk_tree_link_sup_not_end  check (supernode_id <> 0);
-alter table tree_link add constraint chk_tree_link_sub_not_end  check (subnode_id <> 0);
-
--- fixing the column ordering in these indexes. Big effects on performance.
-
-DROP INDEX idx_tree_node_taxon_in;
-CREATE INDEX idx_tree_node_taxon_in ON tree_node (taxon_uri_id_part, taxon_uri_ns_part_id, tree_arrangement_id);
-
-DROP INDEX idx_tree_node_name_in;
-CREATE INDEX idx_tree_node_name_in ON tree_node (name_uri_id_part, name_uri_ns_part_id, tree_arrangement_id);
-
-DROP INDEX idx_tree_node_resource_in;
-CREATE INDEX idx_tree_node_resource_in ON tree_node (resource_uri_id_part, resource_uri_ns_part_id, tree_arrangement_id);
-
-DROP INDEX idx_tree_node_name_id_in;
-CREATE INDEX idx_tree_node_name_id_in ON tree_node (name_id, tree_arrangement_id);
-
-DROP INDEX idx_tree_node_instance_id_in;
-CREATE INDEX idx_tree_node_instance_id_in ON tree_node (instance_id, tree_arrangement_id);
+INSERT INTO db_version (id, version) VALUES (1, 14);
 -- boatree setup data
 -- This script sets up the base data for the boatree app. This includes the 'end' tree, out in-house namespaces, and the empty nsl/apc/afd trees
 --
@@ -2232,107 +1914,129 @@ update tree_event set namespace_id = (select id from namespace where name = 'APN
 update tree_arrangement set namespace_id = (select id from namespace where name = 'APNI') where id <> 0;
 
 commit;
--- grants
--- grant to the web user as required
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_arrangement TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_link TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_node TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_uri_ns TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON name_tree_path TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON id_mapper TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON author TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON delayed_jobs TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON external_ref TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON help_topic TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON instance TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON instance_type TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON instance_note TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON instance_note_key TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON language TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON locale TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON name TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON name_category TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON name_group TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON name_part TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON name_rank TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON name_status TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON name_type TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON namespace TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON nomenclatural_event_type TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ref_author_role TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ref_type TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON reference TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON trashed_item TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON trashing_event TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON user_query TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON nsl_simple_name TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON notification TO web;
-GRANT INSERT, UPDATE, DELETE, SELECT ON name_tag TO web;
-GRANT INSERT, UPDATE, DELETE, SELECT ON name_tag_name TO web;
-GRANT INSERT, UPDATE, DELETE, SELECT ON comment TO web;
-GRANT SELECT, UPDATE ON nsl_global_seq TO web;
-GRANT SELECT, UPDATE ON hibernate_sequence TO web;
+--triggers
+CREATE OR REPLACE FUNCTION name_notification()
+  RETURNS TRIGGER AS $name_note$
+BEGIN
+  IF (TG_OP = 'DELETE')
+  THEN
+    INSERT INTO notification (id, version, message, object_id)
+      SELECT
+        nextval('hibernate_sequence'),
+        0,
+        'name deleted',
+        OLD.id;
+    RETURN OLD;
+  ELSIF (TG_OP = 'UPDATE')
+    THEN
+      INSERT INTO notification (id, version, message, object_id)
+        SELECT
+          nextval('hibernate_sequence'),
+          0,
+          'name updated',
+          NEW.id;
+      RETURN NEW;
+  ELSIF (TG_OP = 'INSERT')
+    THEN
+      INSERT INTO notification (id, version, message, object_id)
+        SELECT
+          nextval('hibernate_sequence'),
+          0,
+          'name created',
+          NEW.id;
+      RETURN NEW;
+  END IF;
+  RETURN NULL;
+END;
+$name_note$ LANGUAGE plpgsql;
 
-GRANT SELECT ON tree_arrangement TO read_only;
-GRANT SELECT ON tree_link TO read_only;
-GRANT SELECT ON tree_node TO read_only;
-GRANT SELECT ON tree_uri_ns TO read_only;
-GRANT SELECT ON name_tree_path TO read_only;
-GRANT SELECT ON id_mapper TO read_only;
-GRANT SELECT ON author TO read_only;
-GRANT SELECT ON delayed_jobs TO read_only;
-GRANT SELECT ON external_ref TO read_only;
-GRANT SELECT ON help_topic TO read_only;
-GRANT SELECT ON instance TO read_only;
-GRANT SELECT ON instance_type TO read_only;
-GRANT SELECT ON instance_note TO read_only;
-GRANT SELECT ON instance_note_key TO read_only;
-GRANT SELECT ON language TO read_only;
-GRANT SELECT ON locale TO read_only;
-GRANT SELECT ON name TO read_only;
-GRANT SELECT ON name_category TO read_only;
-GRANT SELECT ON name_group TO read_only;
-GRANT SELECT ON name_part TO read_only;
-GRANT SELECT ON name_rank TO read_only;
-GRANT SELECT ON name_status TO read_only;
-GRANT SELECT ON name_type TO read_only;
-GRANT SELECT ON namespace TO read_only;
-GRANT SELECT ON nomenclatural_event_type TO read_only;
-GRANT SELECT ON ref_author_role TO read_only;
-GRANT SELECT ON ref_type TO read_only;
-GRANT SELECT ON reference TO read_only;
-GRANT SELECT ON trashed_item TO read_only;
-GRANT SELECT ON trashing_event TO read_only;
-GRANT SELECT ON user_query TO read_only;
-GRANT SELECT ON nsl_simple_name TO read_only;
-GRANT SELECT ON notification TO read_only;
-GRANT INSERT ON name_tag TO read_only;
-GRANT INSERT ON name_tag_name TO read_only;
-GRANT INSERT ON comment TO read_only;
---other setup
-ALTER TABLE instance
-  ADD CONSTRAINT citescheck CHECK (cites_id IS NULL OR cited_by_id IS NOT NULL);
 
-CREATE EXTENSION IF NOT EXISTS unaccent;
+CREATE TRIGGER name_update
+AFTER INSERT OR UPDATE OR DELETE ON name
+FOR EACH ROW
+EXECUTE PROCEDURE name_notification();
 
-CREATE OR REPLACE FUNCTION f_unaccent(TEXT)
-  RETURNS TEXT AS
-$func$
-SELECT unaccent('unaccent', $1)
-$func$ LANGUAGE SQL IMMUTABLE SET search_path = public, pg_temp;
+CREATE OR REPLACE FUNCTION author_notification()
+  RETURNS TRIGGER AS $author_note$
+BEGIN
+  IF (TG_OP = 'DELETE')
+  THEN
+    INSERT INTO notification (id, version, message, object_id)
+      SELECT
+        nextval('hibernate_sequence'),
+        0,
+        'author deleted',
+        OLD.id;
+    RETURN OLD;
+  ELSIF (TG_OP = 'UPDATE')
+    THEN
+      INSERT INTO notification (id, version, message, object_id)
+        SELECT
+          nextval('hibernate_sequence'),
+          0,
+          'author updated',
+          NEW.id;
+      RETURN NEW;
+  ELSIF (TG_OP = 'INSERT')
+    THEN
+      INSERT INTO notification (id, version, message, object_id)
+        SELECT
+          nextval('hibernate_sequence'),
+          0,
+          'author created',
+          NEW.id;
+      RETURN NEW;
+  END IF;
+  RETURN NULL;
+END;
+$author_note$ LANGUAGE plpgsql;
 
-CREATE INDEX name_lower_f_unaccent_full_name_like ON name (lower(f_unaccent(full_name)) varchar_pattern_ops);
-CREATE INDEX ref_citation_text_index ON reference USING GIN (to_tsvector('english' :: REGCONFIG, f_unaccent(
-    coalesce((citation) :: TEXT, '' :: TEXT))));
 
--- pg_trgm indexs for like and regex queries NSL-1773
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-CREATE INDEX name_lower_full_name_gin_trgm ON name USING GIN (lower(full_name) gin_trgm_ops);
-CREATE INDEX name_lower_simple_name_gin_trgm ON name USING GIN (lower(simple_name) gin_trgm_ops);
-CREATE INDEX name_lower_unacent_full_name_gin_trgm ON name USING GIN (lower(f_unaccent(full_name)) gin_trgm_ops);
-CREATE INDEX name_lower_unacent_simple_name_gin_trgm ON name USING GIN (lower(f_unaccent(simple_name)) gin_trgm_ops);
+CREATE TRIGGER author_update
+AFTER INSERT OR UPDATE OR DELETE ON author
+FOR EACH ROW
+EXECUTE PROCEDURE author_notification();
 
-INSERT INTO db_version (id, version) VALUES (1, 14);
+CREATE OR REPLACE FUNCTION reference_notification()
+  RETURNS TRIGGER AS $ref_note$
+BEGIN
+  IF (TG_OP = 'DELETE')
+  THEN
+    INSERT INTO notification (id, version, message, object_id)
+      SELECT
+        nextval('hibernate_sequence'),
+        0,
+        'reference deleted',
+        OLD.id;
+    RETURN OLD;
+  ELSIF (TG_OP = 'UPDATE')
+    THEN
+      INSERT INTO notification (id, version, message, object_id)
+        SELECT
+          nextval('hibernate_sequence'),
+          0,
+          'reference updated',
+          NEW.id;
+      RETURN NEW;
+  ELSIF (TG_OP = 'INSERT')
+    THEN
+      INSERT INTO notification (id, version, message, object_id)
+        SELECT
+          nextval('hibernate_sequence'),
+          0,
+          'reference created',
+          NEW.id;
+      RETURN NEW;
+  END IF;
+  RETURN NULL;
+END;
+$ref_note$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER reference_update
+AFTER INSERT OR UPDATE OR DELETE ON author
+FOR EACH ROW
+EXECUTE PROCEDURE reference_notification();
 -- Populate lookup tables (currently botanical)
 --namespace
 INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'APNI', '(description of <b>APNI</b>)', 'apni');
@@ -2913,126 +2617,422 @@ INSERT INTO public.ref_type (id, lock_version, name, parent_id, parent_optional,
 INSERT INTO public.ref_type (id, lock_version, name, parent_id, parent_optional, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'Section', (select id from ref_type where name = 'Book'), false, '(description of <b>Section</b>)', 'section');
 INSERT INTO public.ref_type (id, lock_version, name, parent_id, parent_optional, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 1, 'Unknown', null, true, '(description of <b>Unknown</b>)', 'unknown');
 UPDATE public.ref_type SET parent_id = id WHERE name = 'Unknown'; --self parent
---triggers
-CREATE OR REPLACE FUNCTION name_notification()
-  RETURNS TRIGGER AS $name_note$
+-- boatree indexes and constraints
+-- this script assumes that we are using POSTGRES
+
+-- Namespace
+-- Event
+-- Arrangement
+
+alter table tree_arrangement add constraint chk_tree_arrangement_type check (tree_type IN ('E','P','U','Z'));
+
+alter table tree_arrangement add constraint chk_classification_has_label check (
+	tree_type not in ('E', 'P')
+	or (
+		label is not null
+	)
+);
+
+-- Node
+
+alter table tree_node add constraint chk_arrangement_synthetic_yn check (is_synthetic IN ('N','Y'));
+alter table tree_node add constraint chk_internal_type_enum check (internal_type IN ('S','Z','T','D','V'));
+
+alter table tree_node add constraint chk_internal_type_S check ( 
+  	internal_type <> 'S'
+  	or (
+	  		name_uri_ns_part_id is null 
+	  	and taxon_uri_ns_part_id is null 
+	  	and resource_uri_ns_part_id is null
+	  	and literal is null
+  	)
+);
+
+alter table tree_node add constraint chk_internal_type_T check ( 
+  	internal_type <> 'T'
+  	or (
+	  	literal is null
+  	)
+);
+
+alter table tree_node add constraint chk_internal_type_D check ( 
+  	internal_type <> 'D'
+  	or (
+	  		name_uri_ns_part_id is null 
+	  	and taxon_uri_ns_part_id is null 
+	  	and literal is null
+  	)
+);
+
+alter table tree_node add constraint chk_internal_type_V check ( 
+  	internal_type <> 'V'
+  	or (
+	  		name_uri_ns_part_id is null 
+	  	and taxon_uri_ns_part_id is null 
+	  	and (
+	  		(resource_uri_ns_part_id is not null and literal is null)
+	  		or
+	  		(resource_uri_ns_part_id is null and literal is not null)
+	  	)
+  	)
+);
+
+alter table tree_node add constraint chk_tree_node_synthetic_yn check (is_synthetic IN ('N','Y'));
+
+alter table tree_node add constraint chk_tree_node_name_matches check (name_id is null or cast(name_id as varchar)=name_uri_id_part);
+
+alter table tree_node add constraint chk_tree_node_instance_matches check (instance_id is null or cast(instance_id as varchar)=taxon_uri_id_part);
+
+-- Link
+
+-- a node may only have one link for each link_seq number
+create unique index idx_tree_link_seq on tree_link(supernode_id, link_seq);
+alter table tree_link add constraint chk_tree_link_seq_positive CHECK (link_seq >= 1);
+alter table tree_link add constraint chk_tree_link_vmethod CHECK (versioning_method IN ('F','V','T'));
+alter table tree_link add constraint chk_tree_link_synthetic_yn CHECK (is_synthetic IN ('N','Y'));
+alter table tree_link add constraint chk_tree_link_sup_not_end  check (supernode_id <> 0);
+alter table tree_link add constraint chk_tree_link_sub_not_end  check (subnode_id <> 0);
+
+-- fixing the column ordering in these indexes. Big effects on performance.
+
+DROP INDEX idx_tree_node_taxon_in;
+CREATE INDEX idx_tree_node_taxon_in ON tree_node (taxon_uri_id_part, taxon_uri_ns_part_id, tree_arrangement_id);
+
+DROP INDEX idx_tree_node_name_in;
+CREATE INDEX idx_tree_node_name_in ON tree_node (name_uri_id_part, name_uri_ns_part_id, tree_arrangement_id);
+
+DROP INDEX idx_tree_node_resource_in;
+CREATE INDEX idx_tree_node_resource_in ON tree_node (resource_uri_id_part, resource_uri_ns_part_id, tree_arrangement_id);
+
+DROP INDEX idx_tree_node_name_id_in;
+CREATE INDEX idx_tree_node_name_id_in ON tree_node (name_id, tree_arrangement_id);
+
+DROP INDEX idx_tree_node_instance_id_in;
+CREATE INDEX idx_tree_node_instance_id_in ON tree_node (instance_id, tree_arrangement_id);
+-- grants
+-- grant to the web user as required
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_arrangement TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_link TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_node TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_uri_ns TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_tree_path TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON id_mapper TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON author TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON delayed_jobs TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON external_ref TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON help_topic TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON instance TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON instance_type TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON instance_note TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON instance_note_key TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON language TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON locale TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON name TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_category TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_group TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_part TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_rank TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_status TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_type TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON namespace TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON nomenclatural_event_type TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ref_author_role TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ref_type TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON reference TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON trashed_item TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON trashing_event TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON user_query TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON nsl_simple_name TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON notification TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_tag TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_tag_name TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON comment TO web;
+GRANT SELECT, UPDATE ON nsl_global_seq TO web;
+GRANT SELECT, UPDATE ON hibernate_sequence TO web;
+
+GRANT SELECT ON tree_arrangement TO read_only;
+GRANT SELECT ON tree_link TO read_only;
+GRANT SELECT ON tree_node TO read_only;
+GRANT SELECT ON tree_uri_ns TO read_only;
+GRANT SELECT ON name_tree_path TO read_only;
+GRANT SELECT ON id_mapper TO read_only;
+GRANT SELECT ON author TO read_only;
+GRANT SELECT ON delayed_jobs TO read_only;
+GRANT SELECT ON external_ref TO read_only;
+GRANT SELECT ON help_topic TO read_only;
+GRANT SELECT ON instance TO read_only;
+GRANT SELECT ON instance_type TO read_only;
+GRANT SELECT ON instance_note TO read_only;
+GRANT SELECT ON instance_note_key TO read_only;
+GRANT SELECT ON language TO read_only;
+GRANT SELECT ON locale TO read_only;
+GRANT SELECT ON name TO read_only;
+GRANT SELECT ON name_category TO read_only;
+GRANT SELECT ON name_group TO read_only;
+GRANT SELECT ON name_part TO read_only;
+GRANT SELECT ON name_rank TO read_only;
+GRANT SELECT ON name_status TO read_only;
+GRANT SELECT ON name_type TO read_only;
+GRANT SELECT ON namespace TO read_only;
+GRANT SELECT ON nomenclatural_event_type TO read_only;
+GRANT SELECT ON ref_author_role TO read_only;
+GRANT SELECT ON ref_type TO read_only;
+GRANT SELECT ON reference TO read_only;
+GRANT SELECT ON trashed_item TO read_only;
+GRANT SELECT ON trashing_event TO read_only;
+GRANT SELECT ON user_query TO read_only;
+GRANT SELECT ON nsl_simple_name TO read_only;
+GRANT SELECT ON notification TO read_only;
+GRANT SELECT ON name_tag TO read_only;
+GRANT SELECT ON name_tag_name TO read_only;
+GRANT SELECT ON comment TO read_only;
+-- An audit history is important on most tables. Provide an audit trigger that logs to
+-- a dedicated audit table for the major relations.
+--
+-- This file should be generic and not depend on application roles or structures,
+-- as it's being listed here:
+--
+--    https://wiki.postgresql.org/wiki/Audit_trigger_91plus
+--
+-- This trigger was originally based on
+--   http://wiki.postgresql.org/wiki/Audit_trigger
+-- but has been completely rewritten.
+--
+-- Should really be converted into a relocatable EXTENSION, with control and upgrade files.
+
+CREATE EXTENSION IF NOT EXISTS hstore;
+
+CREATE SCHEMA if NOT EXISTS audit;
+
+drop table if exists audit.logged_actions cascade;
+
+REVOKE ALL ON SCHEMA audit FROM public;
+
+COMMENT ON SCHEMA audit IS 'Out-of-table audit/history logging tables and trigger functions';
+
+--
+-- Audited data. Lots of information is available, it's just a matter of how much
+-- you really want to record. See:
+--
+--   http://www.postgresql.org/docs/9.1/static/functions-info.html
+--
+-- Remember, every column you add takes up more audit table space and slows audit
+-- inserts.
+--
+-- Every index you add has a big impact too, so avoid adding indexes to the
+-- audit table unless you REALLY need them. The hstore GIST indexes are
+-- particularly expensive.
+--
+-- It is sometimes worth copying the audit table, or a coarse subset of it that
+-- you're interested in, into a temporary table where you CREATE any useful
+-- indexes and do your analysis.
+--
+CREATE TABLE audit.logged_actions (
+  event_id bigserial primary key,
+  schema_name text not null,
+  table_name text not null,
+  relid oid not null,
+  session_user_name text,
+  action_tstamp_tx TIMESTAMP WITH TIME ZONE NOT NULL,
+  action_tstamp_stm TIMESTAMP WITH TIME ZONE NOT NULL,
+  action_tstamp_clk TIMESTAMP WITH TIME ZONE NOT NULL,
+  transaction_id bigint,
+  application_name text,
+  client_addr inet,
+  client_port integer,
+  client_query text,
+  action TEXT NOT NULL CHECK (action IN ('I','D','U', 'T')),
+  row_data hstore,
+  changed_fields hstore,
+  statement_only boolean not null
+);
+
+REVOKE ALL ON audit.logged_actions FROM public;
+
+COMMENT ON TABLE audit.logged_actions IS 'History of auditable actions on audited tables, from audit.if_modified_func()';
+COMMENT ON COLUMN audit.logged_actions.event_id IS 'Unique identifier for each auditable event';
+COMMENT ON COLUMN audit.logged_actions.schema_name IS 'Database schema audited table for this event is in';
+COMMENT ON COLUMN audit.logged_actions.table_name IS 'Non-schema-qualified table name of table event occured in';
+COMMENT ON COLUMN audit.logged_actions.relid IS 'Table OID. Changes with drop/create. Get with ''tablename''::regclass';
+COMMENT ON COLUMN audit.logged_actions.session_user_name IS 'Login / session user whose statement caused the audited event';
+COMMENT ON COLUMN audit.logged_actions.action_tstamp_tx IS 'Transaction start timestamp for tx in which audited event occurred';
+COMMENT ON COLUMN audit.logged_actions.action_tstamp_stm IS 'Statement start timestamp for tx in which audited event occurred';
+COMMENT ON COLUMN audit.logged_actions.action_tstamp_clk IS 'Wall clock time at which audited event''s trigger call occurred';
+COMMENT ON COLUMN audit.logged_actions.transaction_id IS 'Identifier of transaction that made the change. May wrap, but unique paired with action_tstamp_tx.';
+COMMENT ON COLUMN audit.logged_actions.client_addr IS 'IP address of client that issued query. Null for unix domain socket.';
+COMMENT ON COLUMN audit.logged_actions.client_port IS 'Remote peer IP port address of client that issued query. Undefined for unix socket.';
+COMMENT ON COLUMN audit.logged_actions.client_query IS 'Top-level query that caused this auditable event. May be more than one statement.';
+COMMENT ON COLUMN audit.logged_actions.application_name IS 'Application name set when this audit event occurred. Can be changed in-session by client.';
+COMMENT ON COLUMN audit.logged_actions.action IS 'Action type; I = insert, D = delete, U = update, T = truncate';
+COMMENT ON COLUMN audit.logged_actions.row_data IS 'Record value. Null for statement-level trigger. For INSERT this is the new tuple. For DELETE and UPDATE it is the old tuple.';
+COMMENT ON COLUMN audit.logged_actions.changed_fields IS 'New values of fields changed by UPDATE. Null except for row-level UPDATE events.';
+COMMENT ON COLUMN audit.logged_actions.statement_only IS '''t'' if audit event is from an FOR EACH STATEMENT trigger, ''f'' for FOR EACH ROW';
+
+CREATE INDEX logged_actions_relid_idx ON audit.logged_actions(relid);
+CREATE INDEX logged_actions_action_tstamp_tx_stm_idx ON audit.logged_actions(action_tstamp_stm);
+CREATE INDEX logged_actions_action_idx ON audit.logged_actions(action);
+
+CREATE OR REPLACE FUNCTION audit.if_modified_func() RETURNS TRIGGER AS $body$
+DECLARE
+    audit_row audit.logged_actions;
+    include_values boolean;
+    log_diffs boolean;
+    h_old hstore;
+    h_new hstore;
+    excluded_cols text[] = ARRAY[]::text[];
 BEGIN
-  IF (TG_OP = 'DELETE')
-  THEN
-    INSERT INTO notification (id, version, message, object_id)
-      SELECT
-        nextval('hibernate_sequence'),
-        0,
-        'name deleted',
-        OLD.id;
-    RETURN OLD;
-  ELSIF (TG_OP = 'UPDATE')
-    THEN
-      INSERT INTO notification (id, version, message, object_id)
-        SELECT
-          nextval('hibernate_sequence'),
-          0,
-          'name updated',
-          NEW.id;
-      RETURN NEW;
-  ELSIF (TG_OP = 'INSERT')
-    THEN
-      INSERT INTO notification (id, version, message, object_id)
-        SELECT
-          nextval('hibernate_sequence'),
-          0,
-          'name created',
-          NEW.id;
-      RETURN NEW;
-  END IF;
-  RETURN NULL;
+    IF TG_WHEN <> 'AFTER' THEN
+        RAISE EXCEPTION 'audit.if_modified_func() may only run as an AFTER trigger';
+    END IF;
+
+    audit_row = ROW(
+        nextval('audit.logged_actions_event_id_seq'), -- event_id
+        TG_TABLE_SCHEMA::text,                        -- schema_name
+        TG_TABLE_NAME::text,                          -- table_name
+        TG_RELID,                                     -- relation OID for much quicker searches
+        session_user::text,                           -- session_user_name
+        current_timestamp,                            -- action_tstamp_tx
+        statement_timestamp(),                        -- action_tstamp_stm
+        clock_timestamp(),                            -- action_tstamp_clk
+        txid_current(),                               -- transaction ID
+        current_setting('application_name'),          -- client application
+        inet_client_addr(),                           -- client_addr
+        inet_client_port(),                           -- client_port
+        current_query(),                              -- top-level query or queries (if multistatement) from client
+        substring(TG_OP,1,1),                         -- action
+        NULL, NULL,                                   -- row_data, changed_fields
+        'f'                                           -- statement_only
+        );
+
+    IF NOT TG_ARGV[0]::boolean IS DISTINCT FROM 'f'::boolean THEN
+        audit_row.client_query = NULL;
+    END IF;
+
+    IF TG_ARGV[1] IS NOT NULL THEN
+        excluded_cols = TG_ARGV[1]::text[];
+    END IF;
+
+    IF (TG_OP = 'UPDATE' AND TG_LEVEL = 'ROW') THEN
+        audit_row.row_data = hstore(OLD.*);
+        audit_row.changed_fields =  (hstore(NEW.*) - audit_row.row_data) - excluded_cols;
+        IF audit_row.changed_fields = hstore('') THEN
+            -- All changed fields are ignored. Skip this update.
+            RETURN NULL;
+        END IF;
+    ELSIF (TG_OP = 'DELETE' AND TG_LEVEL = 'ROW') THEN
+        audit_row.row_data = hstore(OLD.*) - excluded_cols;
+    ELSIF (TG_OP = 'INSERT' AND TG_LEVEL = 'ROW') THEN
+        audit_row.row_data = hstore(NEW.*) - excluded_cols;
+    ELSIF (TG_LEVEL = 'STATEMENT' AND TG_OP IN ('INSERT','UPDATE','DELETE','TRUNCATE')) THEN
+        audit_row.statement_only = 't';
+    ELSE
+        RAISE EXCEPTION '[audit.if_modified_func] - Trigger func added as trigger for unhandled case: %, %',TG_OP, TG_LEVEL;
+        RETURN NULL;
+    END IF;
+    INSERT INTO audit.logged_actions VALUES (audit_row.*);
+    RETURN NULL;
 END;
-$name_note$ LANGUAGE plpgsql;
+$body$
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public;
 
 
-CREATE TRIGGER name_update
-AFTER INSERT OR UPDATE OR DELETE ON name
-FOR EACH ROW
-EXECUTE PROCEDURE name_notification();
+COMMENT ON FUNCTION audit.if_modified_func() IS $body$
+Track changes to a table at the statement and/or row level.
 
-CREATE OR REPLACE FUNCTION author_notification()
-  RETURNS TRIGGER AS $author_note$
+Optional parameters to trigger in CREATE TRIGGER call:
+
+param 0: boolean, whether to log the query text. Default 't'.
+
+param 1: text[], columns to ignore in updates. Default [].
+
+         Updates to ignored cols are omitted from changed_fields.
+
+         Updates with only ignored cols changed are not inserted
+         into the audit log.
+
+         Almost all the processing work is still done for updates
+         that ignored. If you need to save the load, you need to use
+         WHEN clause on the trigger instead.
+
+         No warning or error is issued if ignored_cols contains columns
+         that do not exist in the target table. This lets you specify
+         a standard set of ignored columns.
+
+There is no parameter to disable logging of values. Add this trigger as
+a 'FOR EACH STATEMENT' rather than 'FOR EACH ROW' trigger if you do not
+want to log row values.
+
+Note that the user name logged is the login role for the session. The audit trigger
+cannot obtain the active role because it is reset by the SECURITY DEFINER invocation
+of the audit trigger its self.
+$body$;
+
+
+
+CREATE OR REPLACE FUNCTION audit.audit_table(target_table regclass, audit_rows boolean, audit_query_text boolean, ignored_cols text[]) RETURNS void AS $body$
+DECLARE
+  stm_targets text = 'INSERT OR UPDATE OR DELETE OR TRUNCATE';
+  _q_txt text;
+  _ignored_cols_snip text = '';
 BEGIN
-  IF (TG_OP = 'DELETE')
-  THEN
-    INSERT INTO notification (id, version, message, object_id)
-      SELECT
-        nextval('hibernate_sequence'),
-        0,
-        'author deleted',
-        OLD.id;
-    RETURN OLD;
-  ELSIF (TG_OP = 'UPDATE')
-    THEN
-      INSERT INTO notification (id, version, message, object_id)
-        SELECT
-          nextval('hibernate_sequence'),
-          0,
-          'author updated',
-          NEW.id;
-      RETURN NEW;
-  ELSIF (TG_OP = 'INSERT')
-    THEN
-      INSERT INTO notification (id, version, message, object_id)
-        SELECT
-          nextval('hibernate_sequence'),
-          0,
-          'author created',
-          NEW.id;
-      RETURN NEW;
-  END IF;
-  RETURN NULL;
+    EXECUTE 'DROP TRIGGER IF EXISTS audit_trigger_row ON ' || target_table;
+    EXECUTE 'DROP TRIGGER IF EXISTS audit_trigger_stm ON ' || target_table;
+
+    IF audit_rows THEN
+        IF array_length(ignored_cols,1) > 0 THEN
+            _ignored_cols_snip = ', ' || quote_literal(ignored_cols);
+        END IF;
+        _q_txt = 'CREATE TRIGGER audit_trigger_row AFTER INSERT OR UPDATE OR DELETE ON ' ||
+                 target_table ||
+                 ' FOR EACH ROW EXECUTE PROCEDURE audit.if_modified_func(' ||
+                 quote_literal(audit_query_text) || _ignored_cols_snip || ');';
+        RAISE NOTICE '%',_q_txt;
+        EXECUTE _q_txt;
+        stm_targets = 'TRUNCATE';
+    ELSE
+    END IF;
+
+    _q_txt = 'CREATE TRIGGER audit_trigger_stm AFTER ' || stm_targets || ' ON ' ||
+             target_table ||
+             ' FOR EACH STATEMENT EXECUTE PROCEDURE audit.if_modified_func('||
+             quote_literal(audit_query_text) || ');';
+    RAISE NOTICE '%',_q_txt;
+    EXECUTE _q_txt;
+
 END;
-$author_note$ LANGUAGE plpgsql;
+$body$
+language 'plpgsql';
 
+COMMENT ON FUNCTION audit.audit_table(regclass, boolean, boolean, text[]) IS $body$
+Add auditing support to a table.
 
-CREATE TRIGGER author_update
-AFTER INSERT OR UPDATE OR DELETE ON author
-FOR EACH ROW
-EXECUTE PROCEDURE author_notification();
+Arguments:
+   target_table:     Table name, schema qualified if not on search_path
+   audit_rows:       Record each row change, or only audit at a statement level
+   audit_query_text: Record the text of the client query that triggered the audit event?
+   ignored_cols:     Columns to exclude from update diffs, ignore updates that change only ignored cols.
+$body$;
 
-CREATE OR REPLACE FUNCTION reference_notification()
-  RETURNS TRIGGER AS $ref_note$
-BEGIN
-  IF (TG_OP = 'DELETE')
-  THEN
-    INSERT INTO notification (id, version, message, object_id)
-      SELECT
-        nextval('hibernate_sequence'),
-        0,
-        'reference deleted',
-        OLD.id;
-    RETURN OLD;
-  ELSIF (TG_OP = 'UPDATE')
-    THEN
-      INSERT INTO notification (id, version, message, object_id)
-        SELECT
-          nextval('hibernate_sequence'),
-          0,
-          'reference updated',
-          NEW.id;
-      RETURN NEW;
-  ELSIF (TG_OP = 'INSERT')
-    THEN
-      INSERT INTO notification (id, version, message, object_id)
-        SELECT
-          nextval('hibernate_sequence'),
-          0,
-          'reference created',
-          NEW.id;
-      RETURN NEW;
-  END IF;
-  RETURN NULL;
-END;
-$ref_note$ LANGUAGE plpgsql;
+-- Pg doesn't allow variadic calls with 0 params, so provide a wrapper
+CREATE OR REPLACE FUNCTION audit.audit_table(target_table regclass, audit_rows boolean, audit_query_text boolean) RETURNS void AS $body$
+SELECT audit.audit_table($1, $2, $3, ARRAY[]::text[]);
+$body$ LANGUAGE SQL;
 
+-- And provide a convenience call wrapper for the simplest case
+-- of row-level logging with no excluded cols and query logging enabled.
+--
+CREATE OR REPLACE FUNCTION audit.audit_table(target_table regclass) RETURNS void AS $$
+SELECT audit.audit_table($1, BOOLEAN 't', BOOLEAN 't');
+$$ LANGUAGE 'sql';
 
-CREATE TRIGGER reference_update
-AFTER INSERT OR UPDATE OR DELETE ON author
-FOR EACH ROW
-EXECUTE PROCEDURE reference_notification();
+COMMENT ON FUNCTION audit.audit_table(regclass) IS $body$
+Add auditing support to the given table. Row-level changes will be logged with full client query text. No cols are ignored.
+$body$;
+
+-- set up triggers using the following selects after import
+-- select audit.audit_table('author');
+-- select audit.audit_table('instance');
+-- select audit.audit_table('name');
+-- select audit.audit_table('reference');
