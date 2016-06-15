@@ -1,4 +1,3 @@
--- grants
 -- grant to the web user as required
 GRANT SELECT, INSERT, UPDATE, DELETE ON tree_arrangement TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON tree_link TO web;
@@ -28,8 +27,6 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON nomenclatural_event_type TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ref_author_role TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ref_type TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON reference TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON trashed_item TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON trashing_event TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON user_query TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON nsl_simple_name TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON notification TO web;
@@ -38,6 +35,13 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON name_tag_name TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON comment TO web;
 GRANT SELECT, UPDATE ON nsl_global_seq TO web;
 GRANT SELECT, UPDATE ON hibernate_sequence TO web;
+GRANT SELECT ON shard_config TO web;
+
+GRANT SELECT ON accepted_name_vw TO web;
+GRANT SELECT ON accepted_synonym_vw TO web;
+GRANT SELECT ON name_detail_synonyms_vw TO web;
+GRANT SELECT ON name_details_vw TO web;
+GRANT SELECT ON name_or_synonym_vw TO web;
 
 GRANT SELECT ON tree_arrangement TO read_only;
 GRANT SELECT ON tree_link TO read_only;
@@ -67,11 +71,16 @@ GRANT SELECT ON nomenclatural_event_type TO read_only;
 GRANT SELECT ON ref_author_role TO read_only;
 GRANT SELECT ON ref_type TO read_only;
 GRANT SELECT ON reference TO read_only;
-GRANT SELECT ON trashed_item TO read_only;
-GRANT SELECT ON trashing_event TO read_only;
 GRANT SELECT ON user_query TO read_only;
 GRANT SELECT ON nsl_simple_name TO read_only;
 GRANT SELECT ON notification TO read_only;
 GRANT SELECT ON name_tag TO read_only;
 GRANT SELECT ON name_tag_name TO read_only;
 GRANT SELECT ON comment TO read_only;
+GRANT SELECT ON shard_config TO read_only;
+
+GRANT SELECT ON accepted_name_vw TO read_only;
+GRANT SELECT ON accepted_synonym_vw TO read_only;
+GRANT SELECT ON name_detail_synonyms_vw TO read_only;
+GRANT SELECT ON name_details_vw TO read_only;
+GRANT SELECT ON name_or_synonym_vw TO read_only;

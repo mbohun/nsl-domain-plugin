@@ -143,36 +143,6 @@
     alter table if exists nomenclatural_event_type 
         drop constraint if exists FK_ql5g85814a9y57c1ifd0nkq3v;
 
-    alter table if exists nsl_simple_name 
-        drop constraint if exists FK_lgtnu32ysbg6l2ys5d6bhfgmq;
-
-    alter table if exists nsl_simple_name 
-        drop constraint if exists FK_on28vygd1e7aqn9owbhv3u23h;
-
-    alter table if exists nsl_simple_name 
-        drop constraint if exists FK_ctg301hhg3x41rjl09d7noti1;
-
-    alter table if exists nsl_simple_name 
-        drop constraint if exists FK_k4ryd8xarm9hhk1aitqtfg0tb;
-
-    alter table if exists nsl_simple_name 
-        drop constraint if exists FK_bexlla3pvlm2x8err16puv16f;
-
-    alter table if exists nsl_simple_name 
-        drop constraint if exists FK_gbcxpwubk8cdlh5fxnd3ln4up;
-
-    alter table if exists nsl_simple_name 
-        drop constraint if exists FK_kquvd2hkcl7aj2vhylvp1k7vb;
-
-    alter table if exists nsl_simple_name 
-        drop constraint if exists FK_59i6is32bt6v19i51ql9n2r9i;
-
-    alter table if exists nsl_simple_name 
-        drop constraint if exists FK_mvjeehgt584v9ep11ixe1iyok;
-
-    alter table if exists nsl_simple_name 
-        drop constraint if exists FK_rpqdbhi21sdix5tmmj5ul61su;
-
     alter table if exists ref_type 
         drop constraint if exists FK_51alfoe7eobwh60yfx45y22ay;
 
@@ -196,9 +166,6 @@
 
     alter table if exists reference 
         drop constraint if exists FK_dm9y4p9xpsc8m7vljbohubl7x;
-
-    alter table if exists trashed_item 
-        drop constraint if exists FK_bd6arfjuj28nolsc58i345ybg;
 
     alter table if exists tree_arrangement 
         drop constraint if exists FK_skqp6co7fy5lcq0qts3yghy02;
@@ -306,17 +273,13 @@
 
     drop table if exists notification cascade;
 
-    drop table if exists nsl_simple_name cascade;
-
     drop table if exists ref_author_role cascade;
 
     drop table if exists ref_type cascade;
 
     drop table if exists reference cascade;
 
-    drop table if exists trashed_item cascade;
-
-    drop table if exists trashing_event cascade;
+    drop table if exists shard_config cascade;
 
     drop table if exists tree_arrangement cascade;
 
@@ -707,70 +670,6 @@
         primary key (id)
     );
 
-    create table nsl_simple_name (
-        id int8 not null,
-        apc_comment varchar(4000),
-        apc_distribution varchar(4000),
-        apc_excluded boolean default false not null,
-        apc_familia varchar(255),
-        apc_instance_id int8,
-        apc_name varchar(512),
-        apc_proparte boolean default false not null,
-        apc_relationship_type varchar(255),
-        apni boolean default false,
-        author varchar(255),
-        authority varchar(255),
-        autonym boolean default false,
-        base_name_author varchar(255),
-        basionym varchar(512),
-        classifications varchar(255),
-        classis varchar(255),
-        created_at timestamp,
-        created_by varchar(255),
-        cultivar boolean default false not null,
-        cultivar_name varchar(255),
-        dup_of_id int8,
-        ex_author varchar(255),
-        ex_base_name_author varchar(255),
-        familia varchar(255),
-        family_nsl_id int8,
-        formula boolean default false not null,
-        full_name_html varchar(2048),
-        genus varchar(255),
-        genus_nsl_id int8,
-        homonym boolean default false,
-        hybrid boolean default false,
-        infraspecies varchar(255),
-        name varchar(255) not null,
-        name_element varchar(255),
-        name_rank_id int8 not null,
-        name_status_id int8 not null,
-        name_type_id int8 not null,
-        name_type_name varchar(255) not null,
-        nom_illeg boolean default false,
-        nom_inval boolean default false,
-        nom_stat varchar(255) not null,
-        parent_nsl_id int8,
-        proto_citation varchar(512),
-        proto_instance_id int8,
-        proto_year int2,
-        rank varchar(255) not null,
-        rank_abbrev varchar(255),
-        rank_sort_order int4,
-        replaced_synonym varchar(512),
-        sanctioning_author varchar(255),
-        scientific boolean default false,
-        second_parent_nsl_id int8,
-        simple_name_html varchar(2048),
-        species varchar(255),
-        species_nsl_id int8,
-        subclassis varchar(255),
-        taxon_name varchar(512) not null,
-        updated_at timestamp,
-        updated_by varchar(255),
-        primary key (id)
-    );
-
     create table ref_author_role (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
@@ -835,26 +734,10 @@
         primary key (id)
     );
 
-    create table trashed_item (
-        id int8 default nextval('nsl_global_seq') not null,
-        lock_version int8 default 0 not null,
-        created_at timestamp with time zone not null,
-        created_by varchar(4000) not null,
-        trashable_id numeric(19, 2) not null,
-        trashable_type varchar(4000) not null,
-        trashing_event_id int8,
-        updated_at timestamp with time zone not null,
-        updated_by varchar(4000) not null,
-        primary key (id)
-    );
-
-    create table trashing_event (
-        id int8 default nextval('nsl_global_seq') not null,
-        lock_version int8 default 0 not null,
-        created_at timestamp with time zone not null,
-        created_by varchar(4000) not null,
-        updated_at timestamp with time zone not null,
-        updated_by varchar(4000) not null,
+    create table shard_config (
+        id int8 not null,
+        name varchar(255) not null,
+        value varchar(255) not null,
         primary key (id)
     );
 
@@ -1117,6 +1000,9 @@
     create index Ref_Source_String_Index on reference (source_id_string);
 
     create index Ref_System_Index on reference (source_system);
+
+    alter table if exists shard_config 
+        add constraint UK_e6nvv3knohggqpdn247bodpxy  unique (name);
 
     create index tree_arrangement_label on tree_arrangement (label, namespace_id);
 
@@ -1405,56 +1291,6 @@
         foreign key (name_group_id) 
         references name_group;
 
-    alter table if exists nsl_simple_name 
-        add constraint FK_lgtnu32ysbg6l2ys5d6bhfgmq 
-        foreign key (apc_instance_id) 
-        references instance;
-
-    alter table if exists nsl_simple_name 
-        add constraint FK_on28vygd1e7aqn9owbhv3u23h 
-        foreign key (family_nsl_id) 
-        references name;
-
-    alter table if exists nsl_simple_name 
-        add constraint FK_ctg301hhg3x41rjl09d7noti1 
-        foreign key (genus_nsl_id) 
-        references name;
-
-    alter table if exists nsl_simple_name 
-        add constraint FK_k4ryd8xarm9hhk1aitqtfg0tb 
-        foreign key (name_rank_id) 
-        references name_rank;
-
-    alter table if exists nsl_simple_name 
-        add constraint FK_bexlla3pvlm2x8err16puv16f 
-        foreign key (name_status_id) 
-        references name_status;
-
-    alter table if exists nsl_simple_name 
-        add constraint FK_gbcxpwubk8cdlh5fxnd3ln4up 
-        foreign key (name_type_id) 
-        references name_type;
-
-    alter table if exists nsl_simple_name 
-        add constraint FK_kquvd2hkcl7aj2vhylvp1k7vb 
-        foreign key (parent_nsl_id) 
-        references name;
-
-    alter table if exists nsl_simple_name 
-        add constraint FK_59i6is32bt6v19i51ql9n2r9i 
-        foreign key (proto_instance_id) 
-        references instance;
-
-    alter table if exists nsl_simple_name 
-        add constraint FK_mvjeehgt584v9ep11ixe1iyok 
-        foreign key (second_parent_nsl_id) 
-        references name;
-
-    alter table if exists nsl_simple_name 
-        add constraint FK_rpqdbhi21sdix5tmmj5ul61su 
-        foreign key (species_nsl_id) 
-        references name;
-
     alter table if exists ref_type 
         add constraint FK_51alfoe7eobwh60yfx45y22ay 
         foreign key (parent_id) 
@@ -1494,11 +1330,6 @@
         add constraint FK_dm9y4p9xpsc8m7vljbohubl7x 
         foreign key (ref_type_id) 
         references ref_type;
-
-    alter table if exists trashed_item 
-        add constraint FK_bd6arfjuj28nolsc58i345ybg 
-        foreign key (trashing_event_id) 
-        references trashing_event;
 
     alter table if exists tree_arrangement 
         add constraint FK_skqp6co7fy5lcq0qts3yghy02 
@@ -1593,6 +1424,8 @@
     
 
     
+
+-- other-setup.sql
 --other setup
 ALTER TABLE instance
   ADD CONSTRAINT citescheck CHECK (cites_id IS NULL OR cited_by_id IS NOT NULL);
@@ -1616,7 +1449,9 @@ CREATE INDEX name_lower_simple_name_gin_trgm ON name USING GIN (lower(simple_nam
 CREATE INDEX name_lower_unacent_full_name_gin_trgm ON name USING GIN (lower(f_unaccent(full_name)) gin_trgm_ops);
 CREATE INDEX name_lower_unacent_simple_name_gin_trgm ON name USING GIN (lower(f_unaccent(simple_name)) gin_trgm_ops);
 
-INSERT INTO db_version (id, version) VALUES (1, 14);
+INSERT INTO db_version (id, version) VALUES (1, 16);
+
+-- boatree-setup-data.sql
 -- boatree setup data
 -- This script sets up the base data for the boatree app. This includes the 'end' tree, out in-house namespaces, and the empty nsl/apc/afd trees
 --
@@ -1914,6 +1749,8 @@ update tree_event set namespace_id = (select id from namespace where name = 'APN
 update tree_arrangement set namespace_id = (select id from namespace where name = 'APNI') where id <> 0;
 
 commit;
+
+-- triggers.sql
 --triggers
 CREATE OR REPLACE FUNCTION name_notification()
   RETURNS TRIGGER AS $name_note$
@@ -2037,6 +1874,8 @@ CREATE TRIGGER reference_update
 AFTER INSERT OR UPDATE OR DELETE ON author
 FOR EACH ROW
 EXECUTE PROCEDURE reference_notification();
+
+-- populate-lookup-tables.sql
 -- Populate lookup tables (currently botanical)
 --namespace
 INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'APNI', '(description of <b>APNI</b>)', 'apni');
@@ -2617,6 +2456,8 @@ INSERT INTO public.ref_type (id, lock_version, name, parent_id, parent_optional,
 INSERT INTO public.ref_type (id, lock_version, name, parent_id, parent_optional, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'Section', (select id from ref_type where name = 'Book'), false, '(description of <b>Section</b>)', 'section');
 INSERT INTO public.ref_type (id, lock_version, name, parent_id, parent_optional, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 1, 'Unknown', null, true, '(description of <b>Unknown</b>)', 'unknown');
 UPDATE public.ref_type SET parent_id = id WHERE name = 'Unknown'; --self parent
+
+-- boatree-indexes-and-constraints.sql
 -- boatree indexes and constraints
 -- this script assumes that we are using POSTGRES
 
@@ -2709,7 +2550,8 @@ CREATE INDEX idx_tree_node_name_id_in ON tree_node (name_id, tree_arrangement_id
 
 DROP INDEX idx_tree_node_instance_id_in;
 CREATE INDEX idx_tree_node_instance_id_in ON tree_node (instance_id, tree_arrangement_id);
--- grants
+
+-- grants.sql
 -- grant to the web user as required
 GRANT SELECT, INSERT, UPDATE, DELETE ON tree_arrangement TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON tree_link TO web;
@@ -2739,8 +2581,6 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON nomenclatural_event_type TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ref_author_role TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ref_type TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON reference TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON trashed_item TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON trashing_event TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON user_query TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON nsl_simple_name TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON notification TO web;
@@ -2749,6 +2589,13 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON name_tag_name TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON comment TO web;
 GRANT SELECT, UPDATE ON nsl_global_seq TO web;
 GRANT SELECT, UPDATE ON hibernate_sequence TO web;
+GRANT SELECT ON shard_config TO web;
+
+GRANT SELECT ON accepted_name_vw TO web;
+GRANT SELECT ON accepted_synonym_vw TO web;
+GRANT SELECT ON name_detail_synonyms_vw TO web;
+GRANT SELECT ON name_details_vw TO web;
+GRANT SELECT ON name_or_synonym_vw TO web;
 
 GRANT SELECT ON tree_arrangement TO read_only;
 GRANT SELECT ON tree_link TO read_only;
@@ -2778,14 +2625,167 @@ GRANT SELECT ON nomenclatural_event_type TO read_only;
 GRANT SELECT ON ref_author_role TO read_only;
 GRANT SELECT ON ref_type TO read_only;
 GRANT SELECT ON reference TO read_only;
-GRANT SELECT ON trashed_item TO read_only;
-GRANT SELECT ON trashing_event TO read_only;
 GRANT SELECT ON user_query TO read_only;
 GRANT SELECT ON nsl_simple_name TO read_only;
 GRANT SELECT ON notification TO read_only;
 GRANT SELECT ON name_tag TO read_only;
 GRANT SELECT ON name_tag_name TO read_only;
 GRANT SELECT ON comment TO read_only;
+GRANT SELECT ON shard_config TO read_only;
+
+GRANT SELECT ON accepted_name_vw TO read_only;
+GRANT SELECT ON accepted_synonym_vw TO read_only;
+GRANT SELECT ON name_detail_synonyms_vw TO read_only;
+GRANT SELECT ON name_details_vw TO read_only;
+GRANT SELECT ON name_or_synonym_vw TO read_only;
+
+-- search-views.sql
+DROP VIEW IF EXISTS public.accepted_name_vw;
+CREATE VIEW public.accepted_name_vw AS
+  SELECT
+    accepted.id,
+    accepted.simple_name,
+    accepted.full_name,
+    tree_node.type_uri_id_part AS type_code,
+    instance.id                AS instance_id,
+    tree_node.id               AS tree_node_id,
+    0                          AS accepted_id,
+    '' :: CHARACTER VARYING    AS accepted_full_name,
+    accepted.name_status_id,
+    instance.reference_id,
+    accepted.name_rank_id,
+    accepted.sort_name
+  FROM (((NAME accepted
+               JOIN instance ON ((accepted.id = instance.name_id)))
+          JOIN tree_node ON ((accepted.id = tree_node.name_id)))
+    JOIN tree_arrangement ta ON ((tree_node.tree_arrangement_id = ta.id)))
+  WHERE (((((ta.label) :: TEXT = 'APC' :: TEXT) AND (tree_node.next_node_id IS NULL)) AND
+          (tree_node.checked_in_at_id IS NOT NULL)) AND (instance.id = tree_node.instance_id));
+
+DROP VIEW IF EXISTS public.accepted_synonym_vw;
+CREATE VIEW public.accepted_synonym_vw AS
+  SELECT
+    name_as_syn.id,
+    name_as_syn.simple_name,
+    name_as_syn.full_name,
+    'synonym' :: CHARACTER VARYING AS type_code,
+    citer.id                       AS instance_id,
+    tree_node.id                   AS tree_node_id,
+    citer_name.id                  AS accepted_id,
+    citer_name.full_name           AS accepted_full_name,
+    name_as_syn.name_status_id,
+    0                              AS reference_id,
+    name_as_syn.name_rank_id,
+    name_as_syn.sort_name
+  FROM (((((((NAME name_as_syn
+                   JOIN instance cites ON ((name_as_syn.id = cites.name_id)))
+              JOIN reference cites_ref ON ((cites.reference_id = cites_ref.id)))
+             JOIN instance citer ON ((cites.cited_by_id = citer.id)))
+            JOIN reference citer_ref ON ((citer.reference_id = citer_ref.id)))
+           JOIN NAME citer_name ON ((citer.name_id = citer_name.id)))
+          JOIN tree_node ON ((citer_name.id = tree_node.name_id)))
+    JOIN tree_arrangement ta ON ((tree_node.tree_arrangement_id = ta.id)))
+  WHERE (((((ta.label) :: TEXT = 'APC' :: TEXT) AND (tree_node.next_node_id IS NULL)) AND
+          (tree_node.checked_in_at_id IS NOT NULL)) AND (tree_node.instance_id = citer.id));
+
+DROP VIEW IF EXISTS public.name_detail_synonyms_vw;
+CREATE VIEW public.name_detail_synonyms_vw AS
+  SELECT
+    instance.cited_by_id,
+    ((((ity.name) :: TEXT || ':' :: TEXT) || (name.full_name_html) :: TEXT) || (
+      CASE
+      WHEN (ns.nom_illeg OR ns.nom_inval)
+        THEN ns.name
+      ELSE '' :: CHARACTER VARYING
+      END) :: TEXT)      AS entry,
+    instance.id,
+    instance.cites_id,
+    ity.name             AS instance_type_name,
+    ity.sort_order       AS instance_type_sort_order,
+    name.full_name,
+    name.full_name_html,
+    ns.name,
+    instance.name_id,
+    instance.id          AS instance_id,
+    instance.cited_by_id AS name_detail_id
+  FROM (((instance
+    JOIN NAME ON ((instance.name_id = NAME.id)))
+          JOIN instance_type ity ON ((ity.id = instance.instance_type_id)))
+    JOIN name_status ns ON ((ns.id = name.name_status_id)));
+
+DROP VIEW IF EXISTS public.name_details_vw;
+CREATE VIEW public.name_details_vw AS
+  SELECT
+    n.id,
+    n.full_name,
+    n.simple_name,
+    s.name            AS status_name,
+    r.name            AS rank_name,
+    r.visible_in_name AS rank_visible_in_name,
+    r.sort_order      AS rank_sort_order,
+    t.name            AS type_name,
+    t.scientific      AS type_scientific,
+    t.cultivar        AS type_cultivar,
+    i.id              AS instance_id,
+    ref.year          AS reference_year,
+    ref.id            AS reference_id,
+    ref.citation_html AS reference_citation_html,
+    ity.name          AS instance_type_name,
+    ity.id            AS instance_type_id,
+    ity.primary_instance,
+    ity.standalone    AS instance_standalone,
+    sty.standalone    AS synonym_standalone,
+    sty.name          AS synonym_type_name,
+    i.page,
+    i.page_qualifier,
+    i.cited_by_id,
+    i.cites_id,
+    CASE ity.primary_instance
+    WHEN TRUE
+      THEN 'A' :: TEXT
+    ELSE 'B' :: TEXT
+    END               AS primary_instance_first,
+    sname.full_name   AS synonym_full_name,
+    author.name       AS author_name,
+    n.id              AS name_id,
+    n.sort_name,
+    ((((ref.citation_html) :: TEXT || ': ' :: TEXT) || (COALESCE(i.page, '' :: CHARACTER VARYING)) :: TEXT) ||
+     CASE ity.primary_instance
+     WHEN TRUE
+       THEN ((' [' :: TEXT || (ity.name) :: TEXT) || ']' :: TEXT)
+     ELSE '' :: TEXT
+     END)             AS entry
+  FROM ((((((((((NAME n
+                      JOIN name_status s ON ((n.name_status_id = s.id)))
+                 JOIN name_rank r ON ((n.name_rank_id = r.id)))
+                JOIN name_type t ON ((n.name_type_id = t.id)))
+               JOIN instance i ON ((n.id = i.name_id)))
+              JOIN instance_type ity ON ((i.instance_type_id = ity.id)))
+             JOIN reference REF ON ((i.reference_id = REF.id)))
+            LEFT JOIN author ON ((REF.author_id = author.id)))
+           LEFT JOIN instance syn ON ((syn.cited_by_id = i.id)))
+          LEFT JOIN instance_type sty ON ((syn.instance_type_id = sty.id)))
+    LEFT JOIN name sname ON ((syn.name_id = sname.id)))
+  WHERE (n.duplicate_of_id IS NULL);
+
+DROP VIEW IF EXISTS public.name_or_synonym_vw;
+CREATE VIEW public.name_or_synonym_vw AS
+  SELECT
+    0                       AS id,
+    '' :: CHARACTER VARYING AS simple_name,
+    '' :: CHARACTER VARYING AS full_name,
+    '' :: CHARACTER VARYING AS type_code,
+    0                       AS instance_id,
+    0                       AS tree_node_id,
+    0                       AS accepted_id,
+    '' :: CHARACTER VARYING AS accepted_full_name,
+    0                       AS name_status_id,
+    0                       AS reference_id,
+    0                       AS name_rank_id,
+    '' :: CHARACTER VARYING AS sort_name
+  FROM name
+  WHERE (1 = 0);
+-- audit.sql
 -- An audit history is important on most tables. Provide an audit trigger that logs to
 -- a dedicated audit table for the major relations.
 --
