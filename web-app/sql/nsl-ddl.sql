@@ -462,9 +462,11 @@
         deprecated boolean default false not null,
         description_html text,
         doubtful boolean default false not null,
+        has_label varchar(255) not null,
         misapplied boolean default false not null,
         name varchar(255) not null,
         nomenclatural boolean default false not null,
+        of_label varchar(255) not null,
         primary_instance boolean default false not null,
         pro_parte boolean default false not null,
         protologue boolean default false not null,
@@ -1449,7 +1451,7 @@ CREATE INDEX name_lower_simple_name_gin_trgm ON name USING GIN (lower(simple_nam
 CREATE INDEX name_lower_unacent_full_name_gin_trgm ON name USING GIN (lower(f_unaccent(full_name)) gin_trgm_ops);
 CREATE INDEX name_lower_unacent_simple_name_gin_trgm ON name USING GIN (lower(f_unaccent(simple_name)) gin_trgm_ops);
 
-INSERT INTO db_version (id, version) VALUES (1, 16);
+INSERT INTO db_version (id, version) VALUES (1, 17);
 
 -- boatree-setup-data.sql
 -- boatree setup data

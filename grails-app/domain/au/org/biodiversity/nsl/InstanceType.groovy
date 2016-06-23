@@ -21,6 +21,8 @@ import groovy.transform.ToString
 class InstanceType {
 
     String name
+    String ofLabel
+    String hasLabel
     Boolean primaryInstance = false
     Boolean secondaryInstance = false
     Boolean relationship = false
@@ -64,6 +66,8 @@ class InstanceType {
 
     static constraints = {
         name unique: true
+        ofLabel maxSize: 255
+        hasLabel maxSize: 255
         sortOrder min: 0, max: 500
         rdfId maxSize: 50, nullable: true
         descriptionHtml nullable: true
