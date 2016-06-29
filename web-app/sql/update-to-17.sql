@@ -1,13 +1,25 @@
-alter table instance_type add COLUMN has_label varchar(255) not null DEFAULT 'not set';
-alter table instance_type add COLUMN of_label varchar(255) not null DEFAULT 'not set';
+ALTER TABLE instance_type
+  ADD COLUMN has_label VARCHAR(255) NOT NULL DEFAULT 'not set';
+ALTER TABLE instance_type
+  ADD COLUMN of_label VARCHAR(255) NOT NULL DEFAULT 'not set';
 
-update instance_type set has_label = name where misapplied = false;
-update instance_type set of_label = name || ' of' where misapplied = false;
-update instance_type set has_label = regexp_replace(name, 'misapplied', 'misapplication') where misapplied = true;
-update instance_type set of_label = name || ' to' where misapplied = true;
+UPDATE instance_type
+SET has_label = name
+WHERE misapplied = FALSE;
+UPDATE instance_type
+SET of_label = name || ' of'
+WHERE misapplied = FALSE;
+UPDATE instance_type
+SET has_label = regexp_replace(name, 'misapplied', 'misapplication')
+WHERE misapplied = TRUE;
+UPDATE instance_type
+SET of_label = name || ' to'
+WHERE misapplied = TRUE;
+
+ALTER TABLE ref_type
+  ADD COLUMN use_parent_details BOOLEAN DEFAULT FALSE NOT NULL;
 
 -- version
 UPDATE db_version
 SET version = 17
 WHERE id = 1;
-

@@ -689,6 +689,7 @@
         parent_id int8,
         parent_optional boolean default false not null,
         rdf_id varchar(50),
+        use_parent_details boolean default false not null,
         primary key (id)
     );
 

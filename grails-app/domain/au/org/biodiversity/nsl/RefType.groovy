@@ -25,6 +25,8 @@ class RefType {
     RefType parent
     String rdfId
     String descriptionHtml
+    //NSL-1827 get reference details from parent.
+    Boolean useParentDetails
 
     static hasMany = [refTypes  : RefType,
                       references: Reference]
@@ -35,6 +37,8 @@ class RefType {
         id generator: 'native', params: [sequence: 'nsl_global_seq'], defaultValue: "nextval('nsl_global_seq')"
         version column: 'lock_version', defaultValue: "0"
         descriptionHtml sqlType: 'text'
+        parentOptional defaultValue: false
+        useParentDetails defaultValue: false
     }
 
     static constraints = {
