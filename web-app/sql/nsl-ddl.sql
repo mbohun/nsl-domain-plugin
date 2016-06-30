@@ -123,6 +123,9 @@
         drop constraint if exists FK_2uiijd73snf6lh5s6a82yjfin;
 
     alter table if exists name_tree_path 
+        drop constraint if exists FK_4kc2kv5choyybkaetmshegbet;
+
+    alter table if exists name_tree_path 
         drop constraint if exists FK_j4j0kq9duod9gm019pl1xec7c;
 
     alter table if exists name_tree_path 
@@ -615,6 +618,7 @@
     create table name_tree_path (
         id int8 default nextval('hibernate_sequence') not null,
         version int8 not null,
+        family_id int8,
         inserted int8 not null,
         name_id int8 not null,
         name_id_path TEXT not null,
@@ -969,6 +973,8 @@
 
     create index Name_Tag_Tag_Index on name_tag_name (tag_id);
 
+    create index name_tree_path_family_index on name_tree_path (family_id);
+
     create index name_tree_path_name_index on name_tree_path (name_id);
 
     create index name_tree_path_treename_index on name_tree_path (name_id, tree_id);
@@ -1258,6 +1264,11 @@
         add constraint FK_2uiijd73snf6lh5s6a82yjfin 
         foreign key (tag_id) 
         references name_tag;
+
+    alter table if exists name_tree_path 
+        add constraint FK_4kc2kv5choyybkaetmshegbet 
+        foreign key (family_id) 
+        references name;
 
     alter table if exists name_tree_path 
         add constraint FK_j4j0kq9duod9gm019pl1xec7c 
