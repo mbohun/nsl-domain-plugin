@@ -22,6 +22,7 @@ class Arrangement {
 	String title
 	String description
 	String owner
+	Boolean shared
 	Node node
 
 	String synthetic  //todo make this a boolean
@@ -45,6 +46,7 @@ class Arrangement {
 		label maxSize: 50, nullable: true // some tree roots are synthetic and have no label
 		title maxSize: 50, nullable: true
 		owner nullable: true //
+		shared nullable: true //
 		description maxSize: 255,  nullable: true
 	}
 }
