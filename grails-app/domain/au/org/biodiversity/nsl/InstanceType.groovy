@@ -37,6 +37,7 @@ class InstanceType {
     Boolean unsourced = false
     Boolean citing = false
     Boolean deprecated = false
+    Boolean bidirectional = false
     Integer sortOrder = 0
     String rdfId
     String descriptionHtml
@@ -61,6 +62,7 @@ class InstanceType {
         unsourced defaultvalue: "false"
         citing defaultvalue: "false"
         deprecated defaultvalue: "false"
+        bidirectional defaultvalue: "false"
         descriptionHtml sqlType: 'text'
     }
 

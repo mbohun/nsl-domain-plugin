@@ -2,6 +2,8 @@ ALTER TABLE instance_type
   ADD COLUMN has_label VARCHAR(255) NOT NULL DEFAULT 'not set';
 ALTER TABLE instance_type
   ADD COLUMN of_label VARCHAR(255) NOT NULL DEFAULT 'not set';
+ALTER TABLE instance_type
+  ADD COLUMN bidirectional BOOLEAN DEFAULT FALSE NOT NULL;
 
 UPDATE instance_type
 SET has_label = name
