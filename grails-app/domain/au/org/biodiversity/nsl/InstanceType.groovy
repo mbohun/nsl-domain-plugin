@@ -21,6 +21,8 @@ import groovy.transform.ToString
 class InstanceType {
 
     String name
+    String ofLabel
+    String hasLabel
     Boolean primaryInstance = false
     Boolean secondaryInstance = false
     Boolean relationship = false
@@ -35,6 +37,7 @@ class InstanceType {
     Boolean unsourced = false
     Boolean citing = false
     Boolean deprecated = false
+    Boolean bidirectional = false
     Integer sortOrder = 0
     String rdfId
     String descriptionHtml
@@ -59,11 +62,14 @@ class InstanceType {
         unsourced defaultvalue: "false"
         citing defaultvalue: "false"
         deprecated defaultvalue: "false"
+        bidirectional defaultvalue: "false"
         descriptionHtml sqlType: 'text'
     }
 
     static constraints = {
         name unique: true
+        ofLabel maxSize: 255
+        hasLabel maxSize: 255
         sortOrder min: 0, max: 500
         rdfId maxSize: 50, nullable: true
         descriptionHtml nullable: true

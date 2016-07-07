@@ -123,6 +123,9 @@
         drop constraint if exists FK_2uiijd73snf6lh5s6a82yjfin;
 
     alter table if exists name_tree_path 
+        drop constraint if exists FK_4kc2kv5choyybkaetmshegbet;
+
+    alter table if exists name_tree_path 
         drop constraint if exists FK_j4j0kq9duod9gm019pl1xec7c;
 
     alter table if exists name_tree_path 
@@ -458,13 +461,16 @@
     create table instance_type (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
+        bidirectional boolean default false not null,
         citing boolean default false not null,
         deprecated boolean default false not null,
         description_html text,
         doubtful boolean default false not null,
+        has_label varchar(255) not null,
         misapplied boolean default false not null,
         name varchar(255) not null,
         nomenclatural boolean default false not null,
+        of_label varchar(255) not null,
         primary_instance boolean default false not null,
         pro_parte boolean default false not null,
         protologue boolean default false not null,
@@ -613,6 +619,7 @@
     create table name_tree_path (
         id int8 default nextval('hibernate_sequence') not null,
         version int8 not null,
+        family_id int8,
         inserted int8 not null,
         name_id int8 not null,
         name_id_path TEXT not null,
@@ -687,6 +694,7 @@
         parent_id int8,
         parent_optional boolean default false not null,
         rdf_id varchar(50),
+        use_parent_details boolean default false not null,
         primary key (id)
     );
 
@@ -965,6 +973,8 @@
     create index Name_Tag_Name_Index on name_tag_name (name_id);
 
     create index Name_Tag_Tag_Index on name_tag_name (tag_id);
+
+    create index name_tree_path_family_index on name_tree_path (family_id);
 
     create index name_tree_path_name_index on name_tree_path (name_id);
 
@@ -1257,6 +1267,11 @@
         references name_tag;
 
     alter table if exists name_tree_path 
+        add constraint FK_4kc2kv5choyybkaetmshegbet 
+        foreign key (family_id) 
+        references name;
+
+    alter table if exists name_tree_path 
         add constraint FK_j4j0kq9duod9gm019pl1xec7c 
         foreign key (name_id) 
         references name;
@@ -1449,7 +1464,7 @@ CREATE INDEX name_lower_simple_name_gin_trgm ON name USING GIN (lower(simple_nam
 CREATE INDEX name_lower_unacent_full_name_gin_trgm ON name USING GIN (lower(f_unaccent(full_name)) gin_trgm_ops);
 CREATE INDEX name_lower_unacent_simple_name_gin_trgm ON name USING GIN (lower(f_unaccent(simple_name)) gin_trgm_ops);
 
-INSERT INTO db_version (id, version) VALUES (1, 16);
+INSERT INTO db_version (id, version) VALUES (1, 17);
 
 -- boatree-setup-data.sql
 -- boatree setup data

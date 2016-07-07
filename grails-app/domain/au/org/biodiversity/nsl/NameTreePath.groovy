@@ -29,12 +29,16 @@ class NameTreePath {
 
     Arrangement tree
     String nameIdPath  //String of name ids separated by dots
+    //eg: 54717.224706.223519.214954.217043.214991.54582.75899
     String namePath    //String of canonical simple name separated by ' > '
+    //eg: Plantae.Charophyta.Equisetopsida.Magnoliidae.Rosanae.Fabales.Fabaceae.Lablab
     String rankPath    //String of name rank names separated by ' > '
+    //eg: Regnum:Plantae>Division:Charophyta>Classis:Equisetopsida>Subclassis:Magnoliidae>Superordo:Rosanae>Ordo:Fabales>Familia:Fabaceae>Genus:Lablab
     NameTreePath next
     NameTreePath parent
     Long inserted
     Name name
+    Name family       //The family this name belongs to according to this tree NSL-1818
 
     static belongsTo = [Name]
 
@@ -46,11 +50,13 @@ class NameTreePath {
         rankPath sqlType: 'TEXT'
         name index: 'name_tree_path_name_index,name_tree_path_treename_index'
         tree index: 'name_tree_path_treename_index'
+        family index: 'name_tree_path_family_index'
     }
 
     static constraints = {
         next nullable: true
         parent nullable: true
+        family nullable: true
     }
 
     public List<Long> namePathIds() {
