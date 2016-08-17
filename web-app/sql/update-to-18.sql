@@ -4,7 +4,7 @@ ALTER TABLE instance
 ALTER TABLE tree_arrangement
   ADD COLUMN shared BOOLEAN DEFAULT TRUE;
 
-DROP TRIGGER reference_update
+DROP TRIGGER IF EXISTS reference_update
 ON author;
 
 CREATE TRIGGER reference_update
