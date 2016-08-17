@@ -24,6 +24,7 @@ class Arrangement {
 	String owner
 	Boolean shared
 	Node node
+	Arrangement baseArrangement
 
 	String synthetic  //todo make this a boolean
 
@@ -48,5 +49,6 @@ class Arrangement {
 		owner nullable: true //
 		shared nullable: true //
 		description maxSize: 255,  nullable: true
+		baseArrangement  nullable: true
 	}
 }
