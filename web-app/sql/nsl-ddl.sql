@@ -1911,8 +1911,10 @@ EXECUTE PROCEDURE reference_notification();
 --namespace
 INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'APNI', '(description of <b>APNI</b>)', 'apni');
 INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'ANHSIR', '(description of <b>ANHSIR</b>)', 'anhsir');
-INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'AusMoss', '(description of <b>AUSMOSS</b>)', 'ausmoss');
-INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'AusAlgae', '(description of <b>AUSALGAE</b>)', 'ausalgae');
+INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'AusMoss', '(description of <b>AusMoss</b>)', 'ausmoss');
+INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'Algae', '(description of <b>Algae</b>)', 'algae');
+INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'Lichen', '(description of <b>Lichen</b>)', 'lichen');
+INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'Fungi', '(description of <b>Fungi</b>)', 'fungi');
 --language
 INSERT INTO public.language (id, lock_version, iso6391code, iso6393code, name) VALUES (nextval('nsl_global_seq'), 0, null, 'mul', 'Multiple languages');
 INSERT INTO public.language (id, lock_version, iso6391code, iso6393code, name) VALUES (nextval('nsl_global_seq'), 0, null, 'zxx', 'No linguistic content');
