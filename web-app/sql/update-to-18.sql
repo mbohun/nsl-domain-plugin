@@ -12,25 +12,47 @@ AFTER INSERT OR UPDATE OR DELETE ON reference
 FOR EACH ROW
 EXECUTE PROCEDURE reference_notification();
 
-Update namespace set name = 'Algae' where name = 'AusAlgae';
-Update namespace set description_html = '(description of <b>Algae</b>)' where name = 'Algae';
-Update namespace set rdf_id = 'algae' where name = 'Algae';
+UPDATE namespace
+SET name = 'Algae'
+WHERE name = 'AusAlgae';
+UPDATE namespace
+SET description_html = '(description of <b>Algae</b>)'
+WHERE name = 'Algae';
+UPDATE namespace
+SET rdf_id = 'algae'
+WHERE name = 'Algae';
 
-INSERT INTO namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'Lichen', '(description of <b>Lichen</b>)', 'lichen');
-INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'Fungi', '(description of <b>Fungi</b>)', 'fungi');
+INSERT INTO namespace (id, lock_version, name, description_html, rdf_id)
+VALUES (nextval('nsl_global_seq'), 0, 'Lichen', '(description of <b>Lichen</b>)', 'lichen');
+INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id)
+VALUES (nextval('nsl_global_seq'), 0, 'Fungi', '(description of <b>Fungi</b>)', 'fungi');
 
+-- indexes to speed up queries against the current tree
+CREATE INDEX idx_node_current_name_a
+  ON tree_node (name_id, tree_arrangement_id)
+  WHERE replaced_at_id IS NULL;
 
-create index idx_node_current_name_a on tree_node(name_id, tree_arrangement_id) where replaced_at_id is null;
+  CREATE INDEX idx_node_current_name_b
+  ON tree_node (name_id, tree_arrangement_id)
+  WHERE next_node_id IS NULL;
+ 
 
- create index idx_node_current_name_b on tree_node(name_id, tree_arrangement_id) where next_node_id is null; 
+CREATE INDEX idx_node_current_instance_a
+  ON tree_node (instance_id, tree_arrangement_id)
+  WHERE replaced_at_id IS NULL;
+ 
 
-create index idx_node_current_instance_a on tree_node(instance_id, tree_arrangement_id) where replaced_at_id is null; 
+CREATE INDEX idx_node_current_instance_b
+  ON tree_node (instance_id, tree_arrangement_id)
+  WHERE next_node_id IS NULL;
 
-create index idx_node_current_instance_b on tree_node(instance_id, tree_arrangement_id) where next_node_id is null; 
+CREATE INDEX idx_node_current_a
+  ON tree_node (tree_arrangement_id)
+  WHERE replaced_at_id IS NULL;
 
-
-
-
+CREATE INDEX idx_node_current_b
+  ON tree_node (tree_arrangement_id)
+  WHERE next_node_id IS NULL;
 -- version
 UPDATE db_version
 SET version = 18
