@@ -1777,6 +1777,9 @@ commit;
 
 -- triggers.sql
 --triggers
+
+-- Name change trigger
+
 CREATE OR REPLACE FUNCTION name_notification()
   RETURNS TRIGGER AS $name_note$
 BEGIN
@@ -1817,6 +1820,8 @@ CREATE TRIGGER name_update
 AFTER INSERT OR UPDATE OR DELETE ON name
 FOR EACH ROW
 EXECUTE PROCEDURE name_notification();
+
+-- Author change trigger
 
 CREATE OR REPLACE FUNCTION author_notification()
   RETURNS TRIGGER AS $author_note$
@@ -1859,6 +1864,7 @@ AFTER INSERT OR UPDATE OR DELETE ON author
 FOR EACH ROW
 EXECUTE PROCEDURE author_notification();
 
+-- Reference change trigger
 CREATE OR REPLACE FUNCTION reference_notification()
   RETURNS TRIGGER AS $ref_note$
 BEGIN
@@ -1896,7 +1902,7 @@ $ref_note$ LANGUAGE plpgsql;
 
 
 CREATE TRIGGER reference_update
-AFTER INSERT OR UPDATE OR DELETE ON author
+AFTER INSERT OR UPDATE OR DELETE ON reference
 FOR EACH ROW
 EXECUTE PROCEDURE reference_notification();
 

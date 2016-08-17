@@ -4,6 +4,14 @@ ALTER TABLE instance
 ALTER TABLE tree_arrangement
   ADD COLUMN shared BOOLEAN DEFAULT TRUE;
 
+DROP TRIGGER reference_update
+ON author;
+
+CREATE TRIGGER reference_update
+AFTER INSERT OR UPDATE OR DELETE ON reference
+FOR EACH ROW
+EXECUTE PROCEDURE reference_notification();
+
 -- version
 UPDATE db_version
 SET version = 18
