@@ -28,19 +28,18 @@ INSERT INTO public.namespace (id, lock_version, name, description_html, rdf_id)
 VALUES (nextval('nsl_global_seq'), 0, 'Fungi', '(description of <b>Fungi</b>)', 'fungi');
 
 -- indexes to speed up queries against the current tree
+
 CREATE INDEX idx_node_current_name_a
   ON tree_node (name_id, tree_arrangement_id)
   WHERE replaced_at_id IS NULL;
 
-  CREATE INDEX idx_node_current_name_b
+CREATE INDEX idx_node_current_name_b
   ON tree_node (name_id, tree_arrangement_id)
   WHERE next_node_id IS NULL;
- 
 
 CREATE INDEX idx_node_current_instance_a
   ON tree_node (instance_id, tree_arrangement_id)
   WHERE replaced_at_id IS NULL;
- 
 
 CREATE INDEX idx_node_current_instance_b
   ON tree_node (instance_id, tree_arrangement_id)
@@ -53,6 +52,7 @@ CREATE INDEX idx_node_current_a
 CREATE INDEX idx_node_current_b
   ON tree_node (tree_arrangement_id)
   WHERE next_node_id IS NULL;
+
 -- version
 UPDATE db_version
 SET version = 18

@@ -121,10 +121,10 @@ CREATE INDEX idx_node_current_name_a
   WHERE replaced_at_id IS NULL;
 
 DROP INDEX IF EXISTS idx_node_current_name_b;
-  CREATE INDEX idx_node_current_name_b
+CREATE INDEX idx_node_current_name_b
   ON tree_node (name_id, tree_arrangement_id)
   WHERE next_node_id IS NULL;
- 
+
 DROP INDEX IF EXISTS idx_node_current_instance_a;
 CREATE INDEX idx_node_current_instance_a
   ON tree_node (instance_id, tree_arrangement_id)

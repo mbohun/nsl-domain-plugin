@@ -1,315 +1,315 @@
 
-alter table if exists author 
-drop constraint if exists FK_6a4p11f1bt171w09oo06m0wag;
+    alter table if exists author 
+        drop constraint if exists FK_6a4p11f1bt171w09oo06m0wag;
 
-alter table if exists author 
-drop constraint if exists FK_p0ysrub11cm08xnhrbrfrvudh;
+    alter table if exists author 
+        drop constraint if exists FK_p0ysrub11cm08xnhrbrfrvudh;
 
-alter table if exists comment 
-drop constraint if exists FK_9aq5p2jgf17y6b38x5ayd90oc;
+    alter table if exists comment 
+        drop constraint if exists FK_9aq5p2jgf17y6b38x5ayd90oc;
 
-alter table if exists comment 
-drop constraint if exists FK_6oqj6vquqc33cyawn853hfu5g;
+    alter table if exists comment 
+        drop constraint if exists FK_6oqj6vquqc33cyawn853hfu5g;
 
-alter table if exists comment 
-drop constraint if exists FK_h9t5eaaqhnqwrc92rhryyvdcf;
+    alter table if exists comment 
+        drop constraint if exists FK_h9t5eaaqhnqwrc92rhryyvdcf;
 
-alter table if exists comment 
-drop constraint if exists FK_3tfkdcmf6rg6hcyiu8t05er7x;
+    alter table if exists comment 
+        drop constraint if exists FK_3tfkdcmf6rg6hcyiu8t05er7x;
 
-alter table if exists external_ref 
-drop constraint if exists FK_4g2i2qry4941xmqijgeo8ns2h;
+    alter table if exists external_ref 
+        drop constraint if exists FK_4g2i2qry4941xmqijgeo8ns2h;
 
-alter table if exists external_ref 
-drop constraint if exists FK_bu7q5itmt7w7q1bex049xvac7;
+    alter table if exists external_ref 
+        drop constraint if exists FK_bu7q5itmt7w7q1bex049xvac7;
 
-alter table if exists external_ref 
-drop constraint if exists FK_f7igpcpvgcmdfb7v3bgjluqsf;
+    alter table if exists external_ref 
+        drop constraint if exists FK_f7igpcpvgcmdfb7v3bgjluqsf;
 
-alter table if exists id_mapper 
-drop constraint if exists FK_qiy281xsleyhjgr0eu1sboagm;
+    alter table if exists id_mapper 
+        drop constraint if exists FK_qiy281xsleyhjgr0eu1sboagm;
 
-alter table if exists instance 
-drop constraint if exists FK_pr2f6peqhnx9rjiwkr5jgc5be;
+    alter table if exists instance 
+        drop constraint if exists FK_pr2f6peqhnx9rjiwkr5jgc5be;
 
-alter table if exists instance 
-drop constraint if exists FK_30enb6qoexhuk479t75apeuu5;
+    alter table if exists instance 
+        drop constraint if exists FK_30enb6qoexhuk479t75apeuu5;
 
-alter table if exists instance 
-drop constraint if exists FK_o80rrtl8xwy4l3kqrt9qv0mnt;
+    alter table if exists instance 
+        drop constraint if exists FK_o80rrtl8xwy4l3kqrt9qv0mnt;
 
-alter table if exists instance 
-drop constraint if exists FK_gdunt8xo68ct1vfec9c6x5889;
+    alter table if exists instance 
+        drop constraint if exists FK_gdunt8xo68ct1vfec9c6x5889;
 
-alter table if exists instance 
-drop constraint if exists FK_gtkjmbvk6uk34fbfpy910e7t6;
+    alter table if exists instance 
+        drop constraint if exists FK_gtkjmbvk6uk34fbfpy910e7t6;
 
-alter table if exists instance 
-drop constraint if exists FK_hb0xb97midopfgrm2k5fpe3p1;
+    alter table if exists instance 
+        drop constraint if exists FK_hb0xb97midopfgrm2k5fpe3p1;
 
-alter table if exists instance 
-drop constraint if exists FK_lumlr5avj305pmc4hkjwaqk45;
+    alter table if exists instance 
+        drop constraint if exists FK_lumlr5avj305pmc4hkjwaqk45;
 
-alter table if exists instance_note 
-drop constraint if exists FK_bw41122jb5rcu8wfnog812s97;
+    alter table if exists instance_note 
+        drop constraint if exists FK_bw41122jb5rcu8wfnog812s97;
 
-alter table if exists instance_note 
-drop constraint if exists FK_he1t3ug0o7ollnk2jbqaouooa;
+    alter table if exists instance_note 
+        drop constraint if exists FK_he1t3ug0o7ollnk2jbqaouooa;
 
-alter table if exists instance_note 
-drop constraint if exists FK_f6s94njexmutjxjv8t5dy1ugt;
+    alter table if exists instance_note 
+        drop constraint if exists FK_f6s94njexmutjxjv8t5dy1ugt;
 
-alter table if exists name 
-drop constraint if exists FK_airfjupm6ohehj1lj82yqkwdx;
+    alter table if exists name 
+        drop constraint if exists FK_airfjupm6ohehj1lj82yqkwdx;
 
-alter table if exists name 
-drop constraint if exists FK_coqxx3ewgiecsh3t78yc70b35;
+    alter table if exists name 
+        drop constraint if exists FK_coqxx3ewgiecsh3t78yc70b35;
 
-alter table if exists name 
-drop constraint if exists FK_3pqdqa03w5c6h4yyrrvfuagos;
+    alter table if exists name 
+        drop constraint if exists FK_3pqdqa03w5c6h4yyrrvfuagos;
 
-alter table if exists name 
-drop constraint if exists FK_sgvxmyj7r9g4wy9c4hd1yn4nu;
+    alter table if exists name 
+        drop constraint if exists FK_sgvxmyj7r9g4wy9c4hd1yn4nu;
 
-alter table if exists name 
-drop constraint if exists FK_rp659tjcxokf26j8551k6an2y;
+    alter table if exists name 
+        drop constraint if exists FK_rp659tjcxokf26j8551k6an2y;
 
-alter table if exists name 
-drop constraint if exists FK_sk2iikq8wla58jeypkw6h74hc;
+    alter table if exists name 
+        drop constraint if exists FK_sk2iikq8wla58jeypkw6h74hc;
 
-alter table if exists name 
-drop constraint if exists FK_5fpm5u0ukiml9nvmq14bd7u51;
+    alter table if exists name 
+        drop constraint if exists FK_5fpm5u0ukiml9nvmq14bd7u51;
 
-alter table if exists name 
-drop constraint if exists FK_bcef76k0ijrcquyoc0yxehxfp;
+    alter table if exists name 
+        drop constraint if exists FK_bcef76k0ijrcquyoc0yxehxfp;
 
-alter table if exists name 
-drop constraint if exists FK_156ncmx4599jcsmhh5k267cjv;
+    alter table if exists name 
+        drop constraint if exists FK_156ncmx4599jcsmhh5k267cjv;
 
-alter table if exists name 
-drop constraint if exists FK_dd33etb69v5w5iah1eeisy7yt;
+    alter table if exists name 
+        drop constraint if exists FK_dd33etb69v5w5iah1eeisy7yt;
 
-alter table if exists name 
-drop constraint if exists FK_ai81l07vh2yhmthr3582igo47;
+    alter table if exists name 
+        drop constraint if exists FK_ai81l07vh2yhmthr3582igo47;
 
-alter table if exists name 
-drop constraint if exists FK_5gp2lfblqq94c4ud3340iml0l;
+    alter table if exists name 
+        drop constraint if exists FK_5gp2lfblqq94c4ud3340iml0l;
 
-alter table if exists name 
-drop constraint if exists FK_dqhn53mdh0n77xhsw7l5dgd38;
+    alter table if exists name 
+        drop constraint if exists FK_dqhn53mdh0n77xhsw7l5dgd38;
 
-alter table if exists name_part 
-drop constraint if exists FK_s13ituehdpf6uh859umme7g1j;
+    alter table if exists name_part 
+        drop constraint if exists FK_s13ituehdpf6uh859umme7g1j;
 
-alter table if exists name_part 
-drop constraint if exists FK_pj38oewhgjq8rp08fc9cviteu;
+    alter table if exists name_part 
+        drop constraint if exists FK_pj38oewhgjq8rp08fc9cviteu;
 
-alter table if exists name_rank 
-drop constraint if exists FK_p3lpayfbl9s3hshhoycfj82b9;
+    alter table if exists name_rank 
+        drop constraint if exists FK_p3lpayfbl9s3hshhoycfj82b9;
 
-alter table if exists name_rank 
-drop constraint if exists FK_r67um91pujyfrx7h1cifs3cmb;
+    alter table if exists name_rank 
+        drop constraint if exists FK_r67um91pujyfrx7h1cifs3cmb;
 
-alter table if exists name_status 
-drop constraint if exists FK_swotu3c2gy1hp8f6ekvuo7s26;
+    alter table if exists name_status 
+        drop constraint if exists FK_swotu3c2gy1hp8f6ekvuo7s26;
 
-alter table if exists name_status 
-drop constraint if exists FK_g4o6xditli5a0xrm6eqc6h9gw;
+    alter table if exists name_status 
+        drop constraint if exists FK_g4o6xditli5a0xrm6eqc6h9gw;
 
-alter table if exists name_tag_name 
-drop constraint if exists FK_22wdc2pxaskytkgpdgpyok07n;
+    alter table if exists name_tag_name 
+        drop constraint if exists FK_22wdc2pxaskytkgpdgpyok07n;
 
-alter table if exists name_tag_name 
-drop constraint if exists FK_2uiijd73snf6lh5s6a82yjfin;
+    alter table if exists name_tag_name 
+        drop constraint if exists FK_2uiijd73snf6lh5s6a82yjfin;
 
-alter table if exists name_tree_path 
-drop constraint if exists FK_4kc2kv5choyybkaetmshegbet;
+    alter table if exists name_tree_path 
+        drop constraint if exists FK_4kc2kv5choyybkaetmshegbet;
 
-alter table if exists name_tree_path 
-drop constraint if exists FK_j4j0kq9duod9gm019pl1xec7c;
+    alter table if exists name_tree_path 
+        drop constraint if exists FK_j4j0kq9duod9gm019pl1xec7c;
 
-alter table if exists name_tree_path 
-drop constraint if exists FK_try5dwb6jcy5fngk09bf7f7on;
+    alter table if exists name_tree_path 
+        drop constraint if exists FK_try5dwb6jcy5fngk09bf7f7on;
 
-alter table if exists name_tree_path 
-drop constraint if exists FK_sfj3hoevcuni3ak7no6byjp3;
+    alter table if exists name_tree_path 
+        drop constraint if exists FK_sfj3hoevcuni3ak7no6byjp3;
 
-alter table if exists name_tree_path 
-drop constraint if exists FK_3xnmxe5p6ed258euacrfflwrj;
+    alter table if exists name_tree_path 
+        drop constraint if exists FK_3xnmxe5p6ed258euacrfflwrj;
 
-alter table if exists name_type 
-drop constraint if exists FK_10d0jlulq2woht49j5ccpeehu;
+    alter table if exists name_type 
+        drop constraint if exists FK_10d0jlulq2woht49j5ccpeehu;
 
-alter table if exists name_type 
-drop constraint if exists FK_5r3o78sgdbxsf525hmm3t44gv;
+    alter table if exists name_type 
+        drop constraint if exists FK_5r3o78sgdbxsf525hmm3t44gv;
 
-alter table if exists nomenclatural_event_type 
-drop constraint if exists FK_ql5g85814a9y57c1ifd0nkq3v;
+    alter table if exists nomenclatural_event_type 
+        drop constraint if exists FK_ql5g85814a9y57c1ifd0nkq3v;
 
-alter table if exists ref_type 
-drop constraint if exists FK_51alfoe7eobwh60yfx45y22ay;
+    alter table if exists ref_type 
+        drop constraint if exists FK_51alfoe7eobwh60yfx45y22ay;
 
-alter table if exists reference 
-drop constraint if exists FK_p8lhsoo01164dsvvwxob0w3sp;
+    alter table if exists reference 
+        drop constraint if exists FK_p8lhsoo01164dsvvwxob0w3sp;
 
-alter table if exists reference 
-drop constraint if exists FK_3min66ljijxavb0fjergx5dpm;
+    alter table if exists reference 
+        drop constraint if exists FK_3min66ljijxavb0fjergx5dpm;
 
-alter table if exists reference 
-drop constraint if exists FK_1qx84m8tuk7vw2diyxfbj5r2n;
+    alter table if exists reference 
+        drop constraint if exists FK_1qx84m8tuk7vw2diyxfbj5r2n;
 
-alter table if exists reference 
-drop constraint if exists FK_am2j11kvuwl19gqewuu18gjjm;
+    alter table if exists reference 
+        drop constraint if exists FK_am2j11kvuwl19gqewuu18gjjm;
 
-alter table if exists reference 
-drop constraint if exists FK_cr9avt4miqikx4kk53aflnnkd;
+    alter table if exists reference 
+        drop constraint if exists FK_cr9avt4miqikx4kk53aflnnkd;
 
-alter table if exists reference 
-drop constraint if exists FK_a98ei1lxn89madjihel3cvi90;
+    alter table if exists reference 
+        drop constraint if exists FK_a98ei1lxn89madjihel3cvi90;
 
-alter table if exists reference 
-drop constraint if exists FK_dm9y4p9xpsc8m7vljbohubl7x;
+    alter table if exists reference 
+        drop constraint if exists FK_dm9y4p9xpsc8m7vljbohubl7x;
 
-alter table if exists tree_arrangement 
-drop constraint if exists FK_skqp6co7fy5lcq0qts3yghy02;
+    alter table if exists tree_arrangement 
+        drop constraint if exists FK_skqp6co7fy5lcq0qts3yghy02;
 
-alter table if exists tree_arrangement 
-drop constraint if exists FK_fvfq13j3dqv994o9vg54yj5kk;
+    alter table if exists tree_arrangement 
+        drop constraint if exists FK_fvfq13j3dqv994o9vg54yj5kk;
 
-alter table if exists tree_event 
-drop constraint if exists FK_7y8cj9fpsh1sblm744xuq6i1g;
+    alter table if exists tree_event 
+        drop constraint if exists FK_7y8cj9fpsh1sblm744xuq6i1g;
 
-alter table if exists tree_link 
-drop constraint if exists FK_tgankaahxgr4p0mw4opafah05;
+    alter table if exists tree_link 
+        drop constraint if exists FK_tgankaahxgr4p0mw4opafah05;
 
-alter table if exists tree_link 
-drop constraint if exists FK_kqshktm171nwvk38ot4d12w6b;
+    alter table if exists tree_link 
+        drop constraint if exists FK_kqshktm171nwvk38ot4d12w6b;
 
-alter table if exists tree_link 
-drop constraint if exists FK_2dk33tolvn16lfmp25nk2584y;
+    alter table if exists tree_link 
+        drop constraint if exists FK_2dk33tolvn16lfmp25nk2584y;
 
-alter table if exists tree_node 
-drop constraint if exists FK_nlq0qddnhgx65iojhj2xm8tay;
+    alter table if exists tree_node 
+        drop constraint if exists FK_nlq0qddnhgx65iojhj2xm8tay;
 
-alter table if exists tree_node 
-drop constraint if exists FK_1g9477sa8plad5cxkxmiuh5b;
+    alter table if exists tree_node 
+        drop constraint if exists FK_1g9477sa8plad5cxkxmiuh5b;
 
-alter table if exists tree_node 
-drop constraint if exists FK_eqw4xo7vty6e4tq8hy34c51om;
+    alter table if exists tree_node 
+        drop constraint if exists FK_eqw4xo7vty6e4tq8hy34c51om;
 
-alter table if exists tree_node 
-drop constraint if exists FK_gc6f9ykh7eaflvty9tr6n4cb6;
+    alter table if exists tree_node 
+        drop constraint if exists FK_gc6f9ykh7eaflvty9tr6n4cb6;
 
-alter table if exists tree_node 
-drop constraint if exists FK_sbuntfo4jfai44yjh9o09vu6s;
+    alter table if exists tree_node 
+        drop constraint if exists FK_sbuntfo4jfai44yjh9o09vu6s;
 
-alter table if exists tree_node 
-drop constraint if exists FK_budb70h51jhcxe7qbtpea0hi2;
+    alter table if exists tree_node 
+        drop constraint if exists FK_budb70h51jhcxe7qbtpea0hi2;
 
-alter table if exists tree_node 
-drop constraint if exists FK_pc0tkp9bgp1cxull530y60v46;
+    alter table if exists tree_node 
+        drop constraint if exists FK_pc0tkp9bgp1cxull530y60v46;
 
-alter table if exists tree_node 
-drop constraint if exists FK_4y1qy9beekbv71e9i6hto6hun;
+    alter table if exists tree_node 
+        drop constraint if exists FK_4y1qy9beekbv71e9i6hto6hun;
 
-alter table if exists tree_node 
-drop constraint if exists FK_t6kkvm8ubsiw6fqg473j0gjga;
+    alter table if exists tree_node 
+        drop constraint if exists FK_t6kkvm8ubsiw6fqg473j0gjga;
 
-alter table if exists tree_node 
-drop constraint if exists FK_16c4wgya68bwotwn6f50dhw69;
+    alter table if exists tree_node 
+        drop constraint if exists FK_16c4wgya68bwotwn6f50dhw69;
 
-alter table if exists tree_node 
-drop constraint if exists FK_oge4ibjd3ff3oyshexl6set2u;
+    alter table if exists tree_node 
+        drop constraint if exists FK_oge4ibjd3ff3oyshexl6set2u;
 
-alter table if exists tree_uri_ns 
-drop constraint if exists FK_q9k8he941kvl07j2htmqxq35v;
+    alter table if exists tree_uri_ns 
+        drop constraint if exists FK_q9k8he941kvl07j2htmqxq35v;
 
-drop table if exists author cascade;
+    drop table if exists author cascade;
 
-drop table if exists comment cascade;
+    drop table if exists comment cascade;
 
-drop table if exists db_version cascade;
+    drop table if exists db_version cascade;
 
-drop table if exists delayed_jobs cascade;
+    drop table if exists delayed_jobs cascade;
 
-drop table if exists external_ref cascade;
+    drop table if exists external_ref cascade;
 
-drop table if exists help_topic cascade;
+    drop table if exists help_topic cascade;
 
-drop table if exists id_mapper cascade;
+    drop table if exists id_mapper cascade;
 
-drop table if exists instance cascade;
+    drop table if exists instance cascade;
 
-drop table if exists instance_note cascade;
+    drop table if exists instance_note cascade;
 
-drop table if exists instance_note_key cascade;
+    drop table if exists instance_note_key cascade;
 
-drop table if exists instance_type cascade;
+    drop table if exists instance_type cascade;
 
-drop table if exists language cascade;
+    drop table if exists language cascade;
 
-drop table if exists locale cascade;
+    drop table if exists locale cascade;
 
-drop table if exists name cascade;
+    drop table if exists name cascade;
 
-drop table if exists name_category cascade;
+    drop table if exists name_category cascade;
 
-drop table if exists name_group cascade;
+    drop table if exists name_group cascade;
 
-drop table if exists name_part cascade;
+    drop table if exists name_part cascade;
 
-drop table if exists name_rank cascade;
+    drop table if exists name_rank cascade;
 
-drop table if exists name_status cascade;
+    drop table if exists name_status cascade;
 
-drop table if exists name_tag cascade;
+    drop table if exists name_tag cascade;
 
-drop table if exists name_tag_name cascade;
+    drop table if exists name_tag_name cascade;
 
-drop table if exists name_tree_path cascade;
+    drop table if exists name_tree_path cascade;
 
-drop table if exists name_type cascade;
+    drop table if exists name_type cascade;
 
-drop table if exists namespace cascade;
+    drop table if exists namespace cascade;
 
-drop table if exists nomenclatural_event_type cascade;
+    drop table if exists nomenclatural_event_type cascade;
 
-drop table if exists notification cascade;
+    drop table if exists notification cascade;
 
-drop table if exists ref_author_role cascade;
+    drop table if exists ref_author_role cascade;
 
-drop table if exists ref_type cascade;
+    drop table if exists ref_type cascade;
 
-drop table if exists reference cascade;
+    drop table if exists reference cascade;
 
-drop table if exists shard_config cascade;
+    drop table if exists shard_config cascade;
 
-drop table if exists tree_arrangement cascade;
+    drop table if exists tree_arrangement cascade;
 
-drop table if exists tree_event cascade;
+    drop table if exists tree_event cascade;
 
-drop table if exists tree_link cascade;
+    drop table if exists tree_link cascade;
 
-drop table if exists tree_node cascade;
+    drop table if exists tree_node cascade;
 
-drop table if exists tree_uri_ns cascade;
+    drop table if exists tree_uri_ns cascade;
 
-drop table if exists user_query cascade;
+    drop table if exists user_query cascade;
 
-drop table if exists why_is_this_here cascade;
+    drop table if exists why_is_this_here cascade;
 
-drop sequence hibernate_sequence;
+    drop sequence hibernate_sequence;
     create sequence hibernate_sequence;
 
-drop sequence nsl_global_seq;
+    drop sequence nsl_global_seq;
     create sequence nsl_global_seq minvalue 1000 maxvalue 10000000;
 
-create table author (
+    create table author (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         abbrev varchar(100),
-created_at timestamp with time zone not null,
-created_by varchar(255) not null,
+        created_at timestamp with time zone not null,
+        created_by varchar(255) not null,
         date_range varchar(50),
         duplicate_of_id int8,
         full_name varchar(255),
@@ -327,12 +327,12 @@ created_by varchar(255) not null,
         primary key (id)
     );
 
-create table comment (
+    create table comment (
         id int8 default nextval('hibernate_sequence') not null,
         lock_version int8 default 0 not null,
         author_id int8,
-created_at timestamp with time zone not null,
-created_by varchar(50) not null,
+        created_at timestamp with time zone not null,
+        created_by varchar(50) not null,
         instance_id int8,
         name_id int8,
         reference_id int8,
@@ -342,17 +342,17 @@ created_by varchar(50) not null,
         primary key (id)
     );
 
-create table db_version (
+    create table db_version (
         id int8 not null,
         version int4 not null,
         primary key (id)
     );
 
-create table delayed_jobs (
+    create table delayed_jobs (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         attempts numeric(19, 2),
-created_at timestamp with time zone not null,
+        created_at timestamp with time zone not null,
         failed_at timestamp with time zone,
         handler text,
         last_error text,
@@ -365,7 +365,7 @@ created_at timestamp with time zone not null,
         primary key (id)
     );
 
-create table external_ref (
+    create table external_ref (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         external_id varchar(50) not null,
@@ -378,11 +378,11 @@ create table external_ref (
         primary key (id)
     );
 
-create table help_topic (
+    create table help_topic (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
-created_at timestamp not null,
-created_by varchar(4000) not null,
+        created_at timestamp not null,
+        created_by varchar(4000) not null,
         marked_up_text text not null,
         name varchar(4000) not null,
         sort_order int4 default 0 not null,
@@ -392,7 +392,7 @@ created_by varchar(4000) not null,
         primary key (id)
     );
 
-create table id_mapper (
+    create table id_mapper (
         id int8 not null,
         from_id int8 not null,
         namespace_id int8 not null,
@@ -401,14 +401,14 @@ create table id_mapper (
         primary key (id)
     );
 
-create table instance (
+    create table instance (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         bhl_url varchar(4000),
         cited_by_id int8,
         cites_id int8,
-created_at timestamp with time zone not null,
-created_by varchar(50) not null,
+        created_at timestamp with time zone not null,
+        created_by varchar(50) not null,
         draft boolean default false not null,
         instance_type_id int8 not null,
         name_id int8 not null,
@@ -429,11 +429,11 @@ created_by varchar(50) not null,
         primary key (id)
     );
 
-create table instance_note (
+    create table instance_note (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
-created_at timestamp with time zone not null,
-created_by varchar(50) not null,
+        created_at timestamp with time zone not null,
+        created_by varchar(50) not null,
         instance_id int8 not null,
         instance_note_key_id int8 not null,
         namespace_id int8 not null,
@@ -447,7 +447,7 @@ created_by varchar(50) not null,
         primary key (id)
     );
 
-create table instance_note_key (
+    create table instance_note_key (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         deprecated boolean default false not null,
@@ -458,7 +458,7 @@ create table instance_note_key (
         primary key (id)
     );
 
-create table instance_type (
+    create table instance_type (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         bidirectional boolean default false not null,
@@ -485,7 +485,7 @@ create table instance_type (
         primary key (id)
     );
 
-create table language (
+    create table language (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         iso6391code varchar(2),
@@ -494,20 +494,20 @@ create table language (
         primary key (id)
     );
 
-create table locale (
+    create table locale (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         locale_name_string varchar(50) not null,
         primary key (id)
     );
 
-create table name (
+    create table name (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         author_id int8,
         base_author_id int8,
-created_at timestamp with time zone not null,
-created_by varchar(50) not null,
+        created_at timestamp with time zone not null,
+        created_by varchar(50) not null,
         duplicate_of_id int8,
         ex_author_id int8,
         ex_base_author_id int8,
@@ -539,7 +539,7 @@ created_by varchar(50) not null,
         primary key (id)
     );
 
-create table name_category (
+    create table name_category (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         description_html text,
@@ -549,7 +549,7 @@ create table name_category (
         primary key (id)
     );
 
-create table name_group (
+    create table name_group (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         description_html text,
@@ -558,7 +558,7 @@ create table name_group (
         primary key (id)
     );
 
-create table name_part (
+    create table name_part (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         name_id int8 not null,
@@ -567,7 +567,7 @@ create table name_part (
         primary key (id)
     );
 
-create table name_rank (
+    create table name_rank (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         abbrev varchar(20) not null,
@@ -585,7 +585,7 @@ create table name_rank (
         primary key (id)
     );
 
-create table name_status (
+    create table name_status (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         description_html text,
@@ -599,24 +599,24 @@ create table name_status (
         primary key (id)
     );
 
-create table name_tag (
+    create table name_tag (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         name varchar(255) not null,
         primary key (id)
     );
 
-create table name_tag_name (
+    create table name_tag_name (
         name_id int8 not null,
         tag_id int8 not null,
-created_at timestamp with time zone not null,
-created_by varchar(255) not null,
+        created_at timestamp with time zone not null,
+        created_by varchar(255) not null,
         updated_at timestamp with time zone not null,
         updated_by varchar(255) not null,
         primary key (name_id, tag_id)
     );
 
-create table name_tree_path (
+    create table name_tree_path (
         id int8 default nextval('hibernate_sequence') not null,
         version int8 not null,
         family_id int8,
@@ -631,7 +631,7 @@ create table name_tree_path (
         primary key (id)
     );
 
-create table name_type (
+    create table name_type (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         autonym boolean default false not null,
@@ -650,7 +650,7 @@ create table name_type (
         primary key (id)
     );
 
-create table namespace (
+    create table namespace (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         description_html text,
@@ -659,7 +659,7 @@ create table namespace (
         primary key (id)
     );
 
-create table nomenclatural_event_type (
+    create table nomenclatural_event_type (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         description_html text,
@@ -669,7 +669,7 @@ create table nomenclatural_event_type (
         primary key (id)
     );
 
-create table notification (
+    create table notification (
         id int8 not null,
         version int8 not null,
         message varchar(255) not null,
@@ -677,7 +677,7 @@ create table notification (
         primary key (id)
     );
 
-create table ref_author_role (
+    create table ref_author_role (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         description_html text,
@@ -686,7 +686,7 @@ create table ref_author_role (
         primary key (id)
     );
 
-create table ref_type (
+    create table ref_type (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         description_html text,
@@ -698,7 +698,7 @@ create table ref_type (
         primary key (id)
     );
 
-create table reference (
+    create table reference (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         abbrev_title varchar(2000),
@@ -706,8 +706,8 @@ create table reference (
         bhl_url varchar(4000),
         citation varchar(4000),
         citation_html varchar(4000),
-created_at timestamp with time zone not null,
-created_by varchar(255) not null,
+        created_at timestamp with time zone not null,
+        created_by varchar(255) not null,
         display_title varchar(2000) not null,
         doi varchar(255),
         duplicate_of_id int8,
@@ -742,14 +742,14 @@ created_by varchar(255) not null,
         primary key (id)
     );
 
-create table shard_config (
+    create table shard_config (
         id int8 not null,
         name varchar(255) not null,
         value varchar(255) not null,
         primary key (id)
     );
 
-create table tree_arrangement (
+    create table tree_arrangement (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         tree_type bpchar not null,
@@ -764,7 +764,7 @@ create table tree_arrangement (
         primary key (id)
     );
 
-create table tree_event (
+    create table tree_event (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         auth_user varchar(255) not null,
@@ -774,7 +774,7 @@ create table tree_event (
         primary key (id)
     );
 
-create table tree_link (
+    create table tree_link (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         link_seq int4 not null,
@@ -787,7 +787,7 @@ create table tree_link (
         primary key (id)
     );
 
-create table tree_node (
+    create table tree_node (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         checked_in_at_id int8,
@@ -811,7 +811,7 @@ create table tree_node (
         primary key (id)
     );
 
-create table tree_uri_ns (
+    create table tree_uri_ns (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         description varchar(255),
@@ -825,10 +825,10 @@ create table tree_uri_ns (
         primary key (id)
     );
 
-create table user_query (
+    create table user_query (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
-created_at timestamp with time zone not null,
+        created_at timestamp with time zone not null,
         query_completed boolean default false not null,
         query_started boolean default false not null,
         record_count numeric(19, 2) not null,
@@ -843,7 +843,7 @@ created_at timestamp with time zone not null,
         primary key (id)
     );
 
-create table why_is_this_here (
+    create table why_is_this_here (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         name varchar(50) not null,
@@ -851,595 +851,595 @@ create table why_is_this_here (
         primary key (id)
     );
 
-alter table if exists author 
+    alter table if exists author 
         add constraint UK_9kovg6nyb11658j2tv2yv4bsi  unique (abbrev);
 
-create index Author_Abbrev_Index on author (abbrev);
+    create index Author_Abbrev_Index on author (abbrev);
 
-create index Author_Name_Index on author (name);
+    create index Author_Name_Index on author (name);
 
-create index Auth_Source_Index on author (namespace_id, source_id, source_system);
+    create index Auth_Source_Index on author (namespace_id, source_id, source_system);
 
-create index Auth_Source_String_Index on author (source_id_string);
+    create index Auth_Source_String_Index on author (source_id_string);
 
-create index Auth_System_Index on author (source_system);
+    create index Auth_System_Index on author (source_system);
 
-create index Comment_author_Index on comment (author_id);
+    create index Comment_author_Index on comment (author_id);
 
-create index Comment_instance_Index on comment (instance_id);
+    create index Comment_instance_Index on comment (instance_id);
 
-create index Comment_name_Index on comment (name_id);
+    create index Comment_name_Index on comment (name_id);
 
-create index Comment_reference_Index on comment (reference_id);
+    create index Comment_reference_Index on comment (reference_id);
 
-alter table if exists id_mapper 
+    alter table if exists id_mapper 
         add constraint unique_from_id  unique (to_id, from_id);
 
-create index id_mapper_from_Index on id_mapper (from_id, namespace_id, system);
+    create index id_mapper_from_Index on id_mapper (from_id, namespace_id, system);
 
-create index Instance_CitedBy_Index on instance (cited_by_id);
+    create index Instance_CitedBy_Index on instance (cited_by_id);
 
-create index Instance_Cites_Index on instance (cites_id);
+    create index Instance_Cites_Index on instance (cites_id);
 
-create index Instance_InstanceType_Index on instance (instance_type_id);
+    create index Instance_InstanceType_Index on instance (instance_type_id);
 
-create index Instance_Name_Index on instance (name_id);
+    create index Instance_Name_Index on instance (name_id);
 
-create index Instance_Source_Index on instance (namespace_id, source_id, source_system);
+    create index Instance_Source_Index on instance (namespace_id, source_id, source_system);
 
-create index Instance_Parent_Index on instance (parent_id);
+    create index Instance_Parent_Index on instance (parent_id);
 
-create index Instance_Reference_Index on instance (reference_id);
+    create index Instance_Reference_Index on instance (reference_id);
 
-create index Instance_Source_String_Index on instance (source_id_string);
+    create index Instance_Source_String_Index on instance (source_id_string);
 
-create index Instance_System_Index on instance (source_system);
+    create index Instance_System_Index on instance (source_system);
 
-create index Note_Instance_Index on instance_note (instance_id);
+    create index Note_Instance_Index on instance_note (instance_id);
 
-create index Note_Key_Index on instance_note (instance_note_key_id);
+    create index Note_Key_Index on instance_note (instance_note_key_id);
 
-create index Note_Source_Index on instance_note (namespace_id, source_id, source_system);
+    create index Note_Source_Index on instance_note (namespace_id, source_id, source_system);
 
-create index Note_Source_String_Index on instance_note (source_id_string);
+    create index Note_Source_String_Index on instance_note (source_id_string);
 
-create index Note_System_Index on instance_note (source_system);
+    create index Note_System_Index on instance_note (source_system);
 
-alter table if exists instance_note_key 
+    alter table if exists instance_note_key 
         add constraint UK_a0justk7c77bb64o6u1riyrlh  unique (name);
 
-alter table if exists instance_type 
+    alter table if exists instance_type 
         add constraint UK_j5337m9qdlirvd49v4h11t1lk  unique (name);
 
-alter table if exists language 
+    alter table if exists language 
         add constraint UK_hghw87nl0ho38f166atlpw2hy  unique (iso6391code);
 
-alter table if exists language 
+    alter table if exists language 
         add constraint UK_rpsahneqboogcki6p1bpygsua  unique (iso6393code);
 
-alter table if exists language 
+    alter table if exists language 
         add constraint UK_g8hr207ijpxlwu10pewyo65gv  unique (name);
 
-alter table if exists locale 
+    alter table if exists locale 
         add constraint UK_qjkskvl9hx0w78truoyq9teju  unique (locale_name_string);
 
-create index Name_author_Index on name (author_id);
+    create index Name_author_Index on name (author_id);
 
-create index Name_baseAuthor_Index on name (base_author_id);
+    create index Name_baseAuthor_Index on name (base_author_id);
 
-create index Name_exAuthor_Index on name (ex_author_id);
+    create index Name_exAuthor_Index on name (ex_author_id);
 
-create index Name_exBaseAuthor_Index on name (ex_base_author_id);
+    create index Name_exBaseAuthor_Index on name (ex_base_author_id);
 
-create index Name_Full_Name_Index on name (full_name);
+    create index Name_Full_Name_Index on name (full_name);
 
-create index Name_Name_Element_Index on name (name_element);
+    create index Name_Name_Element_Index on name (name_element);
 
-create index Name_Rank_Index on name (name_rank_id);
+    create index Name_Rank_Index on name (name_rank_id);
 
-create index Name_Status_Index on name (name_status_id);
+    create index Name_Status_Index on name (name_status_id);
 
-create index Name_Type_Index on name (name_type_id);
+    create index Name_Type_Index on name (name_type_id);
 
-create index Name_Source_Index on name (namespace_id, source_id, source_system);
+    create index Name_Source_Index on name (namespace_id, source_id, source_system);
 
-create index name_parent_id_Index on name (parent_id);
+    create index name_parent_id_Index on name (parent_id);
 
-create index Name_sanctioningAuthor_Index on name (sanctioning_author_id);
+    create index Name_sanctioningAuthor_Index on name (sanctioning_author_id);
 
-create index name_second_parent_id_Index on name (second_parent_id);
+    create index name_second_parent_id_Index on name (second_parent_id);
 
-create index Name_Simple_Name_Index on name (simple_name);
+    create index Name_Simple_Name_Index on name (simple_name);
 
-create index Name_Source_String_Index on name (source_id_string);
+    create index Name_Source_String_Index on name (source_id_string);
 
-create index Name_System_Index on name (source_system);
+    create index Name_System_Index on name (source_system);
 
-create index Name_whyIsThisHere_Index on name (why_is_this_here_id);
+    create index Name_whyIsThisHere_Index on name (why_is_this_here_id);
 
-alter table if exists name_category 
+    alter table if exists name_category 
         add constraint UK_rxqxoenedjdjyd4x7c98s59io  unique (name);
 
-alter table if exists name_group 
+    alter table if exists name_group 
         add constraint UK_5185nbyw5hkxqyyqgylfn2o6d  unique (name);
 
-create index preceding_name_type_Index on name_part (preceding_name_type);
+    create index preceding_name_type_Index on name_part (preceding_name_type);
 
-alter table if exists name_status 
+    alter table if exists name_status 
         add constraint UK_se7crmfnhjmyvirp3p9hiqerx  unique (name);
 
-alter table if exists name_tag 
+    alter table if exists name_tag 
         add constraint UK_o4su6hi7vh0yqs4c1dw0fsf1e  unique (name);
 
-create index Name_Tag_Name_Index on name_tag_name (name_id);
+    create index Name_Tag_Name_Index on name_tag_name (name_id);
 
-create index Name_Tag_Tag_Index on name_tag_name (tag_id);
+    create index Name_Tag_Tag_Index on name_tag_name (tag_id);
 
-create index name_tree_path_family_index on name_tree_path (family_id);
+    create index name_tree_path_family_index on name_tree_path (family_id);
 
-create index name_tree_path_name_index on name_tree_path (name_id);
+    create index name_tree_path_name_index on name_tree_path (name_id);
 
-create index name_tree_path_treename_index on name_tree_path (name_id, tree_id);
+    create index name_tree_path_treename_index on name_tree_path (name_id, tree_id);
 
-create index name_tree_path_path_index on name_tree_path (name_id_path);
+    create index name_tree_path_path_index on name_tree_path (name_id_path);
 
-alter table if exists name_type 
+    alter table if exists name_type 
         add constraint UK_314uhkq8i7r46050kd1nfrs95  unique (name);
 
-alter table if exists namespace 
+    alter table if exists namespace 
         add constraint UK_eq2y9mghytirkcofquanv5frf  unique (name);
 
-alter table if exists ref_author_role 
+    alter table if exists ref_author_role 
         add constraint UK_l95kedbafybjpp3h53x8o9fke  unique (name);
 
-alter table if exists ref_type 
+    alter table if exists ref_type 
         add constraint UK_4fp66uflo7rgx59167ajs0ujv  unique (name);
 
-alter table if exists reference 
+    alter table if exists reference 
         add constraint UK_kqwpm0crhcq4n9t9uiyfxo2df  unique (doi);
 
-create index Reference_Author_Index on reference (author_id);
+    create index Reference_Author_Index on reference (author_id);
 
-create index Ref_Source_Index on reference (namespace_id, source_id, source_system);
+    create index Ref_Source_Index on reference (namespace_id, source_id, source_system);
 
-create index Reference_Parent_Index on reference (parent_id);
+    create index Reference_Parent_Index on reference (parent_id);
 
-create index Reference_AuthorRole_Index on reference (ref_author_role_id);
+    create index Reference_AuthorRole_Index on reference (ref_author_role_id);
 
-create index Reference_Type_Index on reference (ref_type_id);
+    create index Reference_Type_Index on reference (ref_type_id);
 
-create index Ref_Source_String_Index on reference (source_id_string);
+    create index Ref_Source_String_Index on reference (source_id_string);
 
-create index Ref_System_Index on reference (source_system);
+    create index Ref_System_Index on reference (source_system);
 
-alter table if exists shard_config 
+    alter table if exists shard_config 
         add constraint UK_e6nvv3knohggqpdn247bodpxy  unique (name);
 
-create index tree_arrangement_label on tree_arrangement (label, namespace_id);
+    create index tree_arrangement_label on tree_arrangement (label, namespace_id);
 
-create index tree_arrangement_node on tree_arrangement (node_id);
+    create index tree_arrangement_node on tree_arrangement (node_id);
 
-create index tree_link_subnode on tree_link (subnode_id);
+    create index tree_link_subnode on tree_link (subnode_id);
 
-create index tree_link_supernode on tree_link (supernode_id);
+    create index tree_link_supernode on tree_link (supernode_id);
 
-create index idx_tree_node_instance_id on tree_node (instance_id);
+    create index idx_tree_node_instance_id on tree_node (instance_id);
 
-create index idx_tree_node_instance_id_in on tree_node (instance_id, tree_arrangement_id);
+    create index idx_tree_node_instance_id_in on tree_node (instance_id, tree_arrangement_id);
 
-create index idx_tree_node_literal on tree_node (literal);
+    create index idx_tree_node_literal on tree_node (literal);
 
-create index idx_tree_node_name_id on tree_node (name_id);
+    create index idx_tree_node_name_id on tree_node (name_id);
 
-create index idx_tree_node_name_id_in on tree_node (name_id, tree_arrangement_id);
+    create index idx_tree_node_name_id_in on tree_node (name_id, tree_arrangement_id);
 
-create index idx_tree_node_name on tree_node (name_uri_id_part, name_uri_ns_part_id);
+    create index idx_tree_node_name on tree_node (name_uri_id_part, name_uri_ns_part_id);
 
-create index idx_tree_node_name_in on tree_node (name_uri_id_part, name_uri_ns_part_id, tree_arrangement_id);
+    create index idx_tree_node_name_in on tree_node (name_uri_id_part, name_uri_ns_part_id, tree_arrangement_id);
 
-create index tree_node_next on tree_node (next_node_id);
+    create index tree_node_next on tree_node (next_node_id);
 
-create index tree_node_prev on tree_node (prev_node_id);
+    create index tree_node_prev on tree_node (prev_node_id);
 
-create index idx_tree_node_resource on tree_node (resource_uri_id_part, resource_uri_ns_part_id);
+    create index idx_tree_node_resource on tree_node (resource_uri_id_part, resource_uri_ns_part_id);
 
-create index idx_tree_node_resource_in on tree_node (resource_uri_id_part, resource_uri_ns_part_id, tree_arrangement_id);
+    create index idx_tree_node_resource_in on tree_node (resource_uri_id_part, resource_uri_ns_part_id, tree_arrangement_id);
 
-create index idx_tree_node_taxon_in on tree_node (tree_arrangement_id, taxon_uri_id_part, taxon_uri_ns_part_id);
+    create index idx_tree_node_taxon_in on tree_node (tree_arrangement_id, taxon_uri_id_part, taxon_uri_ns_part_id);
 
-create index idx_tree_node_taxon on tree_node (taxon_uri_id_part, taxon_uri_ns_part_id);
+    create index idx_tree_node_taxon on tree_node (taxon_uri_id_part, taxon_uri_ns_part_id);
 
-alter table if exists tree_uri_ns 
+    alter table if exists tree_uri_ns 
         add constraint UK_5smmen5o34hs50jxd247k81ia  unique (label);
 
-alter table if exists tree_uri_ns 
+    alter table if exists tree_uri_ns 
         add constraint UK_70p0ys3l5v6s9dqrpjr3u3rrf  unique (uri);
 
-create index idx_tree_uri_ns_label on tree_uri_ns (label);
+    create index idx_tree_uri_ns_label on tree_uri_ns (label);
 
-create index idx_tree_uri_ns_uri on tree_uri_ns (uri);
+    create index idx_tree_uri_ns_uri on tree_uri_ns (uri);
 
-alter table if exists why_is_this_here 
+    alter table if exists why_is_this_here 
         add constraint UK_sv1q1i7xve7xgmkwvmdbeo1mb  unique (name);
 
-alter table if exists author 
+    alter table if exists author 
         add constraint FK_6a4p11f1bt171w09oo06m0wag 
         foreign key (duplicate_of_id) 
         references author;
 
-alter table if exists author 
+    alter table if exists author 
         add constraint FK_p0ysrub11cm08xnhrbrfrvudh 
         foreign key (namespace_id) 
         references namespace;
 
-alter table if exists comment 
+    alter table if exists comment 
         add constraint FK_9aq5p2jgf17y6b38x5ayd90oc 
         foreign key (author_id) 
         references author;
 
-alter table if exists comment 
+    alter table if exists comment 
         add constraint FK_6oqj6vquqc33cyawn853hfu5g 
         foreign key (instance_id) 
         references instance;
 
-alter table if exists comment 
+    alter table if exists comment 
         add constraint FK_h9t5eaaqhnqwrc92rhryyvdcf 
         foreign key (name_id) 
         references name;
 
-alter table if exists comment 
+    alter table if exists comment 
         add constraint FK_3tfkdcmf6rg6hcyiu8t05er7x 
         foreign key (reference_id) 
         references reference;
 
-alter table if exists external_ref 
+    alter table if exists external_ref 
         add constraint FK_4g2i2qry4941xmqijgeo8ns2h 
         foreign key (instance_id) 
         references instance;
 
-alter table if exists external_ref 
+    alter table if exists external_ref 
         add constraint FK_bu7q5itmt7w7q1bex049xvac7 
         foreign key (name_id) 
         references name;
 
-alter table if exists external_ref 
+    alter table if exists external_ref 
         add constraint FK_f7igpcpvgcmdfb7v3bgjluqsf 
         foreign key (reference_id) 
         references reference;
 
-alter table if exists id_mapper 
+    alter table if exists id_mapper 
         add constraint FK_qiy281xsleyhjgr0eu1sboagm 
         foreign key (namespace_id) 
         references namespace;
 
-alter table if exists instance 
+    alter table if exists instance 
         add constraint FK_pr2f6peqhnx9rjiwkr5jgc5be 
         foreign key (cited_by_id) 
         references instance;
 
-alter table if exists instance 
+    alter table if exists instance 
         add constraint FK_30enb6qoexhuk479t75apeuu5 
         foreign key (cites_id) 
         references instance;
 
-alter table if exists instance 
+    alter table if exists instance 
         add constraint FK_o80rrtl8xwy4l3kqrt9qv0mnt 
         foreign key (instance_type_id) 
         references instance_type;
 
-alter table if exists instance 
+    alter table if exists instance 
         add constraint FK_gdunt8xo68ct1vfec9c6x5889 
         foreign key (name_id) 
         references name;
 
-alter table if exists instance 
+    alter table if exists instance 
         add constraint FK_gtkjmbvk6uk34fbfpy910e7t6 
         foreign key (namespace_id) 
         references namespace;
 
-alter table if exists instance 
+    alter table if exists instance 
         add constraint FK_hb0xb97midopfgrm2k5fpe3p1 
         foreign key (parent_id) 
         references instance;
 
-alter table if exists instance 
+    alter table if exists instance 
         add constraint FK_lumlr5avj305pmc4hkjwaqk45 
         foreign key (reference_id) 
         references reference;
 
-alter table if exists instance_note 
+    alter table if exists instance_note 
         add constraint FK_bw41122jb5rcu8wfnog812s97 
         foreign key (instance_id) 
         references instance;
 
-alter table if exists instance_note 
+    alter table if exists instance_note 
         add constraint FK_he1t3ug0o7ollnk2jbqaouooa 
         foreign key (instance_note_key_id) 
         references instance_note_key;
 
-alter table if exists instance_note 
+    alter table if exists instance_note 
         add constraint FK_f6s94njexmutjxjv8t5dy1ugt 
         foreign key (namespace_id) 
         references namespace;
 
-alter table if exists name 
+    alter table if exists name 
         add constraint FK_airfjupm6ohehj1lj82yqkwdx 
         foreign key (author_id) 
         references author;
 
-alter table if exists name 
+    alter table if exists name 
         add constraint FK_coqxx3ewgiecsh3t78yc70b35 
         foreign key (base_author_id) 
         references author;
 
-alter table if exists name 
+    alter table if exists name 
         add constraint FK_3pqdqa03w5c6h4yyrrvfuagos 
         foreign key (duplicate_of_id) 
         references name;
 
-alter table if exists name 
+    alter table if exists name 
         add constraint FK_sgvxmyj7r9g4wy9c4hd1yn4nu 
         foreign key (ex_author_id) 
         references author;
 
-alter table if exists name 
+    alter table if exists name 
         add constraint FK_rp659tjcxokf26j8551k6an2y 
         foreign key (ex_base_author_id) 
         references author;
 
-alter table if exists name 
+    alter table if exists name 
         add constraint FK_sk2iikq8wla58jeypkw6h74hc 
         foreign key (name_rank_id) 
         references name_rank;
 
-alter table if exists name 
+    alter table if exists name 
         add constraint FK_5fpm5u0ukiml9nvmq14bd7u51 
         foreign key (name_status_id) 
         references name_status;
 
-alter table if exists name 
+    alter table if exists name 
         add constraint FK_bcef76k0ijrcquyoc0yxehxfp 
         foreign key (name_type_id) 
         references name_type;
 
-alter table if exists name 
+    alter table if exists name 
         add constraint FK_156ncmx4599jcsmhh5k267cjv 
         foreign key (namespace_id) 
         references namespace;
 
-alter table if exists name 
+    alter table if exists name 
         add constraint FK_dd33etb69v5w5iah1eeisy7yt 
         foreign key (parent_id) 
         references name;
 
-alter table if exists name 
+    alter table if exists name 
         add constraint FK_ai81l07vh2yhmthr3582igo47 
         foreign key (sanctioning_author_id) 
         references author;
 
-alter table if exists name 
+    alter table if exists name 
         add constraint FK_5gp2lfblqq94c4ud3340iml0l 
         foreign key (second_parent_id) 
         references name;
 
-alter table if exists name 
+    alter table if exists name 
         add constraint FK_dqhn53mdh0n77xhsw7l5dgd38 
         foreign key (why_is_this_here_id) 
         references why_is_this_here;
 
-alter table if exists name_part 
+    alter table if exists name_part 
         add constraint FK_s13ituehdpf6uh859umme7g1j 
         foreign key (name_id) 
         references name;
 
-alter table if exists name_part 
+    alter table if exists name_part 
         add constraint FK_pj38oewhgjq8rp08fc9cviteu 
         foreign key (preceding_name_id) 
         references name;
 
-alter table if exists name_rank 
+    alter table if exists name_rank 
         add constraint FK_p3lpayfbl9s3hshhoycfj82b9 
         foreign key (name_group_id) 
         references name_group;
 
-alter table if exists name_rank 
+    alter table if exists name_rank 
         add constraint FK_r67um91pujyfrx7h1cifs3cmb 
         foreign key (parent_rank_id) 
         references name_rank;
 
-alter table if exists name_status 
+    alter table if exists name_status 
         add constraint FK_swotu3c2gy1hp8f6ekvuo7s26 
         foreign key (name_group_id) 
         references name_group;
 
-alter table if exists name_status 
+    alter table if exists name_status 
         add constraint FK_g4o6xditli5a0xrm6eqc6h9gw 
         foreign key (name_status_id) 
         references name_status;
 
-alter table if exists name_tag_name 
+    alter table if exists name_tag_name 
         add constraint FK_22wdc2pxaskytkgpdgpyok07n 
         foreign key (name_id) 
         references name;
 
-alter table if exists name_tag_name 
+    alter table if exists name_tag_name 
         add constraint FK_2uiijd73snf6lh5s6a82yjfin 
         foreign key (tag_id) 
         references name_tag;
 
-alter table if exists name_tree_path 
+    alter table if exists name_tree_path 
         add constraint FK_4kc2kv5choyybkaetmshegbet 
         foreign key (family_id) 
         references name;
 
-alter table if exists name_tree_path 
+    alter table if exists name_tree_path 
         add constraint FK_j4j0kq9duod9gm019pl1xec7c 
         foreign key (name_id) 
         references name;
 
-alter table if exists name_tree_path 
+    alter table if exists name_tree_path 
         add constraint FK_try5dwb6jcy5fngk09bf7f7on 
         foreign key (next_id) 
         references name_tree_path;
 
-alter table if exists name_tree_path 
+    alter table if exists name_tree_path 
         add constraint FK_sfj3hoevcuni3ak7no6byjp3 
         foreign key (parent_id) 
         references name_tree_path;
 
-alter table if exists name_tree_path 
+    alter table if exists name_tree_path 
         add constraint FK_3xnmxe5p6ed258euacrfflwrj 
         foreign key (tree_id) 
         references tree_arrangement;
 
-alter table if exists name_type 
+    alter table if exists name_type 
         add constraint FK_10d0jlulq2woht49j5ccpeehu 
         foreign key (name_category_id) 
         references name_category;
 
-alter table if exists name_type 
+    alter table if exists name_type 
         add constraint FK_5r3o78sgdbxsf525hmm3t44gv 
         foreign key (name_group_id) 
         references name_group;
 
-alter table if exists nomenclatural_event_type 
+    alter table if exists nomenclatural_event_type 
         add constraint FK_ql5g85814a9y57c1ifd0nkq3v 
         foreign key (name_group_id) 
         references name_group;
 
-alter table if exists ref_type 
+    alter table if exists ref_type 
         add constraint FK_51alfoe7eobwh60yfx45y22ay 
         foreign key (parent_id) 
         references ref_type;
 
-alter table if exists reference 
+    alter table if exists reference 
         add constraint FK_p8lhsoo01164dsvvwxob0w3sp 
         foreign key (author_id) 
         references author;
 
-alter table if exists reference 
+    alter table if exists reference 
         add constraint FK_3min66ljijxavb0fjergx5dpm 
         foreign key (duplicate_of_id) 
         references reference;
 
-alter table if exists reference 
+    alter table if exists reference 
         add constraint FK_1qx84m8tuk7vw2diyxfbj5r2n 
         foreign key (language_id) 
         references language;
 
-alter table if exists reference 
+    alter table if exists reference 
         add constraint FK_am2j11kvuwl19gqewuu18gjjm 
         foreign key (namespace_id) 
         references namespace;
 
-alter table if exists reference 
+    alter table if exists reference 
         add constraint FK_cr9avt4miqikx4kk53aflnnkd 
         foreign key (parent_id) 
         references reference;
 
-alter table if exists reference 
+    alter table if exists reference 
         add constraint FK_a98ei1lxn89madjihel3cvi90 
         foreign key (ref_author_role_id) 
         references ref_author_role;
 
-alter table if exists reference 
+    alter table if exists reference 
         add constraint FK_dm9y4p9xpsc8m7vljbohubl7x 
         foreign key (ref_type_id) 
         references ref_type;
 
-alter table if exists tree_arrangement 
+    alter table if exists tree_arrangement 
         add constraint FK_skqp6co7fy5lcq0qts3yghy02 
         foreign key (namespace_id) 
         references namespace;
 
-alter table if exists tree_arrangement 
+    alter table if exists tree_arrangement 
         add constraint FK_fvfq13j3dqv994o9vg54yj5kk 
         foreign key (node_id) 
         references tree_node;
 
-alter table if exists tree_event 
+    alter table if exists tree_event 
         add constraint FK_7y8cj9fpsh1sblm744xuq6i1g 
         foreign key (namespace_id) 
         references namespace;
 
-alter table if exists tree_link 
+    alter table if exists tree_link 
         add constraint FK_tgankaahxgr4p0mw4opafah05 
         foreign key (subnode_id) 
         references tree_node;
 
-alter table if exists tree_link 
+    alter table if exists tree_link 
         add constraint FK_kqshktm171nwvk38ot4d12w6b 
         foreign key (supernode_id) 
         references tree_node;
 
-alter table if exists tree_link 
+    alter table if exists tree_link 
         add constraint FK_2dk33tolvn16lfmp25nk2584y 
         foreign key (type_uri_ns_part_id) 
         references tree_uri_ns;
 
-alter table if exists tree_node 
+    alter table if exists tree_node 
         add constraint FK_nlq0qddnhgx65iojhj2xm8tay 
         foreign key (checked_in_at_id) 
         references tree_event;
 
-alter table if exists tree_node 
+    alter table if exists tree_node 
         add constraint FK_1g9477sa8plad5cxkxmiuh5b 
         foreign key (instance_id) 
         references instance;
 
-alter table if exists tree_node 
+    alter table if exists tree_node 
         add constraint FK_eqw4xo7vty6e4tq8hy34c51om 
         foreign key (name_id) 
         references name;
 
-alter table if exists tree_node 
+    alter table if exists tree_node 
         add constraint FK_gc6f9ykh7eaflvty9tr6n4cb6 
         foreign key (name_uri_ns_part_id) 
         references tree_uri_ns;
 
-alter table if exists tree_node 
+    alter table if exists tree_node 
         add constraint FK_sbuntfo4jfai44yjh9o09vu6s 
         foreign key (next_node_id) 
         references tree_node;
 
-alter table if exists tree_node 
+    alter table if exists tree_node 
         add constraint FK_budb70h51jhcxe7qbtpea0hi2 
         foreign key (prev_node_id) 
         references tree_node;
 
-alter table if exists tree_node 
+    alter table if exists tree_node 
         add constraint FK_pc0tkp9bgp1cxull530y60v46 
         foreign key (replaced_at_id) 
         references tree_event;
 
-alter table if exists tree_node 
+    alter table if exists tree_node 
         add constraint FK_4y1qy9beekbv71e9i6hto6hun 
         foreign key (resource_uri_ns_part_id) 
         references tree_uri_ns;
 
-alter table if exists tree_node 
+    alter table if exists tree_node 
         add constraint FK_t6kkvm8ubsiw6fqg473j0gjga 
         foreign key (tree_arrangement_id) 
         references tree_arrangement;
 
-alter table if exists tree_node 
+    alter table if exists tree_node 
         add constraint FK_16c4wgya68bwotwn6f50dhw69 
         foreign key (taxon_uri_ns_part_id) 
         references tree_uri_ns;
 
-alter table if exists tree_node 
+    alter table if exists tree_node 
         add constraint FK_oge4ibjd3ff3oyshexl6set2u 
         foreign key (type_uri_ns_part_id) 
         references tree_uri_ns;
 
-alter table if exists tree_uri_ns 
+    alter table if exists tree_uri_ns 
         add constraint FK_q9k8he941kvl07j2htmqxq35v 
         foreign key (owner_uri_ns_part_id) 
         references tree_uri_ns;
 
+    
 
-
-
+    
 
 -- audit.sql
 -- An audit history is important on most tables. Provide an audit trigger that logs to
@@ -1817,10 +1817,10 @@ CREATE INDEX idx_node_current_name_a
   WHERE replaced_at_id IS NULL;
 
 DROP INDEX IF EXISTS idx_node_current_name_b;
-  CREATE INDEX idx_node_current_name_b
+CREATE INDEX idx_node_current_name_b
   ON tree_node (name_id, tree_arrangement_id)
   WHERE next_node_id IS NULL;
- 
+
 DROP INDEX IF EXISTS idx_node_current_instance_a;
 CREATE INDEX idx_node_current_instance_a
   ON tree_node (instance_id, tree_arrangement_id)
