@@ -22,6 +22,7 @@ target(main: "Generate the NSL ddl sql from the current schema including views")
     schemaExport()
     File ddl = new File("${grailsSettings.projectTargetDir}/ddl.sql")
     String text = ddl.text
+                     .replaceAll(/ *(alter|drop|create)/, '$1') //remove leading spaces
                      .replaceAll(/alter table/, 'alter table if exists')
                      .replaceAll(/drop constraint/, 'drop constraint if exists')
                      .replaceAll(/boolean not null/, 'boolean default false not null')
