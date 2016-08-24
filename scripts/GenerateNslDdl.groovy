@@ -29,11 +29,16 @@ target(main: "Generate the NSL ddl sql from the current schema including views")
                      .replaceAll(/drop sequence nsl_global_seq;/, 'drop sequence nsl_global_seq;\n    create sequence nsl_global_seq minvalue 1000 maxvalue 10000000;')
                      .replaceAll(/create sequence hibernate_sequence;/, '')
                      .replaceAll(/drop sequence hibernate_sequence;/, 'drop sequence hibernate_sequence;\n    create sequence hibernate_sequence;')
+//                     .replaceAll(/\n */, '')
+//                     .replaceAll(/ *$/, '')
+//                     .replaceAll(/\n/, ' ')
+//                     .replaceAll(/;/, ';\n')
+
     File dataDir = new File("${grailsSettings.baseDir}/web-app/sql")
     File viewsDir = new File(dataDir, 'views')
     File nslDdl = new File(dataDir, "nsl-ddl.sql")
     nslDdl.write(text)
-    viewsDir.listFiles().sort().each{ File view ->
+    viewsDir.listFiles().sort().each { File view ->
         nslDdl.append("\n-- ${view.name}\n")
         nslDdl.append(view.text)
     }
