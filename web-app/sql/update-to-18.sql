@@ -53,6 +53,28 @@ CREATE INDEX idx_node_current_b
   ON tree_node (tree_arrangement_id)
   WHERE next_node_id IS NULL;
 
+-- delete all workspaces
+
+delete from tree_link l
+where
+  ( select tree_type from tree_node n join tree_arrangement a on n.tree_arrangement_id = a.id where n.id = l.supernode_id ) = 'U'
+;
+
+update tree_arrangement set node_id = null where tree_type = 'U';
+
+delete from tree_node n
+where
+  ( select tree_type from tree_arrangement a where n.tree_arrangement_id = a.id  ) = 'U';
+
+delete from tree_arrangement where tree_type = 'U';
+
+-- add new field and constraint
+
+alter table tree_arrangement add base_arrangement_id int8 references tree_arrangement;
+
+alter table tree_arrangement
+  add constraint work_trees_have_base_trees check (tree_type <> 'U' or base_arrangement_id is not null);
+
 -- version
 UPDATE db_version
 SET version = 18
