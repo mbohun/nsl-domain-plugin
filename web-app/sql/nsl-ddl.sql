@@ -171,6 +171,9 @@
         drop constraint if exists FK_dm9y4p9xpsc8m7vljbohubl7x;
 
     alter table if exists tree_arrangement 
+        drop constraint if exists FK_akuqsiv75wpw6mk3m8gj6g30m;
+
+    alter table if exists tree_arrangement 
         drop constraint if exists FK_skqp6co7fy5lcq0qts3yghy02;
 
     alter table if exists tree_arrangement 
@@ -753,6 +756,7 @@
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         tree_type bpchar not null,
+        base_arrangement_id int8,
         description varchar(255),
         label varchar(50),
         namespace_id int8,
@@ -1348,6 +1352,11 @@
         references ref_type;
 
     alter table if exists tree_arrangement 
+        add constraint FK_akuqsiv75wpw6mk3m8gj6g30m 
+        foreign key (base_arrangement_id) 
+        references tree_arrangement;
+
+    alter table if exists tree_arrangement 
         add constraint FK_skqp6co7fy5lcq0qts3yghy02 
         foreign key (namespace_id) 
         references namespace;
@@ -1711,6 +1720,10 @@ ALTER TABLE tree_arrangement
     label IS NOT NULL
   )
 );
+
+-- workspaces are built on a base classification tree
+alter table tree_arrangement
+  add constraint chk_work_trees_have_base_trees check (tree_type <> 'U' or base_arrangement_id is not null);
 
 -- Node
 
