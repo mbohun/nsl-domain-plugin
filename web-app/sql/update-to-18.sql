@@ -73,7 +73,7 @@ delete from tree_arrangement where tree_type = 'U';
 alter table tree_arrangement add base_arrangement_id int8 references tree_arrangement;
 
 alter table tree_arrangement
-  add constraint work_trees_have_base_trees check (tree_type <> 'U' or base_arrangement_id is not null);
+  add constraint chk_work_trees_have_base_trees check (tree_type <> 'U' or base_arrangement_id is not null);
 
 -- version
 UPDATE db_version

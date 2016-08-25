@@ -16,6 +16,10 @@ ALTER TABLE tree_arrangement
   )
 );
 
+-- workspaces are built on a base classification tree
+alter table tree_arrangement
+  add constraint chk_work_trees_have_base_trees check (tree_type <> 'U' or base_arrangement_id is not null);
+
 -- Node
 
 ALTER TABLE tree_node
