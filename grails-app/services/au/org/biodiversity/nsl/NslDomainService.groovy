@@ -21,7 +21,7 @@ class NslDomainService {
     def pluginManager
     def grailsApplication
 
-    static final Integer currentVersion = 18
+    static final Integer currentVersion = 19
 
     File getDdlFile() {
         GrailsPlugin plugin = pluginManager.allPlugins.find { it.name.startsWith('nslDomain') }

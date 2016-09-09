@@ -746,9 +746,9 @@
     );
 
     create table shard_config (
-        id int8 not null,
+        id int8 default nextval('hibernate_sequence') not null,
         name varchar(255) not null,
-        value varchar(255) not null,
+        value varchar(5000) not null,
         primary key (id)
     );
 
@@ -2185,7 +2185,7 @@ CREATE INDEX name_lower_unacent_full_name_gin_trgm
 CREATE INDEX name_lower_unacent_simple_name_gin_trgm
   ON name USING GIN (lower(f_unaccent(simple_name)) gin_trgm_ops);
 
-INSERT INTO db_version (id, version) VALUES (1, 18);
+INSERT INTO db_version (id, version) VALUES (1, 19);
 
 -- populate-lookup-tables.sql
 -- Populate lookup tables (currently botanical)
@@ -2770,6 +2770,10 @@ INSERT INTO public.ref_type (id, lock_version, name, parent_id, parent_optional,
 INSERT INTO public.ref_type (id, lock_version, name, parent_id, parent_optional, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'Section', (select id from ref_type where name = 'Book'), false, '(description of <b>Section</b>)', 'section');
 INSERT INTO public.ref_type (id, lock_version, name, parent_id, parent_optional, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 1, 'Unknown', null, true, '(description of <b>Unknown</b>)', 'unknown');
 UPDATE public.ref_type SET parent_id = id WHERE name = 'Unknown'; --self parent
+
+-- populate-shardconfig.sql
+INSERT INTO public.shard_config (id, name, value) VALUES
+  (nextval('hibernate_sequence'), 'config rules', 'All lower case names, space separated, follow the pattern hierachy');
 
 -- search-views.sql
 DROP VIEW IF EXISTS public.accepted_name_vw;
