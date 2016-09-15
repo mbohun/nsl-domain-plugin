@@ -1,7 +1,3 @@
--- create views for interrogating the tree
--- previously infeasible, the discovery tht we can index null columns in postgres
--- now means that you can join to these queries and they will run in a reasonable amount of time
-
 CREATE OR REPLACE FUNCTION is_instance_in_tree(pinstance instance.id%TYPE, ptree tree_arrangement.id%TYPE) RETURNS boolean AS $$
 DECLARE
   -- declarations
