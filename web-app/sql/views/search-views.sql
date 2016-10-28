@@ -17,7 +17,8 @@ CREATE VIEW public.accepted_name_vw AS
                JOIN instance ON ((accepted.id = instance.name_id)))
           JOIN tree_node ON ((accepted.id = tree_node.name_id)))
     JOIN tree_arrangement ta ON ((tree_node.tree_arrangement_id = ta.id)))
-  WHERE (((((ta.label) :: TEXT = 'APC' :: TEXT) AND (tree_node.next_node_id IS NULL)) AND
+  WHERE (((((ta.label) :: TEXT =  (select value from shard_config where name = 'tree label'))
+        AND (tree_node.next_node_id IS NULL)) AND
           (tree_node.checked_in_at_id IS NOT NULL)) AND (instance.id = tree_node.instance_id));
 
 DROP VIEW IF EXISTS public.accepted_synonym_vw;
@@ -43,7 +44,8 @@ CREATE VIEW public.accepted_synonym_vw AS
            JOIN NAME citer_name ON ((citer.name_id = citer_name.id)))
           JOIN tree_node ON ((citer_name.id = tree_node.name_id)))
     JOIN tree_arrangement ta ON ((tree_node.tree_arrangement_id = ta.id)))
-  WHERE (((((ta.label) :: TEXT = 'APC' :: TEXT) AND (tree_node.next_node_id IS NULL)) AND
+  WHERE (((((ta.label) :: TEXT =  (select value from shard_config where name = 'tree label'))
+        AND (tree_node.next_node_id IS NULL)) AND
           (tree_node.checked_in_at_id IS NOT NULL)) AND (tree_node.instance_id = citer.id));
 
 DROP VIEW IF EXISTS public.name_detail_commons_vw;
