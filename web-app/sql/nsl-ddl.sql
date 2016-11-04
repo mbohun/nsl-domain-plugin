@@ -2877,6 +2877,31 @@ CREATE VIEW public.accepted_synonym_vw AS
   WHERE (((((ta.label) :: TEXT = 'APC' :: TEXT) AND (tree_node.next_node_id IS NULL)) AND
           (tree_node.checked_in_at_id IS NOT NULL)) AND (tree_node.instance_id = citer.id));
 
+DROP VIEW IF EXISTS public.name_detail_commons_vw;
+CREATE VIEW public.name_detail_commons_vw AS
+SELECT instance.cited_by_id,
+    ((ity.name::text || ':'::text) || name.full_name_html::text) ||
+        CASE
+            WHEN ns.nom_illeg OR ns.nom_inval THEN ns.name
+            ELSE ''::character varying
+        END::text AS entry,
+    instance.id,
+    instance.cites_id,
+    ity.name AS instance_type_name,
+    ity.sort_order AS instance_type_sort_order,
+    name.full_name,
+    name.full_name_html,
+    ns.name,
+    instance.name_id,
+    instance.id AS instance_id,
+    instance.cited_by_id AS name_detail_id
+   FROM instance
+     JOIN name ON instance.name_id = name.id
+     JOIN instance_type ity ON ity.id = instance.instance_type_id
+     JOIN name_status ns ON ns.id = name.name_status_id
+  WHERE ity.name::text = ANY (ARRAY['common name'::character varying::text, 'vernacular name'::character varying::text]);
+
+
 DROP VIEW IF EXISTS public.name_detail_synonyms_vw;
 CREATE VIEW public.name_detail_synonyms_vw AS
   SELECT
@@ -2974,6 +2999,7 @@ CREATE VIEW public.name_or_synonym_vw AS
     '' :: CHARACTER VARYING AS sort_name
   FROM name
   WHERE (1 = 0);
+
 -- triggers.sql
 --triggers
 
@@ -3148,6 +3174,7 @@ GRANT SELECT ON accepted_name_vw TO web;
 GRANT SELECT ON accepted_synonym_vw TO web;
 GRANT SELECT ON name_detail_synonyms_vw TO web;
 GRANT SELECT ON name_details_vw TO web;
+GRANT SELECT ON name_detail_commons_vw TO web;
 GRANT SELECT ON name_or_synonym_vw TO web;
 
 GRANT SELECT ON tree_arrangement TO read_only;
@@ -3189,4 +3216,5 @@ GRANT SELECT ON accepted_name_vw TO read_only;
 GRANT SELECT ON accepted_synonym_vw TO read_only;
 GRANT SELECT ON name_detail_synonyms_vw TO read_only;
 GRANT SELECT ON name_details_vw TO read_only;
+GRANT SELECT ON name_detail_commons_vw TO read_only;
 GRANT SELECT ON name_or_synonym_vw TO read_only;

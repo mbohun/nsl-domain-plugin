@@ -1,10 +1,9 @@
-
--- NOTE!!! The "apc" tree in lichen is named 'Lichen'.
+-- NOTE!!! The "apc" tree in lichen is named 'ABRSL'.
 
 -- psql -f rebuild_ozmoss_apc_tree.sql ozmoss pg
 
 CREATE OR REPLACE FUNCTION rebuild_lichen_apc_tree()
-  RETURNS integer AS
+  RETURNS INTEGER AS
 $BODY$
 -- query from Nils is
 
@@ -30,201 +29,295 @@ $BODY$
 -- that we have an ozmoss tree vocabulary for these things
 
 DECLARE
-  mApcVoc integer;
-  mNslNameVoc integer;
-  mNslInstanceVoc integer;
-  mLichenNs integer;
-  mApcTree integer;
-  mApcNode integer;
-  mCurrentRootNode integer;
-  mEvent integer;
-  mRootNode integer;
-  tmp integer;
-  nn integer;
+  mApcVoc          INTEGER;
+  mNslNameVoc      INTEGER;
+  mNslInstanceVoc  INTEGER;
+  mLichenNs        INTEGER;
+  mApcTree         INTEGER;
+  mApcNode         INTEGER;
+  mCurrentRootNode INTEGER;
+  mEvent           INTEGER;
+  mRootNode        INTEGER;
+  tmp              INTEGER;
+  nn               INTEGER;
 BEGIN
-  raise info 'rebuild_lichen_apc_tree';
-  select id into mNslNameVoc from tree_uri_ns where label = 'nsl-name';
-  raise info 'mNslNameVoc is %', mNslNameVoc;
-  select id into mNslInstanceVoc from tree_uri_ns where label = 'nsl-instance';
-  raise info 'mNslInstanceVoc is %', mNslInstanceVoc;
-  select id into mApcVoc from tree_uri_ns where label = 'apc-voc';
-  raise info 'APC vocabulary is %', mApcVoc;
-  select id into mLichenNs from namespace where name = 'Lichen';
-  raise info 'Lichen namespace is %', mLichenNs;
+  RAISE INFO 'rebuild_lichen_apc_tree';
+  SELECT id
+  INTO mNslNameVoc
+  FROM tree_uri_ns
+  WHERE label = 'nsl-name';
+  RAISE INFO 'mNslNameVoc is %', mNslNameVoc;
+  SELECT id
+  INTO mNslInstanceVoc
+  FROM tree_uri_ns
+  WHERE label = 'nsl-instance';
+  RAISE INFO 'mNslInstanceVoc is %', mNslInstanceVoc;
+  SELECT id
+  INTO mApcVoc
+  FROM tree_uri_ns
+  WHERE label = 'apc-voc';
+  RAISE INFO 'APC vocabulary is %', mApcVoc;
+  SELECT id
+  INTO mLichenNs
+  FROM namespace
+  WHERE name = 'Lichen';
+  RAISE INFO 'Lichen namespace is %', mLichenNs;
 
-  select id from tree_arrangement into mApcTree where namespace_id = mLichenNs and tree_type = 'P' and label = 'Lichen';
-  raise info 'APC tree is %', mApcTree;
-  select node_id from tree_arrangement into mApcNode where id = mApcTree;
-  raise info 'APC top node is %', mApcNode;
-  select subnode_id from tree_link into mCurrentRootNode where supernode_id = mApcNode;
-  raise info 'APC current root is %', mCurrentRootNode;
+  SELECT id
+  INTO mApcTree
+  FROM tree_arrangement
+  WHERE namespace_id = mLichenNs AND tree_type = 'P' AND label = 'ABRSL';
+  RAISE INFO 'APC tree is %', mApcTree;
+  SELECT node_id
+  INTO mApcNode
+  FROM tree_arrangement
+  WHERE id = mApcTree;
+  RAISE INFO 'APC top node is %', mApcNode;
+  SELECT subnode_id
+  INTO mCurrentRootNode
+  FROM tree_link
+  WHERE supernode_id = mApcNode;
+  RAISE INFO 'APC current root is %', mCurrentRootNode;
+
+  IF mApcTree IS NULL
+  THEN
+--     create a new APC tree
+    RAISE INFO 'NO APC tree, creating one.';
+
+    SELECT nextval('nsl_global_seq')
+    INTO mEvent;
+    RAISE INFO 'Event for creation of the empty tree %', mEvent;
+
+    INSERT INTO tree_event (id, namespace_id, lock_version, auth_user, note, time_stamp)
+    VALUES (mEvent, mLichenNs, 1, 'nsl', 'create empty lichen tree', current_timestamp);
+
+    SELECT nextval('nsl_global_seq')
+    INTO mApcTree;
+    SELECT nextval('nsl_global_seq')
+    INTO mApcNode;
+    SELECT nextval('nsl_global_seq')
+    INTO mCurrentRootNode;
 
 
-  if mApcTree is null THEN
-    raise info 'NO APC tree';
-
-    select nextval('nsl_global_seq') into mEvent;
-    raise info 'Event for creation of the empty tree %', mEvent;
-
-    insert into tree_event(id, namespace_id, lock_version, auth_user, note, time_stamp)
-    values(mEvent, mLichenNs, 1, 'nsl', 'create empty lichen tree', current_timestamp);
-
-    select nextval('nsl_global_seq') into mApcTree;
-    select nextval('nsl_global_seq') into mApcNode;
-    select nextval('nsl_global_seq') into mCurrentRootNode;
-
-
-    insert into tree_arrangement(
+    INSERT INTO tree_arrangement (
       id, lock_version, tree_type, label, namespace_id, owner, shared, is_synthetic
     )
-    SELECT mApcTree, 1, 'P', 'Lichen', mLichenNs, 'nsl', true, 'N';
+      SELECT
+        mApcTree,
+        1,
+        'P',
+        'Lichen',
+        mLichenNs,
+        'nsl',
+        TRUE,
+        'N';
 
-    insert into tree_node(
+    INSERT INTO tree_node (
       id, lock_version, checked_in_at_id, prev_node_id,
       internal_type, tree_arrangement_id, is_synthetic,
       type_uri_ns_part_id, type_uri_id_part
     )
-    values (
-      mApcNode, 1, mEvent, null,
+    VALUES (
+      mApcNode, 1, mEvent, NULL,
       'S', mApcTree, 'N',
       1, 'classification-node'
     );
 
-    update tree_arrangement set node_id = mApcNode where id = mApcTree;
+    UPDATE tree_arrangement
+    SET node_id = mApcNode
+    WHERE id = mApcTree;
 
-    insert into tree_node(
+    INSERT INTO tree_node (
       id, lock_version, checked_in_at_id, prev_node_id,
       internal_type, tree_arrangement_id, is_synthetic,
       type_uri_ns_part_id, type_uri_id_part
     )
-    values (
-      mCurrentRootNode, 1, mEvent, null,
+    VALUES (
+      mCurrentRootNode, 1, mEvent, NULL,
       'T', mApcTree, 'Y',
       1, 'classification-root'
     );
 
-    select nextval('nsl_global_seq') into tmp;
+    SELECT nextval('nsl_global_seq')
+    INTO tmp;
 
-    insert into tree_link(
+    INSERT INTO tree_link (
       id, lock_version, link_seq, supernode_id, subnode_id, is_synthetic, type_uri_ns_part_id, type_uri_id_part, versioning_method
     )
-    values (
+    VALUES (
       tmp, 1, 1, mApcNode, mCurrentRootNode, 'Y', 1, 'classification-root-link', 'T'
     );
 
   END IF;
+-- end create APC tree if it doesn't exist
 
-  select nextval('nsl_global_seq') into mEvent;
-  raise info 'Event for this operation will be %', mEvent;
-  select nextval('nsl_global_seq') into mRootNode;
-  raise info 'New root node will be %', mRootNode;
+-- create a root node
+  SELECT nextval('nsl_global_seq')
+  INTO mEvent;
+  RAISE INFO 'Event for these operations will be %', mEvent;
+  SELECT nextval('nsl_global_seq')
+  INTO mRootNode;
+  RAISE INFO 'New root node will be %', mRootNode;
 
-  insert into tree_event(id, namespace_id, lock_version, auth_user, note, time_stamp)
-  values(mEvent, mLichenNs, 1, 'nsl', 'rebuild lichen apc tree', current_timestamp);
+  INSERT INTO tree_event (id, namespace_id, lock_version, auth_user, note, time_stamp)
+  VALUES (mEvent, mLichenNs, 1, 'nsl', 'rebuild lichen apc tree', current_timestamp);
 
-  insert into tree_node(
+  INSERT INTO tree_node (
     id, lock_version, checked_in_at_id, prev_node_id,
     internal_type, tree_arrangement_id, is_synthetic,
     type_uri_ns_part_id, type_uri_id_part
   )
-  values (
+  VALUES (
     mRootNode, 1, mEvent, mCurrentRootNode,
     'T', mApcTree, 'Y',
     1, 'classification-root'
   );
+-- end create a root node
 
-  select count(*) into nn
-  from tree_node
-  where tree_arrangement_id = mApcTree
-        and internal_type <> 'V'
-        and id <> mApcNode
-        and tree_arrangement_id is null;
+-- count and end date all existing tree nodes except the tree node
+  SELECT count(*)
+  INTO nn
+  FROM tree_node
+  WHERE tree_arrangement_id = mApcTree
+        AND internal_type <> 'V'
+        AND id <> mApcNode
+        AND tree_arrangement_id IS NULL;
 
-  raise info 'end-dating % nodes', nn;
+  RAISE INFO 'end-dating % nodes', nn;
 
-  update tree_node
-  set next_node_id = 0, replaced_at_id = mEvent
-  where tree_arrangement_id = mApcTree
-        and internal_type <> 'V'
-        and id <> mApcNode
-        and tree_arrangement_id is null;
+  UPDATE tree_node
+  SET next_node_id = 0, replaced_at_id = mEvent
+  WHERE tree_arrangement_id = mApcTree
+        AND internal_type <> 'V'
+        AND id <> mApcNode
+        AND tree_arrangement_id IS NULL;
 
-  raise debug 'building new empty tree';
+  RAISE DEBUG 'building new empty tree';
 
-  update tree_node set next_node_id = mRootNode where id = mCurrentRootNode;
-  update tree_link set subnode_id = mRootNode where supernode_id = mApcNode;
+-- set the tree node to point to the new root node
+  UPDATE tree_node
+  SET next_node_id = mRootNode
+  WHERE id = mCurrentRootNode;
 
-  SELECT count(*) into nn
+-- set the tree link subnode to point to the new Root node
+  UPDATE tree_link
+  SET subnode_id = mRootNode
+  WHERE supernode_id = mApcNode;
+
+-- count instances that we need to insert onto the tree
+  SELECT count(*)
+  INTO nn
   FROM name n
-    JOIN instance i ON n.id=i.name_id AND i.reference_id=30005166
-    JOIN instance_type it ON i.instance_type_id=it.id
-    JOIN name_status st on n.name_status_id = st.id
+    JOIN instance i ON n.id = i.name_id AND i.reference_id = 30005166
+    JOIN instance_type it ON i.instance_type_id = it.id
+    JOIN name_status st ON n.name_status_id = st.id
   WHERE it.standalone;
 
-  raise info 'creating % new nodes', nn;
+  RAISE INFO 'creating % new nodes', nn;
 
-  insert into tree_node (
-    id, lock_version, checked_in_at_id, internal_type, is_synthetic,
+  -- make the nodes for the instances
+  INSERT INTO tree_node (
+    id, lock_version,
+    checked_in_at_id,
+    internal_type,
+    is_synthetic,
     tree_arrangement_id,
-    type_uri_ns_part_id, type_uri_id_part,
-    name_id, name_uri_ns_part_id, name_uri_id_part,
-    instance_id, taxon_uri_ns_part_id, taxon_uri_id_part)
+    type_uri_ns_part_id,
+    type_uri_id_part,
+    name_id,
+    name_uri_ns_part_id,
+    name_uri_id_part,
+    instance_id,
+    taxon_uri_ns_part_id,
+    taxon_uri_id_part)
     SELECT
-      nextval('nsl_global_seq'), 1, mEvent, 'T', 'Y',
+      nextval('nsl_global_seq'), 1,
+      mEvent,
+      'T',
+      'Y',
       mApcTree,
-      mApcVoc, case
-               when  it.name ='excluded name' or  it.name ='occurrence doubtful' or  it.name ='status uncertain'
-                 then 'ApcExcluded' else 'ApcConcept' end,
-      n.id, mNslNameVoc, n.id,
-      i.id, mNslInstanceVoc, i.id
+      mApcVoc,
+      CASE
+      WHEN it.name = 'excluded name' OR it.name = 'occurrence doubtful' OR it.name = 'status uncertain'
+        THEN 'ApcExcluded'
+      ELSE 'ApcConcept' END,
+      n.id,
+      mNslNameVoc,
+      n.id,
+      i.id,
+      mNslInstanceVoc,
+      i.id
     FROM name n
-      JOIN instance i ON n.id=i.name_id AND i.reference_id=30005166
-      JOIN instance_type it ON i.instance_type_id=it.id
-      JOIN name_status st on n.name_status_id = st.id
+      JOIN instance i ON n.id = i.name_id AND i.reference_id = 30005166
+      JOIN instance_type it ON i.instance_type_id = it.id
+      JOIN name_status st ON n.name_status_id = st.id
     WHERE it.standalone;
 
-  insert into tree_link(
-    id, lock_version, link_seq,
-    subnode_id, supernode_id, is_synthetic,
-    type_uri_id_part, type_uri_ns_part_id,
+-- link all the nodes to the root node (or top of the tree) so that they all exists
+  INSERT INTO tree_link (
+    id, lock_version,
+    link_seq,
+    subnode_id,
+    supernode_id,
+    is_synthetic,
+    type_uri_id_part,
+    type_uri_ns_part_id,
     versioning_method)
-    select
-      nextval('nsl_global_seq'), 1, name_id, -- use name id as link seq, will magically make link history work
-      id, mRootNode, 'Y',
-      null, 0,
+    SELECT
+      nextval('nsl_global_seq'), 1,
+      name_id,
+      -- use name id as link seq, will magically make link history work
+      id,
+      mRootNode,
+      'Y',
+      NULL,
+      0,
       'V'
-    from tree_node
-    where checked_in_at_id = mEvent
-          and id <> mRootNode;
+    FROM tree_node
+    WHERE checked_in_at_id = mEvent
+          AND id <> mRootNode;
 
-  raise debug 'relinking the names';
+  RAISE DEBUG 'relinking the names';
 
-  update tree_link
-  set supernode_id =
+-- re-arrange the node links into the tree structure
+  UPDATE tree_link
+  SET supernode_id =
   coalesce(
       (
-        select supnode.id
-        from tree_node subnode
-          join name on subnode.name_id = name.id
-          join tree_node supnode on supnode.name_id = name.parent_id and supnode.tree_arrangement_id = mApcTree and supnode.checked_in_at_id = mEvent
-        where subnode.id = tree_link.subnode_id
-      ) , mRootNode)
-  where supernode_id = mRootNode;
+        -- use the name.parent_id to work out the super node to link this node to
+        SELECT supernode.id
+        FROM tree_node subnode
+          JOIN name ON subnode.name_id = name.id
+          JOIN tree_node supernode ON supernode.name_id = name.parent_id
+                                      AND supernode.tree_arrangement_id = mApcTree
+                                      AND supernode.checked_in_at_id = mEvent
+        WHERE subnode.id = tree_link.subnode_id
+      ), mRootNode)
+  WHERE supernode_id = mRootNode;
 
-  update tree_node
-  set prev_node_id = (select id from tree_node n2 where tree_node.name_id = n2.name_id and n2.replaced_at_id = mEvent)
-  where name_id is not NULL and checked_in_at_id = mEvent;
+-- set the new nodes to point to back to pre-existing nodes on this tree that
+-- were end-dated in this operation by mEvent
+  UPDATE tree_node
+  SET prev_node_id = (SELECT id
+                      FROM tree_node n2
+                      WHERE tree_node.name_id = n2.name_id
+                            AND n2.replaced_at_id = mEvent)
+  WHERE name_id IS NOT NULL
+        AND checked_in_at_id = mEvent;
 
-  update tree_node
-  set next_node_id =
-  (select id from tree_node n2 where tree_node.name_id = n2.name_id and n2.checked_in_at_id = mEvent)
-  where name_id is not NULL and replaced_at_id = mEvent;
+-- point the pre-existing nodes 'next_node' to the new node that replaces it
+  UPDATE tree_node
+  SET next_node_id =
+  (SELECT id
+   FROM tree_node n2
+   WHERE tree_node.name_id = n2.name_id AND n2.checked_in_at_id = mEvent)
+  WHERE name_id IS NOT NULL AND replaced_at_id = mEvent;
 
-  return 0;
+  RETURN 0;
 END;
 $BODY$
 LANGUAGE plpgsql;
 
-select rebuild_lichen_apc_tree();
+SELECT rebuild_lichen_apc_tree();
 
-commit;
+COMMIT;
