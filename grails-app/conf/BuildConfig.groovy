@@ -32,7 +32,7 @@ grails.project.fork = [
 ]
 
 grails.project.dependency.resolver = "maven" // or ivy
-grails.project.repos.default = "anbg_releases"
+grails.project.repos.default = "anbg_snapshots"
 
 // edit your ~/.grails/settings.groovy to point to your own nexus repo with appropriate URL and authentication
 
