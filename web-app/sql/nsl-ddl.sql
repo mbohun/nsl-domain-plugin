@@ -591,6 +591,7 @@
     create table name_status (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
+        deprecated boolean default false not null,
         description_html text,
         display boolean default true not null,
         name varchar(50),
