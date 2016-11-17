@@ -227,6 +227,15 @@
     alter table if exists tree_uri_ns 
         drop constraint if exists FK_q9k8he941kvl07j2htmqxq35v;
 
+    alter table if exists tree_value_uri 
+        drop constraint if exists FK_ds3bc89iy6q3ts4ts85mqiys;
+
+    alter table if exists tree_value_uri 
+        drop constraint if exists FK_djkn41tin6shkjuut9nam9xvn;
+
+    alter table if exists tree_value_uri 
+        drop constraint if exists FK_nw785lqesvg8ntfaper0tw2vs;
+
     drop table if exists author cascade;
 
     drop table if exists comment cascade;
@@ -296,6 +305,8 @@
     drop table if exists tree_node cascade;
 
     drop table if exists tree_uri_ns cascade;
+
+    drop table if exists tree_value_uri cascade;
 
     drop table if exists user_query cascade;
 
@@ -829,6 +840,23 @@
         primary key (id)
     );
 
+    create table tree_value_uri (
+        id int8 default nextval('nsl_global_seq') not null,
+        lock_version int8 default 0 not null,
+        description varchar(2048),
+        is_multi_valued boolean default false not null,
+        is_resource boolean default false not null,
+        label varchar(20) not null,
+        link_uri_id_part varchar(255) not null,
+        link_uri_ns_part_id int8 not null,
+        node_uri_id_part varchar(255) not null,
+        node_uri_ns_part_id int8 not null,
+        root_id int8 not null,
+        sort_order int4 not null,
+        title varchar(50) not null,
+        primary key (id)
+    );
+
     create table user_query (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
@@ -1062,6 +1090,10 @@
     create index idx_tree_uri_ns_label on tree_uri_ns (label);
 
     create index idx_tree_uri_ns_uri on tree_uri_ns (uri);
+
+    create index link_uri_index on tree_value_uri (link_uri_id_part, link_uri_ns_part_id, root_id);
+
+    create index node_uri_index on tree_value_uri (node_uri_id_part, node_uri_ns_part_id, root_id);
 
     alter table if exists why_is_this_here 
         add constraint UK_sv1q1i7xve7xgmkwvmdbeo1mb  unique (name);
@@ -1445,6 +1477,21 @@
         add constraint FK_q9k8he941kvl07j2htmqxq35v 
         foreign key (owner_uri_ns_part_id) 
         references tree_uri_ns;
+
+    alter table if exists tree_value_uri 
+        add constraint FK_ds3bc89iy6q3ts4ts85mqiys 
+        foreign key (link_uri_ns_part_id) 
+        references tree_uri_ns;
+
+    alter table if exists tree_value_uri 
+        add constraint FK_djkn41tin6shkjuut9nam9xvn 
+        foreign key (node_uri_ns_part_id) 
+        references tree_uri_ns;
+
+    alter table if exists tree_value_uri 
+        add constraint FK_nw785lqesvg8ntfaper0tw2vs 
+        foreign key (root_id) 
+        references tree_arrangement;
 
     
 
