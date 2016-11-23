@@ -36,14 +36,6 @@ grails.project.repos.default = "anbg_snapshots"
 
 // edit your ~/.grails/settings.groovy to point to your own nexus repo with appropriate URL and authentication
 
-//grails.project.repos.anbg_snapshots.url = "http://host:port/nexus/content/repositories/snapshots/"
-//grails.project.repos.anbg_snapshots.username = "fred"
-//grails.project.repos.anbg_snapshots.password = "secret"
-//
-//grails.project.repos.anbg_releases.url = "http://host:port/nexus/content/repositories/releases/"
-//grails.project.repos.anbg_releases.username = "fred"
-//grails.project.repos.anbg_releases.password = "secret"
-
 grails.project.dependency.resolution = {
     // inherit Grails' default dependencies
     inherits("global") {

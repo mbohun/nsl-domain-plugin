@@ -81,7 +81,7 @@ BEGIN
 
   IF mApcTree IS NULL
   THEN
---     create a new APC tree
+    --     create a new APC tree
     RAISE INFO 'NO APC tree, creating one.';
 
     SELECT nextval('nsl_global_seq')
@@ -149,9 +149,9 @@ BEGIN
     );
 
   END IF;
--- end create APC tree if it doesn't exist
+  -- end create APC tree if it doesn't exist
 
--- create a root node
+  -- create a root node
   SELECT nextval('nsl_global_seq')
   INTO mEvent;
   RAISE INFO 'Event for these operations will be %', mEvent;
@@ -172,9 +172,9 @@ BEGIN
     'T', mApcTree, 'Y',
     1, 'classification-root'
   );
--- end create a root node
+  -- end create a root node
 
--- count and end date all existing tree nodes except the tree node
+  -- count and end date all existing tree nodes except the tree node
   SELECT count(*)
   INTO nn
   FROM tree_node
@@ -194,17 +194,17 @@ BEGIN
 
   RAISE DEBUG 'building new empty tree';
 
--- set the tree node to point to the new root node
+  -- set the tree node to point to the new root node
   UPDATE tree_node
-  SET next_node_id = mRootNode
+  SET next_node_id = mRootNode, replaced_at_id = mEvent
   WHERE id = mCurrentRootNode;
 
--- set the tree link subnode to point to the new Root node
+  -- set the tree link subnode to point to the new Root node
   UPDATE tree_link
   SET subnode_id = mRootNode
   WHERE supernode_id = mApcNode;
 
--- count instances that we need to insert onto the tree
+  -- count instances that we need to insert onto the tree
   SELECT count(*)
   INTO nn
   FROM name n
@@ -231,7 +231,8 @@ BEGIN
     taxon_uri_ns_part_id,
     taxon_uri_id_part)
     SELECT
-      nextval('nsl_global_seq'), 1,
+      nextval('nsl_global_seq'),
+      1,
       mEvent,
       'T',
       'Y',
@@ -253,7 +254,7 @@ BEGIN
       JOIN name_status st ON n.name_status_id = st.id
     WHERE it.standalone;
 
--- link all the nodes to the root node (or top of the tree) so that they all exists
+  -- link all the nodes to the root node (or top of the tree) so that they all exists
   INSERT INTO tree_link (
     id, lock_version,
     link_seq,
@@ -264,7 +265,8 @@ BEGIN
     type_uri_ns_part_id,
     versioning_method)
     SELECT
-      nextval('nsl_global_seq'), 1,
+      nextval('nsl_global_seq'),
+      1,
       name_id,
       -- use name id as link seq, will magically make link history work
       id,
@@ -279,7 +281,7 @@ BEGIN
 
   RAISE DEBUG 'relinking the names';
 
--- re-arrange the node links into the tree structure
+  -- re-arrange the node links into the tree structure
   UPDATE tree_link
   SET supernode_id =
   coalesce(
@@ -295,8 +297,8 @@ BEGIN
       ), mRootNode)
   WHERE supernode_id = mRootNode;
 
--- set the new nodes to point to back to pre-existing nodes on this tree that
--- were end-dated in this operation by mEvent
+  -- set the new nodes to point to back to pre-existing nodes on this tree that
+  -- were end-dated in this operation by mEvent
   UPDATE tree_node
   SET prev_node_id = (SELECT id
                       FROM tree_node n2
@@ -305,7 +307,7 @@ BEGIN
   WHERE name_id IS NOT NULL
         AND checked_in_at_id = mEvent;
 
--- point the pre-existing nodes 'next_node' to the new node that replaces it
+  -- point the pre-existing nodes 'next_node' to the new node that replaces it
   UPDATE tree_node
   SET next_node_id =
   (SELECT id
