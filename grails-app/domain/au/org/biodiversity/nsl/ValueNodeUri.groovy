@@ -52,9 +52,8 @@ class ValueNodeUri {
         label nullable: false, maxSize: 20
         title nullable: false, maxSize: 50
         description nullable: true, maxSize: 2048
-        sortOrder nullable: false
-        isMultiValued nullable: false
-        isResource nullable: false
+        // don't need nullable constraints
+        // for columns mapped to primitive types
     }
 
 }

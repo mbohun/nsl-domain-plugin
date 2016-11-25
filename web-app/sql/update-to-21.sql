@@ -184,7 +184,7 @@ INSERT INTO TREE_VALUE_URI (
 VALUES (
   (SELECT id
    FROM tree_arrangement
-   WHERE label = 'APC'),
+   WHERE label = 'configService.classificationTreeName'),
   (SELECT id
    FROM tree_uri_ns
    WHERE label = 'apc-voc'), 'distribution',
@@ -205,7 +205,7 @@ INSERT INTO TREE_VALUE_URI (
 ) VALUES (
   (SELECT id
    FROM tree_arrangement
-   WHERE label = 'APC'),
+   WHERE label = '${configService.classificationTreeName}'),
   (SELECT id
    FROM tree_uri_ns
    WHERE label = 'apc-voc'), 'comment',
