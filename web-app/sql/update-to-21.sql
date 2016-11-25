@@ -82,7 +82,50 @@ CREATE VIEW public.accepted_synonym_vw AS
         AND tree_node.checked_in_at_id IS NOT NULL
         AND tree_node.instance_id = citer.id;
 
--- todo handle grants on these re-created views
+-- update grants
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_arrangement TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_link TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_node TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_uri_ns TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_tree_path TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON id_mapper TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON author TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON delayed_jobs TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON external_ref TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON help_topic TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON instance TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON instance_type TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON instance_note TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON instance_note_key TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON language TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON locale TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON name TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_category TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_group TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_part TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_rank TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_status TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_type TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON namespace TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON nomenclatural_event_type TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON ref_author_role TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON ref_type TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON reference TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON user_query TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON notification TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_tag TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON name_tag_name TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON comment TO ${webUserName};
+GRANT SELECT, UPDATE ON nsl_global_seq TO ${webUserName};
+GRANT SELECT, UPDATE ON hibernate_sequence TO ${webUserName};
+GRANT SELECT ON shard_config TO ${webUserName};
+
+GRANT SELECT ON accepted_name_vw TO ${webUserName};
+GRANT SELECT ON accepted_synonym_vw TO ${webUserName};
+GRANT SELECT ON name_detail_synonyms_vw TO ${webUserName};
+GRANT SELECT ON name_details_vw TO ${webUserName};
+GRANT SELECT ON name_detail_commons_vw TO ${webUserName};
+GRANT SELECT ON name_or_synonym_vw TO ${webUserName};
 
 -- version
 UPDATE db_version
