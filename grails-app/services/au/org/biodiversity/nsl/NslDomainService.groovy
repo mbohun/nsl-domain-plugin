@@ -15,29 +15,74 @@
 */
 package au.org.biodiversity.nsl
 
+import groovy.sql.Sql
+import groovy.text.SimpleTemplateEngine
 import org.codehaus.groovy.grails.plugins.GrailsPlugin
+import org.hibernate.SessionFactory
 
 class NslDomainService {
     def pluginManager
     def grailsApplication
+    SessionFactory sessionFactory_nsl
 
     static final Integer currentVersion = 21
 
     File getDdlFile() {
-        GrailsPlugin plugin = pluginManager.allPlugins.find { it.name.startsWith('nslDomain') }
-        log.info "found $plugin.name with path ${plugin.pluginPath}"
-        File pluginDir = grailsApplication.mainContext.getResource(plugin.pluginPath).file
+        File pluginDir = getPluginDirectory()
         File file = new File(pluginDir, "sql/nsl-ddl.sql")
         log.info "nsl-ddl.sql file path $file.absolutePath"
         return file
     }
 
-    def checkUpToDate() {
+    public Boolean checkUpToDate() {
         try {
             DbVersion.get(1)?.version == currentVersion
         } catch (e) {
             log.error e.message
             return false
         }
+    }
+
+    /**
+     * update the database to the current version using update scripts
+     * @return true if worked
+     */
+    public Boolean updateToCurrentVersion(Sql sql, Map params) {
+        Integer dbVersion = DbVersion.get(1)?.version
+        if (!dbVersion) {
+            log.error "Database version not found, not updating."
+            return false
+        }
+        sessionFactory_nsl.getCurrentSession().flush()
+        sessionFactory_nsl.getCurrentSession().clear()
+        for (Integer versionNumber in ((dbVersion + 1)..currentVersion)) {
+            log.info "updating to version $versionNumber"
+            File updateFile = getUpdateFile(versionNumber)
+            if(updateFile?.exists()) {
+                String sqlSource = updateFile.text
+                def engine = new SimpleTemplateEngine()
+                def template = engine.createTemplate(sqlSource).make(params)
+                log.debug template
+                sql.execute(template.toString()) { isResultSet, result ->
+                    if(isResultSet) log.debug result
+                }
+            }
+        }
+        sessionFactory_nsl.getCurrentSession().flush()
+        sessionFactory_nsl.getCurrentSession().clear()
+        return checkUpToDate()
+    }
+
+    File getUpdateFile(Integer versionNumber) {
+        File pluginDir = getPluginDirectory()
+        File file = new File(pluginDir, "sql/update-to-${versionNumber}.sql")
+        log.info "nsl-ddl.sql file path $file.absolutePath"
+        return file
+    }
+
+    private File getPluginDirectory() {
+        GrailsPlugin plugin = pluginManager.allPlugins.find { it.name.startsWith('nslDomain') }
+        log.info "found $plugin.name with path ${plugin.pluginPath}"
+        return grailsApplication.mainContext.getResource(plugin.pluginPath).file
     }
 }
