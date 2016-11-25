@@ -202,7 +202,7 @@ insert into TREE_VALUE_URI (
   false, false, 1
 );
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_value_uri TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_value_uri TO ${webUserName};
 GRANT SELECT ON tree_value_uri TO read_only;
 
 -- version
