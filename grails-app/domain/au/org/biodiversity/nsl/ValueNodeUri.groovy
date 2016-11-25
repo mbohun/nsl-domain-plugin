@@ -6,20 +6,20 @@ package au.org.biodiversity.nsl
  * Created by ibis on 17/11/16.
  */
 class ValueNodeUri {
-    Arrangement root;
-    UriNs linkUriNsPart;
-    String linkUriIdPart;
-    UriNs nodeUriNsPart;
-    String nodeUriIdPart;
+    Arrangement root
+    UriNs linkUriNsPart
+    String linkUriIdPart
+    UriNs nodeUriNsPart
+    String nodeUriIdPart
 
-    String label;
-    String title;
-    String description;
+    String label
+    String title
+    String description
 
-    int sortOrder = 0;
+    int sortOrder = 0
 
-    boolean isMultiValued;
-    boolean isResource;
+    boolean isMultiValued = false
+    boolean isResource = false
 
     static belongsTo = [
             root         : Arrangement,
@@ -55,7 +55,6 @@ class ValueNodeUri {
         sortOrder nullable: false
         isMultiValued nullable: false
         isResource nullable: false
-
     }
 
 }

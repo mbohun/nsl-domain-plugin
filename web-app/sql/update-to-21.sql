@@ -130,47 +130,50 @@ GRANT SELECT ON name_or_synonym_vw TO ${webUserName};
 -- NSL-2045: support for profile data on trees.
 
 -- the primary keys on these rows are not used as fkeys anywhere else, and so is ok to drop
-drop table if exists tree_value_uri;
+DROP TABLE IF EXISTS tree_value_uri;
 
-create table tree_value_uri (
-  id int8 default nextval('nsl_global_seq') not null,
-  lock_version int8 default 0 not null,
-  description varchar(2048),
-  is_multi_valued boolean default false not null,
-  is_resource boolean default false not null,
-  label varchar(20) not null,
-  link_uri_id_part varchar(255) not null,
-  link_uri_ns_part_id int8 not null,
-  node_uri_id_part varchar(255) not null,
-  node_uri_ns_part_id int8 not null,
-  root_id int8 not null,
-  sort_order int4 not null,
-  title varchar(50) not null,
-  primary key (id)
+CREATE TABLE tree_value_uri (
+  id                  INT8 DEFAULT nextval('nsl_global_seq') NOT NULL,
+  lock_version        INT8 DEFAULT 0                         NOT NULL,
+  description         VARCHAR(2048),
+  is_multi_valued     BOOLEAN DEFAULT FALSE                  NOT NULL,
+  is_resource         BOOLEAN DEFAULT FALSE                  NOT NULL,
+  label               VARCHAR(20)                            NOT NULL,
+  link_uri_id_part    VARCHAR(255)                           NOT NULL,
+  link_uri_ns_part_id INT8                                   NOT NULL,
+  node_uri_id_part    VARCHAR(255)                           NOT NULL,
+  node_uri_ns_part_id INT8                                   NOT NULL,
+  root_id             INT8                                   NOT NULL,
+  sort_order          INT4                                   NOT NULL,
+  title               VARCHAR(50)                            NOT NULL,
+  PRIMARY KEY (id)
 );
 
-create index link_uri_index on tree_value_uri (link_uri_id_part, link_uri_ns_part_id, root_id);
+CREATE INDEX link_uri_index
+  ON tree_value_uri (link_uri_id_part, link_uri_ns_part_id, root_id);
 
-create index node_uri_index on tree_value_uri (node_uri_id_part, node_uri_ns_part_id, root_id);
+CREATE INDEX node_uri_index
+  ON tree_value_uri (node_uri_id_part, node_uri_ns_part_id, root_id);
 
-create index by_root_id on tree_value_uri (root_id);
+CREATE INDEX by_root_id
+  ON tree_value_uri (root_id);
 
-alter table if exists tree_value_uri
-  add constraint FK_ds3bc89iy6q3ts4ts85mqiys
-foreign key (link_uri_ns_part_id)
-references tree_uri_ns;
+ALTER TABLE IF EXISTS tree_value_uri
+  ADD CONSTRAINT FK_ds3bc89iy6q3ts4ts85mqiys
+FOREIGN KEY (link_uri_ns_part_id)
+REFERENCES tree_uri_ns;
 
-alter table if exists tree_value_uri
-  add constraint FK_djkn41tin6shkjuut9nam9xvn
-foreign key (node_uri_ns_part_id)
-references tree_uri_ns;
+ALTER TABLE IF EXISTS tree_value_uri
+  ADD CONSTRAINT FK_djkn41tin6shkjuut9nam9xvn
+FOREIGN KEY (node_uri_ns_part_id)
+REFERENCES tree_uri_ns;
 
-alter table if exists tree_value_uri
-  add constraint FK_nw785lqesvg8ntfaper0tw2vs
-foreign key (root_id)
-references tree_arrangement;
+ALTER TABLE IF EXISTS tree_value_uri
+  ADD CONSTRAINT FK_nw785lqesvg8ntfaper0tw2vs
+FOREIGN KEY (root_id)
+REFERENCES tree_arrangement;
 
-insert into TREE_VALUE_URI (
+INSERT INTO TREE_VALUE_URI (
   root_id,
   link_uri_ns_part_id,
   link_uri_id_part,
@@ -178,28 +181,40 @@ insert into TREE_VALUE_URI (
   node_uri_id_part,
   label, title, is_multi_valued, is_resource, sort_order
 )
-values (
-  (select id from tree_arrangement where label='APC'),
-  (select id from tree_uri_ns where label = 'apc-voc'), 'distribution',
-  (select id from tree_uri_ns where label = 'apc-voc'), 'distributionString',
+VALUES (
+  (SELECT id
+   FROM tree_arrangement
+   WHERE label = 'APC'),
+  (SELECT id
+   FROM tree_uri_ns
+   WHERE label = 'apc-voc'), 'distribution',
+  (SELECT id
+   FROM tree_uri_ns
+   WHERE label = 'apc-voc'), 'distributionString',
   'apc-distribution', 'APC Distribution',
-  false, false, 1
+  FALSE, FALSE, 1
 );
 
-insert into TREE_VALUE_URI (
+INSERT INTO TREE_VALUE_URI (
   root_id,
   link_uri_ns_part_id,
   link_uri_id_part,
   node_uri_ns_part_id,
   node_uri_id_part,
   label, title, is_multi_valued, is_resource, sort_order
-) values (
-  (select id from tree_arrangement where label='APC'),
-  (select id from tree_uri_ns where label = 'apc-voc'), 'comment',
-  (select id from tree_uri_ns where label = 'xs'), 'string',
+) VALUES (
+  (SELECT id
+   FROM tree_arrangement
+   WHERE label = 'APC'),
+  (SELECT id
+   FROM tree_uri_ns
+   WHERE label = 'apc-voc'), 'comment',
+  (SELECT id
+   FROM tree_uri_ns
+   WHERE label = 'xs'), 'string',
   'apc-comment',
   'APC Comment',
-  false, false, 1
+  FALSE, FALSE, 1
 );
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON tree_value_uri TO ${webUserName};
