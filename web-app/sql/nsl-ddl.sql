@@ -1096,6 +1096,8 @@
 
     create index node_uri_index on tree_value_uri (node_uri_id_part, node_uri_ns_part_id, root_id);
 
+    create index by_root_id on tree_value_uri (root_id);
+
     alter table if exists why_is_this_here 
         add constraint UK_sv1q1i7xve7xgmkwvmdbeo1mb  unique (name);
 
@@ -3284,6 +3286,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON tree_arrangement TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON tree_link TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON tree_node TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON tree_uri_ns TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_value_uri TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON name_tree_path TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON id_mapper TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON author TO web;
@@ -3328,6 +3331,7 @@ GRANT SELECT ON tree_arrangement TO read_only;
 GRANT SELECT ON tree_link TO read_only;
 GRANT SELECT ON tree_node TO read_only;
 GRANT SELECT ON tree_uri_ns TO read_only;
+GRANT SELECT ON tree_value_uri TO read_only;
 GRANT SELECT ON name_tree_path TO read_only;
 GRANT SELECT ON id_mapper TO read_only;
 GRANT SELECT ON author TO read_only;

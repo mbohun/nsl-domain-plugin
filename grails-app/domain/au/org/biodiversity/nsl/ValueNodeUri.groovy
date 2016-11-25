@@ -36,7 +36,7 @@ class ValueNodeUri {
         isMultiValued defaultvalue: false
         isResource defaultvalue: false
 
-        root index: 'link_uri_index,node_uri_index'
+        root index: 'by_root_id,link_uri_index,node_uri_index'
         linkUriNsPart index: 'link_uri_index'
         linkUriIdPart index: 'link_uri_index'
         nodeUriNsPart index: 'node_uri_index'
