@@ -1851,6 +1851,13 @@ ALTER TABLE tree_link
 ALTER TABLE tree_link
   ADD CONSTRAINT chk_tree_link_sub_not_end CHECK (subnode_id <> 0);
 
+-- a name may appear only once as a current name in any tree
+-- this makes our trees less general ... but matches how we use them these days
+ALTER TABLE tree_node
+  ADD CONSTRAINT current_name_only_once
+  EXCLUDE (tree_arrangement_id with =, name_id with = )
+  WHERE (name_id is not null and replaced_at_id is null);
+
 -- fixing the column ordering in these indexes. Big effects on performance.
 
 DROP INDEX IF EXISTS idx_tree_node_taxon_in;

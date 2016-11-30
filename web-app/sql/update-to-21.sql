@@ -220,6 +220,13 @@ INSERT INTO TREE_VALUE_URI (
 GRANT SELECT, INSERT, UPDATE, DELETE ON tree_value_uri TO ${webUserName};
 GRANT SELECT ON tree_value_uri TO read_only;
 
+-- a name may appear only once as a current name in any tree
+-- this makes our trees less general ... but matches how we use them these days
+ALTER TABLE tree_node
+  ADD CONSTRAINT current_name_only_once
+EXCLUDE (tree_arrangement_id with =, name_id with = )
+WHERE (name_id is not null and replaced_at_id is null);
+
 -- version
 UPDATE db_version
 SET version = 21
