@@ -221,6 +221,20 @@ INSERT INTO TREE_VALUE_URI (
 GRANT SELECT, INSERT, UPDATE, DELETE ON tree_value_uri TO ${webUserName};
 GRANT SELECT ON tree_value_uri TO read_only;
 
+-- NSL-2033 add columns to shard_config
+
+alter table shard_config add column deprecated boolean default false not null;
+alter table shard_config add column use_notes varchar(255);
+
+update shard_config set deprecated = true where name = 'tree label';
+update shard_config set use_notes = 'deprecated, please use classification tree key' where name = 'tree label';
+update shard_config set deprecated = true where name = 'classification tree label';
+update shard_config set use_notes = 'deprecated, please use classification tree key' where name = 'classification tree label';
+
+insert into shard_config (name, value, use_notes)
+  (select 'classification_tree_key', value, 'Used in sql join to the tree_arrangement table on the label column for the accepted classification.'
+   from shard_config WHERE name = 'classification tree label' );
+
 -- version
 UPDATE db_version
 SET version = 21
