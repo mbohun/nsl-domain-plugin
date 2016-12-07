@@ -229,9 +229,9 @@ EXCLUDE (tree_arrangement_id with =, name_id with = )
 WHERE (name_id is not null and replaced_at_id is null);
 
 -- NSL-2033 add columns to shard_config
-
-alter table shard_config add column deprecated boolean default false not null;
-alter table shard_config add column use_notes varchar(255);
+-- these have to be done prior to auto update
+-- alter table shard_config add column deprecated boolean default false not null;
+-- alter table shard_config add column use_notes varchar(255);
 
 update shard_config set deprecated = true where name = 'tree label';
 update shard_config set use_notes = 'deprecated, please use classification tree key' where name = 'tree label';
