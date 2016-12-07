@@ -3,7 +3,7 @@ package au.org.biodiversity.nsl
 /**
  * A uri that may be used as a value node in a tree.
  * The main purpose of this class is to generate picklists.
- * Created by ibis on 17/11/16.
+ * Created by pmurray on 17/11/16.
  */
 class ValueNodeUri {
     Arrangement root
@@ -20,6 +20,7 @@ class ValueNodeUri {
 
     boolean isMultiValued = false
     boolean isResource = false
+    boolean deprecated = false
 
     static belongsTo = [
             root         : Arrangement,
@@ -35,6 +36,7 @@ class ValueNodeUri {
         sortOrder defaultvalue: 0
         isMultiValued defaultvalue: false
         isResource defaultvalue: false
+        deprecated defaultvalue: false
 
         root index: 'by_root_id,link_uri_index,node_uri_index'
         linkUriNsPart index: 'link_uri_index'

@@ -33,6 +33,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON notification TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON name_tag TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON name_tag_name TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON comment TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_value_uri TO web;
 GRANT SELECT, UPDATE ON nsl_global_seq TO web;
 GRANT SELECT, UPDATE ON hibernate_sequence TO web;
 GRANT SELECT ON shard_config TO web;
@@ -79,6 +80,7 @@ GRANT SELECT ON name_tag TO read_only;
 GRANT SELECT ON name_tag_name TO read_only;
 GRANT SELECT ON comment TO read_only;
 GRANT SELECT ON shard_config TO read_only;
+GRANT SELECT ON tree_value_uri TO read_only;
 
 GRANT SELECT ON accepted_name_vw TO read_only;
 GRANT SELECT ON accepted_synonym_vw TO read_only;

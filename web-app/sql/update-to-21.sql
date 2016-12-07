@@ -135,6 +135,7 @@ DROP TABLE IF EXISTS tree_value_uri;
 CREATE TABLE tree_value_uri (
   id                  INT8 DEFAULT nextval('nsl_global_seq') NOT NULL,
   lock_version        INT8 DEFAULT 0                         NOT NULL,
+  deprecated          BOOLEAN DEFAULT FALSE                  NOT NULL,
   description         VARCHAR(2048),
   is_multi_valued     BOOLEAN DEFAULT FALSE                  NOT NULL,
   is_resource         BOOLEAN DEFAULT FALSE                  NOT NULL,
@@ -190,7 +191,7 @@ VALUES (
    WHERE label = 'apc-voc'), 'distribution',
   (SELECT id
    FROM tree_uri_ns
-   WHERE label = 'apc-voc'), 'distributionString',
+   WHERE label = 'apc-voc'), 'distributionstring',
   'apc-distribution', 'APC Distribution',
   FALSE, FALSE, 1
 );

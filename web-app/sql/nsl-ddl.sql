@@ -844,6 +844,7 @@
     create table tree_value_uri (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
+        deprecated boolean default false not null,
         description varchar(2048),
         is_multi_valued boolean default false not null,
         is_resource boolean default false not null,
@@ -2941,6 +2942,49 @@ INSERT INTO public.ref_type (id, lock_version, name, parent_id, parent_optional,
 INSERT INTO public.ref_type (id, lock_version, name, parent_id, parent_optional, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 1, 'Unknown', null, true, '(description of <b>Unknown</b>)', 'unknown');
 UPDATE public.ref_type SET parent_id = id WHERE name = 'Unknown'; --self parent
 
+INSERT INTO TREE_VALUE_URI (
+  root_id,
+  link_uri_ns_part_id,
+  link_uri_id_part,
+  node_uri_ns_part_id,
+  node_uri_id_part,
+  label, title, is_multi_valued, is_resource, sort_order
+)
+VALUES (
+  (SELECT id
+   FROM tree_arrangement
+   WHERE label = '${classificationTreeName}'),
+  (SELECT id
+   FROM tree_uri_ns
+   WHERE label = 'apc-voc'), 'distribution',
+  (SELECT id
+   FROM tree_uri_ns
+   WHERE label = 'apc-voc'), 'distributionstring',
+  'apc-distribution', 'APC Distribution',
+  FALSE, FALSE, 1
+);
+
+INSERT INTO TREE_VALUE_URI (
+  root_id,
+  link_uri_ns_part_id,
+  link_uri_id_part,
+  node_uri_ns_part_id,
+  node_uri_id_part,
+  label, title, is_multi_valued, is_resource, sort_order
+) VALUES (
+  (SELECT id
+   FROM tree_arrangement
+   WHERE label = '${classificationTreeName}'),
+  (SELECT id
+   FROM tree_uri_ns
+   WHERE label = 'apc-voc'), 'comment',
+  (SELECT id
+   FROM tree_uri_ns
+   WHERE label = 'xs'), 'string',
+  'apc-comment',
+  'APC Comment',
+  FALSE, FALSE, 1
+);
 -- populate-shardconfig.sql
 INSERT INTO public.shard_config (id, name, value) VALUES
   (nextval('hibernate_sequence'), 'config rules', 'All lower case names, space separated, follow the pattern hierachy');
@@ -3316,6 +3360,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON notification TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON name_tag TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON name_tag_name TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON comment TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_value_uri TO web;
 GRANT SELECT, UPDATE ON nsl_global_seq TO web;
 GRANT SELECT, UPDATE ON hibernate_sequence TO web;
 GRANT SELECT ON shard_config TO web;
@@ -3362,6 +3407,7 @@ GRANT SELECT ON name_tag TO read_only;
 GRANT SELECT ON name_tag_name TO read_only;
 GRANT SELECT ON comment TO read_only;
 GRANT SELECT ON shard_config TO read_only;
+GRANT SELECT ON tree_value_uri TO read_only;
 
 GRANT SELECT ON accepted_name_vw TO read_only;
 GRANT SELECT ON accepted_synonym_vw TO read_only;

@@ -580,3 +580,47 @@ INSERT INTO public.ref_type (id, lock_version, name, parent_id, parent_optional,
 INSERT INTO public.ref_type (id, lock_version, name, parent_id, parent_optional, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, 'Section', (select id from ref_type where name = 'Book'), false, '(description of <b>Section</b>)', 'section');
 INSERT INTO public.ref_type (id, lock_version, name, parent_id, parent_optional, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 1, 'Unknown', null, true, '(description of <b>Unknown</b>)', 'unknown');
 UPDATE public.ref_type SET parent_id = id WHERE name = 'Unknown'; --self parent
+
+INSERT INTO TREE_VALUE_URI (
+  root_id,
+  link_uri_ns_part_id,
+  link_uri_id_part,
+  node_uri_ns_part_id,
+  node_uri_id_part,
+  label, title, is_multi_valued, is_resource, sort_order
+)
+VALUES (
+  (SELECT id
+   FROM tree_arrangement
+   WHERE label = '${classificationTreeName}'),
+  (SELECT id
+   FROM tree_uri_ns
+   WHERE label = 'apc-voc'), 'distribution',
+  (SELECT id
+   FROM tree_uri_ns
+   WHERE label = 'apc-voc'), 'distributionstring',
+  'apc-distribution', 'APC Distribution',
+  FALSE, FALSE, 1
+);
+
+INSERT INTO TREE_VALUE_URI (
+  root_id,
+  link_uri_ns_part_id,
+  link_uri_id_part,
+  node_uri_ns_part_id,
+  node_uri_id_part,
+  label, title, is_multi_valued, is_resource, sort_order
+) VALUES (
+  (SELECT id
+   FROM tree_arrangement
+   WHERE label = '${classificationTreeName}'),
+  (SELECT id
+   FROM tree_uri_ns
+   WHERE label = 'apc-voc'), 'comment',
+  (SELECT id
+   FROM tree_uri_ns
+   WHERE label = 'xs'), 'string',
+  'apc-comment',
+  'APC Comment',
+  FALSE, FALSE, 1
+);
