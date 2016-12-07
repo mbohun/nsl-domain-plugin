@@ -135,6 +135,7 @@ DROP TABLE IF EXISTS tree_value_uri;
 CREATE TABLE tree_value_uri (
   id                  INT8 DEFAULT nextval('nsl_global_seq') NOT NULL,
   lock_version        INT8 DEFAULT 0                         NOT NULL,
+  deprecated          BOOLEAN DEFAULT FALSE                  NOT NULL,
   description         VARCHAR(2048),
   is_multi_valued     BOOLEAN DEFAULT FALSE                  NOT NULL,
   is_resource         BOOLEAN DEFAULT FALSE                  NOT NULL,
@@ -190,7 +191,7 @@ VALUES (
    WHERE label = 'apc-voc'), 'distribution',
   (SELECT id
    FROM tree_uri_ns
-   WHERE label = 'apc-voc'), 'distributionString',
+   WHERE label = 'apc-voc'), 'distributionstring',
   'apc-distribution', 'APC Distribution',
   FALSE, FALSE, 1
 );
@@ -226,6 +227,20 @@ ALTER TABLE tree_node
   ADD CONSTRAINT current_name_only_once
 EXCLUDE (tree_arrangement_id with =, name_id with = )
 WHERE (name_id is not null and replaced_at_id is null);
+
+-- NSL-2033 add columns to shard_config
+
+alter table shard_config add column deprecated boolean default false not null;
+alter table shard_config add column use_notes varchar(255);
+
+update shard_config set deprecated = true where name = 'tree label';
+update shard_config set use_notes = 'deprecated, please use classification tree key' where name = 'tree label';
+update shard_config set deprecated = true where name = 'classification tree label';
+update shard_config set use_notes = 'deprecated, please use classification tree key' where name = 'classification tree label';
+
+insert into shard_config (name, value, use_notes)
+  (select 'classification_tree_key', value, 'Used in sql join to the tree_arrangement table on the label column for the accepted classification.'
+   from shard_config WHERE name = 'classification tree label' );
 
 -- version
 UPDATE db_version
