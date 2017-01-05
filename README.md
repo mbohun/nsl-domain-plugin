@@ -1,7 +1,32 @@
 This is a grails plugin for the NSL project that maps the Domain objects of NSL. It is used to generate and update the
 schema for the NSL.
 
-When making changes we currently create an update-to-#.sql file inside web-app/sql to document the changes.
+## Making schema changes
+
+When making schema changes we have to consider two cases:
+
+- modifying the schema in an existing database
+- creating the schema in a new database
+
+and this means you have to enter your schema changes in two places.
+
+### Modifying an existing database
+
+Add your change to the latest update-to-nn.sql file in `web-app/sql'.  
+E.g. `update-to-21.sql`
+
+We run the latest update-to-nn.sql against each database during promotion.
+
+### Setting up a new database
+
+Add your change to the *appropriate* component file in `web-app/sql/views`.
+
+E.g. 
+ - web-app/sql/views/search-views.sql has search views,
+ - web-app/sql/views/triggers.sql has triggers...
+
+
+## Notes
 
 **Don't forget to update the default version number in sql/views/other-setup.sql as well as 
 grails-app/services/au/org/biodiversity/nsl/NslDomainService.groovy*s*
