@@ -17,7 +17,7 @@ and this means your changes need to appear in an update script and the nsl-ddl.s
 If you are adding a view, trigger, index or default data:
  1. first add your changes to an appropriate file in the `/web-app/sql/views` directory
  1. run `grails generate-nsl-ddl` to regenerate the nsl-ddl.sql file with your changes included
- 1. Add your change to the latest `update-to-nn.sql` file in `/web-app/sql` directory
+ 1. Add your change to the latest `update-to-nn.sql` file in the `/web-app/sql` directory
 
 Remember the update-to-nn script is updating a database from the previous version, so you must take into account existing
 views and **not loose data**.
@@ -25,13 +25,13 @@ views and **not loose data**.
 ### Adding or changing tables (domain objects)
 
 If you are changing a table or tables you **must** make those changes in the Grails domain classes which will 
-generate the appropriate sql when the `grails generate-nsl-ddl`'` command is run. This keeps the grails domain
+generate the appropriate sql when the `grails generate-nsl-ddl` command is run. This keeps the grails domain
 classes,sql and DB schema in sync.
 
  1. make your changes to the grails domain classes in `/grails-app/domain/au/org/biodiversity/nsl`
  1. preferably test your changes using `grails maven install` locally
  1. run `grails generate-nsl-ddl` to regenerate the nsl-ddl.sql file with your changes included
- 1. diff nsl-ddl.sql to extract changes to put into the latest `update-to-nn.sql` file in `/web-app/sql` directory
+ 1. diff nsl-ddl.sql to extract changes to put into the latest `update-to-nn.sql` file in the `/web-app/sql` directory
 
 ## What version number
 
@@ -45,13 +45,12 @@ The simplest way to make the update sql is the re-generate the DDL from grails u
 
 `grails generate-nsl-ddl`
 
-which will generate the schema from the domain classes and add the sql files in the web-apps/sql/views directory. The 
-sql in the web-apps/sql/views directory is used to add views, extra indexes, and initialization code.
+and `diff` the result to see what needs to be changed.
 
 When starting off with a fresh NSL shard it's probably best to execute the nsl-ddl.sql file against your database 
 (traditionally called nsl).
 
-When writing `update-to-nn.sql` scripts we try to make the update script idempotent, so that if it is run twice (either 
+When writing `update-to-nn.sql` scripts we **try to make the update script idempotent**, so that if it is run twice (either 
 deliberately or accidentaly) it results in the same thing. Note data loss is possible it the scripts are run again after 
 a while.
 
