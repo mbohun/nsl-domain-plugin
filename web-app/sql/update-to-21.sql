@@ -225,130 +225,146 @@ GRANT SELECT ON tree_value_uri TO read_only;
 -- this makes our trees less general ... but matches how we use them these days
 ALTER TABLE tree_node
   ADD CONSTRAINT current_name_only_once
-EXCLUDE (tree_arrangement_id with =, name_id with = )
-WHERE (name_id is not null and replaced_at_id is null);
+EXCLUDE (tree_arrangement_id WITH =, name_id WITH = )
+WHERE (name_id IS NOT NULL AND replaced_at_id IS NULL);
 
 -- NSL-2033 add columns to shard_config
 -- these have to be done prior to auto update because it uses shard config
 -- alter table shard_config add column deprecated boolean default false not null;
 -- alter table shard_config add column use_notes varchar(255);
 
-update shard_config set deprecated = true where name = 'tree label';
-update shard_config set use_notes = 'deprecated, please use classification tree key' where name = 'tree label';
-update shard_config set deprecated = true where name = 'classification tree label';
-update shard_config set use_notes = 'deprecated, please use classification tree key' where name = 'classification tree label';
+UPDATE shard_config
+SET deprecated = TRUE
+WHERE name = 'tree label';
+UPDATE shard_config
+SET use_notes = 'deprecated, please use classification tree key'
+WHERE name = 'tree label';
+UPDATE shard_config
+SET deprecated = TRUE
+WHERE name = 'classification tree label';
+UPDATE shard_config
+SET use_notes = 'deprecated, please use classification tree key'
+WHERE name = 'classification tree label';
 
-insert into shard_config (name, value, use_notes)
-  (select 'classification tree key', value, 'Used in sql join to the tree arrangement table on the label column for the accepted classification.'
-   from shard_config WHERE name = 'classification tree label' );
+INSERT INTO shard_config (name, value, use_notes)
+  (SELECT
+     'classification tree key',
+     value,
+     'Used in sql join to the tree arrangement table on the label column for the accepted classification.'
+   FROM shard_config
+   WHERE name = 'classification tree label');
 
-CREATE VIEW public.workspace_value_vw as
-SELECT name_node_link.id name_node_link_id,
-       name_node.id name_node_id,
-       instance.id instance_id,
-       name_sub_link.type_uri_id_part,
-       name_sub_link.type_uri_ns_part_id,
-       workspace.id workspace_id,
-       name_sub_link.type_uri_id_part name_sub_link_type_uri_id,
-       name_sub_link_value.link_uri_id_part name_sub_link_value_link_uri_id_part,
-       name_sub_link.type_uri_id_part field_name,
-       value_node.literal,
-       value_node.literal field_value,
-       name_node.name_id name_id,
-       name_sub_link_value.label value_label,
-       value_node.id value_node_id,
-       name_sub_link_value.sort_order
-from tree_link name_node_link
-     inner join tree_node name_node
-     on name_node_link.subnode_id = name_node.id
-     inner join instance
-     on name_node.instance_id = instance.id
-     inner join tree_link name_sub_link
-     on name_node.id = name_sub_link.supernode_id
-     inner join tree_value_uri name_sub_link_value
-     on name_sub_link.type_uri_id_part = name_sub_link_value.link_uri_id_part
-     inner join tree_arrangement workspace
-     on name_node.tree_arrangement_id = workspace.id
-     inner join tree_node value_node
-     on name_sub_link.subnode_id = value_node.id
-;
+DROP VIEW IF EXISTS public.workspace_value_vw;
+CREATE VIEW public.workspace_value_vw AS
+  SELECT
+    name_node_link.id                    name_node_link_id,
+    name_node.id                         name_node_id,
+    instance.id                          instance_id,
+    name_sub_link.type_uri_id_part,
+    name_sub_link.type_uri_ns_part_id,
+    workspace.id                         workspace_id,
+    name_sub_link.type_uri_id_part       name_sub_link_type_uri_id,
+    name_sub_link_value.link_uri_id_part name_sub_link_value_link_uri_id_part,
+    name_sub_link.type_uri_id_part       field_name,
+    value_node.literal,
+    value_node.literal                   field_value,
+    name_node.name_id                    name_id,
+    name_sub_link_value.label            value_label,
+    value_node.id                        value_node_id,
+    name_sub_link_value.sort_order
+  FROM tree_link name_node_link
+    INNER JOIN tree_node name_node
+      ON name_node_link.subnode_id = name_node.id
+    INNER JOIN instance
+      ON name_node.instance_id = instance.id
+    INNER JOIN tree_link name_sub_link
+      ON name_node.id = name_sub_link.supernode_id
+    INNER JOIN tree_value_uri name_sub_link_value
+      ON name_sub_link.type_uri_id_part = name_sub_link_value.link_uri_id_part
+    INNER JOIN tree_arrangement workspace
+      ON name_node.tree_arrangement_id = workspace.id
+    INNER JOIN tree_node value_node
+      ON name_sub_link.subnode_id = value_node.id;
 
-CREATE VIEW public.workspace_instance_value_vw as
-SELECT workspace.id workspace_id,
-       instance.id instance_id,
-       tree_node.tree_arrangement_id,
-       tree_node.id tree_node_id,
-       tree_link.id tree_link_id,
-       workspace.title workspace_title,
-       tree_uri_ns.label tree_uri_ns_label,
-       tree_link.type_uri_id_part tree_link_type_uri_id_part,
-       base.label base_label,
-       base_value.id base_value_uri_id,
-       base_value.link_uri_ns_part_id base_link_uri_ns_part,
-       link_value.link_uri_ns_part_id link_uri_ns_part,
-       link_value.id link_value_uri_id,
-       base_ns.title,
-       tree_link.subnode_id,
-       value_node.type_uri_id_part,
-       link_value.link_uri_id_part link_uri_id_part,
-       base_value.link_uri_id_part base_link_uri_id_part,
-       value_node.literal
-  from instance
- inner join tree_node
-    on instance.id = tree_node.instance_id
- inner join tree_link
-    on tree_node.id = tree_link.supernode_id
- inner join tree_value_uri link_value
-    on tree_link.type_uri_id_part = link_value.link_uri_id_part
- inner join tree_uri_ns
-    on tree_link.type_uri_ns_part_id = tree_uri_ns.id
- inner join tree_arrangement workspace
-    on tree_node.tree_arrangement_id = workspace.id
- inner join tree_arrangement base
-    on workspace.base_arrangement_id = base.id
- inner join tree_value_uri base_value
-    on base.id = base_value.root_id
- inner join tree_uri_ns base_ns
-    on base_value.node_uri_ns_part_id = base_ns.id
- inner join tree_node value_node
-    on tree_link.subnode_id = value_node.id
- where link_value.link_uri_id_part = base_value.link_uri_id_part
-;
+DROP VIEW IF EXISTS public.workspace_instance_value_vw;
+CREATE VIEW public.workspace_instance_value_vw AS
+  SELECT
+    workspace.id                   workspace_id,
+    instance.id                    instance_id,
+    tree_node.tree_arrangement_id,
+    tree_node.id                   tree_node_id,
+    tree_link.id                   tree_link_id,
+    workspace.title                workspace_title,
+    tree_uri_ns.label              tree_uri_ns_label,
+    tree_link.type_uri_id_part     tree_link_type_uri_id_part,
+    base.label                     base_label,
+    base_value.id                  base_value_uri_id,
+    base_value.link_uri_ns_part_id base_link_uri_ns_part,
+    link_value.link_uri_ns_part_id link_uri_ns_part,
+    link_value.id                  link_value_uri_id,
+    base_ns.title,
+    tree_link.subnode_id,
+    value_node.type_uri_id_part,
+    link_value.link_uri_id_part    link_uri_id_part,
+    base_value.link_uri_id_part    base_link_uri_id_part,
+    value_node.literal
+  FROM instance
+    INNER JOIN tree_node
+      ON instance.id = tree_node.instance_id
+    INNER JOIN tree_link
+      ON tree_node.id = tree_link.supernode_id
+    INNER JOIN tree_value_uri link_value
+      ON tree_link.type_uri_id_part = link_value.link_uri_id_part
+    INNER JOIN tree_uri_ns
+      ON tree_link.type_uri_ns_part_id = tree_uri_ns.id
+    INNER JOIN tree_arrangement workspace
+      ON tree_node.tree_arrangement_id = workspace.id
+    INNER JOIN tree_arrangement base
+      ON workspace.base_arrangement_id = base.id
+    INNER JOIN tree_value_uri base_value
+      ON base.id = base_value.root_id
+    INNER JOIN tree_uri_ns base_ns
+      ON base_value.node_uri_ns_part_id = base_ns.id
+    INNER JOIN tree_node value_node
+      ON tree_link.subnode_id = value_node.id
+  WHERE link_value.link_uri_id_part = base_value.link_uri_id_part;
 
-CREATE
-    OR REPLACE view public.workspace_value_namespace_vw as
-SELECT workspace.id "workspace_id", workspace.title "workspace_title",
-       base.label "base_tree_label", value.label "value_label",
-       value.link_uri_id_part "value_link_uri_id_part",
-       value.node_uri_id_part "value_node_uri_id_part",
-       value.node_uri_ns_part_id "Value_node_uri_ns_part_id",
-       value.title "value_title",
-       node_namespace.description "node_namespace_description",
-       node_namespace.id_mapper_namespace_id "node_namespace_id_mapper_namespace_id",
-       node_namespace.id_mapper_system "node_namespace_id_mapper_system",
-       node_namespace.label "node_namespace_label",
-       node_namespace.owner_uri_id_part "node_namespace_owner_uri_id_part",
-       node_namespace.owner_uri_ns_part_id "node_namespace_owner_uri_ns_part_id",
-       node_namespace.title "node_namespace_title",
-       node_namespace.uri "node_namespace_uri",
-       link_namespace.description "link_namespace_description",
-       link_namespace.id_mapper_namespace_id "link_namespace_id_mapper_namespace_id",
-       link_namespace.id_mapper_system "link_namespace_id_mapper_system",
-       link_namespace.label "link_namespace_label",
-       link_namespace.owner_uri_id_part "link_namespace_owner_uri_id_part",
-       link_namespace.owner_uri_ns_part_id "link_namespace_owner_uri_ns_part_id",
-       link_namespace.title "link_namespace_title",
-       link_namespace.uri "link_namespace_uri"
-  from tree_arrangement workspace
- inner join tree_arrangement base
-    on workspace.base_arrangement_id = base.id
- inner join tree_value_uri value
-    on base.id = value.root_id
- inner join tree_uri_ns node_namespace
-    on value.node_uri_ns_part_id = node_namespace.id
- inner join tree_uri_ns link_namespace
-    on value.link_uri_ns_part_id = link_namespace.id
-;
+DROP VIEW IF EXISTS public.workspace_value_namespace_vw;
+CREATE VIEW public.workspace_value_namespace_vw AS
+  SELECT
+    workspace.id                          workspace_id,
+    workspace.title                       workspace_title,
+    base.label                            base_tree_label,
+    value.label                           value_label,
+    value.link_uri_id_part                value_link_uri_id_part,
+    value.node_uri_id_part                value_node_uri_id_part,
+    value.node_uri_ns_part_id             Value_node_uri_ns_part_id,
+    value.title                           value_title,
+    node_namespace.description            node_namespace_description,
+    node_namespace.id_mapper_namespace_id node_namespace_id_mapper_namespace_id,
+    node_namespace.id_mapper_system       node_namespace_id_mapper_system,
+    node_namespace.label                  node_namespace_label,
+    node_namespace.owner_uri_id_part      node_namespace_owner_uri_id_part,
+    node_namespace.owner_uri_ns_part_id   node_namespace_owner_uri_ns_part_id,
+    node_namespace.title                  node_namespace_title,
+    node_namespace.uri                    node_namespace_uri,
+    link_namespace.description            link_namespace_description,
+    link_namespace.id_mapper_namespace_id link_namespace_id_mapper_namespace_id,
+    link_namespace.id_mapper_system       link_namespace_id_mapper_system,
+    link_namespace.label                  link_namespace_label,
+    link_namespace.owner_uri_id_part      link_namespace_owner_uri_id_part,
+    link_namespace.owner_uri_ns_part_id   link_namespace_owner_uri_ns_part_id,
+    link_namespace.title                  link_namespace_title,
+    link_namespace.uri                    link_namespace_uri
+  FROM tree_arrangement workspace
+    INNER JOIN tree_arrangement base
+      ON workspace.base_arrangement_id = base.id
+    INNER JOIN tree_value_uri value
+      ON base.id = value.root_id
+    INNER JOIN tree_uri_ns node_namespace
+      ON value.node_uri_ns_part_id = node_namespace.id
+    INNER JOIN tree_uri_ns link_namespace
+      ON value.link_uri_ns_part_id = link_namespace.id;
 
 -- version
 UPDATE db_version
