@@ -2529,6 +2529,7 @@ INSERT INTO public.language (id, lock_version, iso6391code, iso6393code, name) V
 INSERT INTO public.language (id, lock_version, iso6391code, iso6393code, name) VALUES (nextval('nsl_global_seq'), 0, null, 'kut', 'Kutenai');
 INSERT INTO public.language (id, lock_version, iso6391code, iso6393code, name) VALUES (nextval('nsl_global_seq'), 0, null, 'lad', 'Ladino');
 INSERT INTO public.language (id, lock_version, iso6391code, iso6393code, name) VALUES (nextval('nsl_global_seq'), 0, null, 'lam', 'Lamba');
+INSERT INTO public.language (id, lock_version, iso6391code, iso6393code, name) VALUES (nextval('nsl_global_seq'), 0, 'la', 'lat', 'Latin');
 INSERT INTO public.language (id, lock_version, iso6391code, iso6393code, name) VALUES (nextval('nsl_global_seq'), 0, 'lo', 'lao', 'Lao');
 INSERT INTO public.language (id, lock_version, iso6391code, iso6393code, name) VALUES (nextval('nsl_global_seq'), 0, null, 'lez', 'Lezghian');
 INSERT INTO public.language (id, lock_version, iso6391code, iso6393code, name) VALUES (nextval('nsl_global_seq'), 0, 'li', 'lim', 'Limburgan');
