@@ -1,6 +1,7 @@
 -- grant to the web user as required
 GRANT SELECT, INSERT, UPDATE, DELETE ON tree_arrangement TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON tree_link TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_event TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON tree_node TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON tree_uri_ns TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON tree_value_uri TO web;
@@ -47,6 +48,7 @@ GRANT SELECT ON name_or_synonym_vw TO web;
 
 GRANT SELECT ON tree_arrangement TO read_only;
 GRANT SELECT ON tree_link TO read_only;
+GRANT SELECT ON tree_event TO read_only;
 GRANT SELECT ON tree_node TO read_only;
 GRANT SELECT ON tree_uri_ns TO read_only;
 GRANT SELECT ON tree_value_uri TO read_only;
