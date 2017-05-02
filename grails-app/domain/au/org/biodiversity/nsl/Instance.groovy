@@ -47,12 +47,12 @@ class Instance {
     Boolean trash = false
 
     static hasMany = [
-            externalRefs       : ExternalRef,
             instancesForCitedBy: Instance,
             instancesForCites  : Instance,
             instancesForParent : Instance,
             instanceNotes      : InstanceNote,
-            comments           : Comment
+            comments           : Comment,
+            resources          : Resource
     ]
     static belongsTo = [Name, Namespace, Reference]
 

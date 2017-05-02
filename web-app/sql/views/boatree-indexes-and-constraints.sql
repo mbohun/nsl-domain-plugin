@@ -86,8 +86,6 @@ ALTER TABLE tree_node
 CREATE UNIQUE INDEX idx_tree_link_seq
   ON tree_link (supernode_id, link_seq);
 ALTER TABLE tree_link
-  ADD CONSTRAINT chk_tree_link_seq_positive CHECK (link_seq >= 1);
-ALTER TABLE tree_link
   ADD CONSTRAINT chk_tree_link_vmethod CHECK (versioning_method IN ('F', 'V', 'T'));
 ALTER TABLE tree_link
   ADD CONSTRAINT chk_tree_link_synthetic_yn CHECK (is_synthetic IN ('N', 'Y'));

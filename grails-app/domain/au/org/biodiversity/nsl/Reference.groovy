@@ -65,7 +65,6 @@ class Reference {
     Boolean trash = false
 
     static hasMany = [
-            externalRefs            : ExternalRef,
             instances               : Instance,
             referencesForDuplicateOf: Reference,
             referencesForParent     : Reference,

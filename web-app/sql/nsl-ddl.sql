@@ -17,15 +17,6 @@
     alter table if exists comment 
         drop constraint if exists FK_3tfkdcmf6rg6hcyiu8t05er7x;
 
-    alter table if exists external_ref 
-        drop constraint if exists FK_4g2i2qry4941xmqijgeo8ns2h;
-
-    alter table if exists external_ref 
-        drop constraint if exists FK_bu7q5itmt7w7q1bex049xvac7;
-
-    alter table if exists external_ref 
-        drop constraint if exists FK_f7igpcpvgcmdfb7v3bgjluqsf;
-
     alter table if exists id_mapper 
         drop constraint if exists FK_qiy281xsleyhjgr0eu1sboagm;
 
@@ -58,6 +49,12 @@
 
     alter table if exists instance_note 
         drop constraint if exists FK_f6s94njexmutjxjv8t5dy1ugt;
+
+    alter table if exists instance_resources 
+        drop constraint if exists FK_49ic33s4xgbdoa4p5j107rtpf;
+
+    alter table if exists instance_resources 
+        drop constraint if exists FK_8mal9hru5u3ypaosfoju8ulpd;
 
     alter table if exists name 
         drop constraint if exists FK_airfjupm6ohehj1lj82yqkwdx;
@@ -170,6 +167,9 @@
     alter table if exists reference 
         drop constraint if exists FK_dm9y4p9xpsc8m7vljbohubl7x;
 
+    alter table if exists resource 
+        drop constraint if exists FK_l76e0lo0edcngyyqwkmkgywj9;
+
     alter table if exists tree_arrangement 
         drop constraint if exists FK_akuqsiv75wpw6mk3m8gj6g30m;
 
@@ -244,8 +244,6 @@
 
     drop table if exists delayed_jobs cascade;
 
-    drop table if exists external_ref cascade;
-
     drop table if exists help_topic cascade;
 
     drop table if exists id_mapper cascade;
@@ -255,6 +253,8 @@
     drop table if exists instance_note cascade;
 
     drop table if exists instance_note_key cascade;
+
+    drop table if exists instance_resources cascade;
 
     drop table if exists instance_type cascade;
 
@@ -294,7 +294,11 @@
 
     drop table if exists reference cascade;
 
+    drop table if exists resource cascade;
+
     drop table if exists shard_config cascade;
+
+    drop table if exists site cascade;
 
     drop table if exists tree_arrangement cascade;
 
@@ -379,19 +383,6 @@
         primary key (id)
     );
 
-    create table external_ref (
-        id int8 default nextval('nsl_global_seq') not null,
-        lock_version int8 default 0 not null,
-        external_id varchar(50) not null,
-        external_id_supplier varchar(50) not null,
-        instance_id int8 not null,
-        name_id int8 not null,
-        object_type varchar(50),
-        original_provider numeric(19, 2),
-        reference_id int8 not null,
-        primary key (id)
-    );
-
     create table help_topic (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
@@ -470,6 +461,12 @@
         rdf_id varchar(50),
         sort_order int4 default 0 not null,
         primary key (id)
+    );
+
+    create table instance_resources (
+        resource_id int8 not null,
+        instance_id int8 not null,
+        primary key (instance_id, resource_id)
     );
 
     create table instance_type (
@@ -757,12 +754,37 @@
         primary key (id)
     );
 
+    create table resource (
+        id int8 default nextval('nsl_global_seq') not null,
+        lock_version int8 default 0 not null,
+        created_at timestamp with time zone not null,
+        created_by varchar(50) not null,
+        path varchar(2400) not null,
+        site_id int8 not null,
+        updated_at timestamp with time zone not null,
+        updated_by varchar(50) not null,
+        primary key (id)
+    );
+
     create table shard_config (
         id int8 default nextval('hibernate_sequence') not null,
         deprecated boolean default false not null,
         name varchar(255) not null,
         use_notes varchar(255),
         value varchar(5000) not null,
+        primary key (id)
+    );
+
+    create table site (
+        id int8 default nextval('nsl_global_seq') not null,
+        lock_version int8 default 0 not null,
+        created_at timestamp with time zone not null,
+        created_by varchar(50) not null,
+        description varchar(255) not null,
+        name varchar(255) not null,
+        updated_at timestamp with time zone not null,
+        updated_by varchar(50) not null,
+        url varchar(255) not null,
         primary key (id)
     );
 
@@ -1134,21 +1156,6 @@
         foreign key (reference_id) 
         references reference;
 
-    alter table if exists external_ref 
-        add constraint FK_4g2i2qry4941xmqijgeo8ns2h 
-        foreign key (instance_id) 
-        references instance;
-
-    alter table if exists external_ref 
-        add constraint FK_bu7q5itmt7w7q1bex049xvac7 
-        foreign key (name_id) 
-        references name;
-
-    alter table if exists external_ref 
-        add constraint FK_f7igpcpvgcmdfb7v3bgjluqsf 
-        foreign key (reference_id) 
-        references reference;
-
     alter table if exists id_mapper 
         add constraint FK_qiy281xsleyhjgr0eu1sboagm 
         foreign key (namespace_id) 
@@ -1203,6 +1210,16 @@
         add constraint FK_f6s94njexmutjxjv8t5dy1ugt 
         foreign key (namespace_id) 
         references namespace;
+
+    alter table if exists instance_resources 
+        add constraint FK_49ic33s4xgbdoa4p5j107rtpf 
+        foreign key (instance_id) 
+        references instance;
+
+    alter table if exists instance_resources 
+        add constraint FK_8mal9hru5u3ypaosfoju8ulpd 
+        foreign key (resource_id) 
+        references resource;
 
     alter table if exists name 
         add constraint FK_airfjupm6ohehj1lj82yqkwdx 
@@ -1388,6 +1405,11 @@
         add constraint FK_dm9y4p9xpsc8m7vljbohubl7x 
         foreign key (ref_type_id) 
         references ref_type;
+
+    alter table if exists resource 
+        add constraint FK_l76e0lo0edcngyyqwkmkgywj9 
+        foreign key (site_id) 
+        references site;
 
     alter table if exists tree_arrangement 
         add constraint FK_akuqsiv75wpw6mk3m8gj6g30m 
@@ -1843,8 +1865,6 @@ ALTER TABLE tree_node
 -- a node may only have one link for each link_seq number
 CREATE UNIQUE INDEX idx_tree_link_seq
   ON tree_link (supernode_id, link_seq);
-ALTER TABLE tree_link
-  ADD CONSTRAINT chk_tree_link_seq_positive CHECK (link_seq >= 1);
 ALTER TABLE tree_link
   ADD CONSTRAINT chk_tree_link_vmethod CHECK (versioning_method IN ('F', 'V', 'T'));
 ALTER TABLE tree_link
@@ -3158,8 +3178,8 @@ CREATE VIEW public.name_detail_synonyms_vw AS
     instance.id          AS instance_id,
     instance.cited_by_id AS name_detail_id
   FROM (((instance
-            JOIN NAME ON ((instance.name_id = NAME.id)))
-          JOIN instance_type ity ON ((ity.id = instance.instance_type_id)))
+    JOIN NAME ON ((instance.name_id = NAME.id)))
+    JOIN instance_type ity ON ((ity.id = instance.instance_type_id)))
     JOIN name_status ns ON ((ns.id = name.name_status_id)));
 
 DROP VIEW IF EXISTS public.name_details_vw;
@@ -3205,15 +3225,15 @@ CREATE VIEW public.name_details_vw AS
      ELSE '' :: TEXT
      END)             AS entry
   FROM ((((((((((NAME n
-                   JOIN name_status s ON ((n.name_status_id = s.id)))
-                 JOIN name_rank r ON ((n.name_rank_id = r.id)))
-                JOIN name_type t ON ((n.name_type_id = t.id)))
-               JOIN instance i ON ((n.id = i.name_id)))
-              JOIN instance_type ity ON ((i.instance_type_id = ity.id)))
-             JOIN reference REF ON ((i.reference_id = REF.id)))
-            LEFT JOIN author ON ((REF.author_id = author.id)))
-           LEFT JOIN instance syn ON ((syn.cited_by_id = i.id)))
-          LEFT JOIN instance_type sty ON ((syn.instance_type_id = sty.id)))
+    JOIN name_status s ON ((n.name_status_id = s.id)))
+    JOIN name_rank r ON ((n.name_rank_id = r.id)))
+    JOIN name_type t ON ((n.name_type_id = t.id)))
+    JOIN instance i ON ((n.id = i.name_id)))
+    JOIN instance_type ity ON ((i.instance_type_id = ity.id)))
+    JOIN reference REF ON ((i.reference_id = REF.id)))
+    LEFT JOIN author ON ((REF.author_id = author.id)))
+    LEFT JOIN instance syn ON ((syn.cited_by_id = i.id)))
+    LEFT JOIN instance_type sty ON ((syn.instance_type_id = sty.id)))
     LEFT JOIN name sname ON ((syn.name_id = sname.id)))
   WHERE (n.duplicate_of_id IS NULL);
 
@@ -3347,7 +3367,21 @@ CREATE VIEW public.workspace_value_namespace_vw AS
     INNER JOIN tree_uri_ns link_namespace
       ON value.link_uri_ns_part_id = link_namespace.id;
 
-
+CREATE OR REPLACE VIEW instance_resource_vw AS
+  SELECT
+    site.name                 site_name,
+    site.description          site_description,
+    site.url                  site_url,
+    resource.path             resource_path,
+    site.url || resource.path url,
+    instance_id
+  FROM site
+    INNER JOIN resource
+      ON site.id = resource.site_id
+    INNER JOIN instance_resources
+      ON resource.id = instance_resources.resource_id
+    INNER JOIN instance
+      ON instance_resources.instance_id = instance.id;
 -- triggers.sql
 --triggers
 

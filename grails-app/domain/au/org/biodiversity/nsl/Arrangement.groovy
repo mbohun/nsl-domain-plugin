@@ -16,39 +16,47 @@
 package au.org.biodiversity.nsl
 
 class Arrangement {
-	Namespace namespace
-	ArrangementType arrangementType
-	String label
-	String title
-	String description
-	String owner
-	Boolean shared
-	Node node
-	Arrangement baseArrangement
+    Namespace namespace
+    ArrangementType arrangementType
+    String label
+    String title
+    String description
+    String owner
+    Boolean shared
+    Node node
+    Arrangement baseArrangement
 
-	String synthetic  //todo make this a boolean
+    String synthetic  //todo make this a boolean
 
-	static mapping = {
-		datasource 'nsl'
-		table 'tree_arrangement'
-		id generator: 'native', params: [sequence: 'nsl_global_seq'], defaultValue: "nextval('nsl_global_seq')"
-		version column: 'lock_version', defaultValue: "0"
+    static hasMany = [
+            nodes: Node
+    ]
 
-		arrangementType column: 'tree_type', sqlType: 'bpchar', length: 1
-		namespace index: 'tree_arrangement_label'
-		label index: 'tree_arrangement_label'
-		synthetic column: 'is_synthetic', sqlType: 'bpchar', length: 1
-		node index: 'tree_arrangement_node'
-	}
+    static mappedBy = [
+            nodes: 'root'
+    ]
 
-	static constraints = {
-		namespace nullable: true //
-		node nullable: true // this is needed for chicken-and-egg reasons.
-		label maxSize: 50, nullable: true // some tree roots are synthetic and have no label
-		title maxSize: 50, nullable: true
-		owner nullable: true //
-		shared nullable: true //
-		description maxSize: 255,  nullable: true
-		baseArrangement  nullable: true
-	}
+    static mapping = {
+        datasource 'nsl'
+        table 'tree_arrangement'
+        id generator: 'native', params: [sequence: 'nsl_global_seq'], defaultValue: "nextval('nsl_global_seq')"
+        version column: 'lock_version', defaultValue: "0"
+
+        arrangementType column: 'tree_type', sqlType: 'bpchar', length: 1
+        namespace index: 'tree_arrangement_label'
+        label index: 'tree_arrangement_label'
+        synthetic column: 'is_synthetic', sqlType: 'bpchar', length: 1
+        node index: 'tree_arrangement_node'
+    }
+
+    static constraints = {
+        namespace nullable: true //
+        node nullable: true // this is needed for chicken-and-egg reasons.
+        label maxSize: 50, nullable: true // some tree roots are synthetic and have no label
+        title maxSize: 50, nullable: true
+        owner nullable: true //
+        shared nullable: true //
+        description maxSize: 255, nullable: true
+        baseArrangement nullable: true
+    }
 }

@@ -129,8 +129,8 @@ CREATE VIEW public.name_detail_synonyms_vw AS
     instance.id          AS instance_id,
     instance.cited_by_id AS name_detail_id
   FROM (((instance
-            JOIN NAME ON ((instance.name_id = NAME.id)))
-          JOIN instance_type ity ON ((ity.id = instance.instance_type_id)))
+    JOIN NAME ON ((instance.name_id = NAME.id)))
+    JOIN instance_type ity ON ((ity.id = instance.instance_type_id)))
     JOIN name_status ns ON ((ns.id = name.name_status_id)));
 
 DROP VIEW IF EXISTS public.name_details_vw;
@@ -176,15 +176,15 @@ CREATE VIEW public.name_details_vw AS
      ELSE '' :: TEXT
      END)             AS entry
   FROM ((((((((((NAME n
-                   JOIN name_status s ON ((n.name_status_id = s.id)))
-                 JOIN name_rank r ON ((n.name_rank_id = r.id)))
-                JOIN name_type t ON ((n.name_type_id = t.id)))
-               JOIN instance i ON ((n.id = i.name_id)))
-              JOIN instance_type ity ON ((i.instance_type_id = ity.id)))
-             JOIN reference REF ON ((i.reference_id = REF.id)))
-            LEFT JOIN author ON ((REF.author_id = author.id)))
-           LEFT JOIN instance syn ON ((syn.cited_by_id = i.id)))
-          LEFT JOIN instance_type sty ON ((syn.instance_type_id = sty.id)))
+    JOIN name_status s ON ((n.name_status_id = s.id)))
+    JOIN name_rank r ON ((n.name_rank_id = r.id)))
+    JOIN name_type t ON ((n.name_type_id = t.id)))
+    JOIN instance i ON ((n.id = i.name_id)))
+    JOIN instance_type ity ON ((i.instance_type_id = ity.id)))
+    JOIN reference REF ON ((i.reference_id = REF.id)))
+    LEFT JOIN author ON ((REF.author_id = author.id)))
+    LEFT JOIN instance syn ON ((syn.cited_by_id = i.id)))
+    LEFT JOIN instance_type sty ON ((syn.instance_type_id = sty.id)))
     LEFT JOIN name sname ON ((syn.name_id = sname.id)))
   WHERE (n.duplicate_of_id IS NULL);
 
@@ -318,3 +318,18 @@ CREATE VIEW public.workspace_value_namespace_vw AS
     INNER JOIN tree_uri_ns link_namespace
       ON value.link_uri_ns_part_id = link_namespace.id;
 
+CREATE OR REPLACE VIEW instance_resource_vw AS
+  SELECT
+    site.name                 site_name,
+    site.description          site_description,
+    site.url                  site_url,
+    resource.path             resource_path,
+    site.url || resource.path url,
+    instance_id
+  FROM site
+    INNER JOIN resource
+      ON site.id = resource.site_id
+    INNER JOIN instance_resources
+      ON resource.id = instance_resources.resource_id
+    INNER JOIN instance
+      ON instance_resources.instance_id = instance.id;

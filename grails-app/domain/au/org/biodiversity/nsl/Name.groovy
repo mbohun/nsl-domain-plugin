@@ -65,7 +65,6 @@ class Name {
     Boolean trash = false
 
     static hasMany = [
-            externalRefs  : ExternalRef,
             instances     : Instance,
             nameParts     : NamePart,
             childNameParts: NamePart,

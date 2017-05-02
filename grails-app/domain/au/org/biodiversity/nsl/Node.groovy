@@ -24,8 +24,8 @@ class Node {
 
     Arrangement root
 
-    Name name;
-    Instance instance;
+    Name name
+    Instance instance
 
     UriNs typeUriNsPart
     String typeUriIdPart
@@ -103,6 +103,7 @@ class Node {
         checkedInAt nullable: true
         replacedAt nullable: true
         literal nullable: true
+        root nullable: true
     }
 
     static transients = ['namespace']
