@@ -25,9 +25,9 @@ class Site {
 
     static constraints = {
 
-        url maxsize: 500
-        name maxsize: 100
-        description maxsize: 1000
+        url maxSize: 500
+        name maxSize: 100
+        description maxSize: 1000
 
         updatedBy maxSize: 50
         createdBy maxSize: 50

@@ -4,11 +4,11 @@ CREATE TABLE site (
   lock_version INT8 DEFAULT 0                         NOT NULL,
   created_at   TIMESTAMP WITH TIME ZONE               NOT NULL,
   created_by   VARCHAR(50)                            NOT NULL,
-  description  VARCHAR(255)                           NOT NULL,
-  name         VARCHAR(255)                           NOT NULL,
+  description  VARCHAR(1000)                          NOT NULL,
+  name         VARCHAR(100)                           NOT NULL,
   updated_at   TIMESTAMP WITH TIME ZONE               NOT NULL,
   updated_by   VARCHAR(50)                            NOT NULL,
-  url          VARCHAR(255)                           NOT NULL,
+  url          VARCHAR(500)                           NOT NULL,
   PRIMARY KEY (id)
 );
 
@@ -67,19 +67,16 @@ ALTER TABLE tree_link
 
 -- remove old ExternalRef
 
-alter table if exists external_ref
-  drop constraint if exists FK_4g2i2qry4941xmqijgeo8ns2h;
+ALTER TABLE IF EXISTS external_ref
+  DROP CONSTRAINT IF EXISTS FK_4g2i2qry4941xmqijgeo8ns2h;
 
-alter table if exists external_ref
-  drop constraint if exists FK_bu7q5itmt7w7q1bex049xvac7;
+ALTER TABLE IF EXISTS external_ref
+  DROP CONSTRAINT IF EXISTS FK_bu7q5itmt7w7q1bex049xvac7;
 
-alter table if exists external_ref
-  drop constraint if exists FK_f7igpcpvgcmdfb7v3bgjluqsf;
+ALTER TABLE IF EXISTS external_ref
+  DROP CONSTRAINT IF EXISTS FK_f7igpcpvgcmdfb7v3bgjluqsf;
 
-drop table if exists external_ref cascade;
-
-
-
+DROP TABLE IF EXISTS external_ref CASCADE;
 
 -- version
 UPDATE db_version
