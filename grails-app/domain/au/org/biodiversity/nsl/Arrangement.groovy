@@ -59,4 +59,39 @@ class Arrangement {
         description maxSize: 255, nullable: true
         baseArrangement nullable: true
     }
+
+    boolean equals(o) {
+        if (this.is(o)) return true
+        if (getClass() != o.class) return false
+
+        Arrangement that = (Arrangement) o
+
+        if (arrangementType != that.arrangementType) return false
+        if (baseArrangement != that.baseArrangement) return false
+        if (description != that.description) return false
+        if (id != that.id) return false
+        if (label != that.label) return false
+        if (namespace != that.namespace) return false
+        if (node != that.node) return false
+        if (owner != that.owner) return false
+        if (shared != that.shared) return false
+        if (synthetic != that.synthetic) return false
+        if (title != that.title) return false
+
+        return true
+    }
+
+    int hashCode() {
+        int result
+        result = (namespace != null ? namespace.hashCode() : 0)
+        result = 31 * result + (arrangementType != null ? arrangementType.hashCode() : 0)
+        result = 31 * result + (label != null ? label.hashCode() : 0)
+        result = 31 * result + (title != null ? title.hashCode() : 0)
+        result = 31 * result + (description != null ? description.hashCode() : 0)
+        result = 31 * result + (owner != null ? owner.hashCode() : 0)
+        result = 31 * result + (shared != null ? shared.hashCode() : 0)
+        result = 31 * result + (synthetic != null ? synthetic.hashCode() : 0)
+        result = 31 * result + (id != null ? id.hashCode() : 0)
+        return result
+    }
 }

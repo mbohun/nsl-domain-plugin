@@ -46,4 +46,27 @@ class Namespace {
     Boolean matches(String nameSpaceName, boolean exact = false) {
         return nameSpaceName.toLowerCase() == name.toLowerCase()
     }
+
+    boolean equals(o) {
+        if (this.is(o)) return true
+        if (getClass() != o.class) return false
+
+        Namespace namespace = (Namespace) o
+
+        if (descriptionHtml != namespace.descriptionHtml) return false
+        if (id != namespace.id) return false
+        if (name != namespace.name) return false
+        if (rdfId != namespace.rdfId) return false
+
+        return true
+    }
+
+    int hashCode() {
+        int result
+        result = (name != null ? name.hashCode() : 0)
+        result = 31 * result + (rdfId != null ? rdfId.hashCode() : 0)
+        result = 31 * result + (descriptionHtml != null ? descriptionHtml.hashCode() : 0)
+        result = 31 * result + (id != null ? id.hashCode() : 0)
+        return result
+    }
 }

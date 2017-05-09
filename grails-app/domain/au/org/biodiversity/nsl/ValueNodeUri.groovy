@@ -58,6 +58,43 @@ class ValueNodeUri {
         // for columns mapped to primitive types
     }
 
+    boolean equals(o) {
+        if (this.is(o)) return true
+        if (getClass() != o.class) return false
+
+        ValueNodeUri that = (ValueNodeUri) o
+
+        if (deprecated != that.deprecated) return false
+        if (isMultiValued != that.isMultiValued) return false
+        if (isResource != that.isResource) return false
+        if (sortOrder != that.sortOrder) return false
+        if (description != that.description) return false
+        if (id != that.id) return false
+        if (label != that.label) return false
+        if (linkUriIdPart != that.linkUriIdPart) return false
+        if (nodeUriIdPart != that.nodeUriIdPart) return false
+        if (root != that.root) return false
+        if (title != that.title) return false
+
+        return true
+    }
+
+    int hashCode() {
+        int result
+        result = root.hashCode()
+        result = 31 * result + linkUriIdPart.hashCode()
+        result = 31 * result + nodeUriIdPart.hashCode()
+        result = 31 * result + label.hashCode()
+        result = 31 * result + title.hashCode()
+        result = 31 * result + (description != null ? description.hashCode() : 0)
+        result = 31 * result + sortOrder
+        result = 31 * result + (isMultiValued ? 1 : 0)
+        result = 31 * result + (isResource ? 1 : 0)
+        result = 31 * result + (deprecated ? 1 : 0)
+        result = 31 * result + (id != null ? id.hashCode() : 0)
+        return result
+    }
+
 }
 
 
