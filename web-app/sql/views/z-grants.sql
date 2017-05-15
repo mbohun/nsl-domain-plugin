@@ -41,6 +41,7 @@ GRANT SELECT ON shard_config TO web;
 
 GRANT SELECT ON accepted_name_vw TO web;
 GRANT SELECT ON accepted_synonym_vw TO web;
+GRANT SELECT ON instance_resource_vw TO web;
 GRANT SELECT ON name_detail_synonyms_vw TO web;
 GRANT SELECT ON name_details_vw TO web;
 GRANT SELECT ON name_detail_commons_vw TO web;
@@ -86,6 +87,7 @@ GRANT SELECT ON tree_value_uri TO read_only;
 
 GRANT SELECT ON accepted_name_vw TO read_only;
 GRANT SELECT ON accepted_synonym_vw TO read_only;
+GRANT SELECT ON instance_resource_vw TO web;
 GRANT SELECT ON name_detail_synonyms_vw TO read_only;
 GRANT SELECT ON name_details_vw TO read_only;
 GRANT SELECT ON name_detail_commons_vw TO read_only;
