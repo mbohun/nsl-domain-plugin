@@ -78,6 +78,9 @@ ALTER TABLE IF EXISTS external_ref
 
 DROP TABLE IF EXISTS external_ref CASCADE;
 
+GRANT SELECT ON instance_resource_vw TO ${webUserName};
+GRANT SELECT ON instance_resource_vw TO read_only;
+
 -- version
 UPDATE db_version
 SET version = 22
