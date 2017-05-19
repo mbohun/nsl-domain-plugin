@@ -48,10 +48,10 @@ grails.project.dependency.resolution = {
     repositories {
 
         mavenLocal()
-        mavenRepo(id: "anbg", url: "http://155.187.10.62:8081/nexus/content/groups/public/") {
+        mavenRepo(id: "anbg", url: "http://appsdev1-ibis.it.csiro.au:8085/repository/maven-central/") {
             updatePolicy "interval:1"
         }
-        mavenRepo(id: "anbg", url: "http://155.187.10.62:8081/nexus/content/repositories/grails-plugins")
+        mavenRepo(id: "anbg", url: "http://appsdev1-ibis.it.csiro.au:8085/repository/grails-plugins/")
         grailsHome()
     }
 
