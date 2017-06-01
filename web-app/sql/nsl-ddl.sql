@@ -2352,6 +2352,56 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION current_workspace_taxonomic_nodes(workspace_id BIGINT)
+  RETURNS TABLE(node_id BIGINT, instance_id BIGINT, name_id BIGINT) AS $$
+WITH RECURSIVE treewalk AS (
+  SELECT
+    workspace.node_id             AS node_id,
+    NULL :: BIGINT                AS instance_id,
+    NULL :: BIGINT                AS name_id,
+    workspace.id                  AS workspace_id,
+    workspace.base_arrangement_id AS base_id
+  FROM tree_arrangement workspace
+  WHERE workspace.id = workspace_id
+  UNION ALL
+  SELECT
+    node.id AS node_id,
+    node.instance_id,
+    node.name_id,
+    treewalk.workspace_id,
+    treewalk.base_id
+  FROM treewalk
+    JOIN tree_link link ON link.supernode_id = treewalk.node_id
+    JOIN tree_node node ON link.subnode_id = node.id
+  WHERE node.next_node_id IS NULL
+        AND node.internal_type = 'T'
+        AND node.tree_arrangement_id IN (treewalk.workspace_id, treewalk.base_id)
+)
+SELECT
+  node_id,
+  instance_id,
+  name_id
+FROM treewalk
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION draft_nodes_below_this_node(node_id BIGINT)
+  RETURNS TABLE(node_id BIGINT) AS $$
+WITH RECURSIVE treewalk AS (
+  SELECT
+    node_id
+  UNION ALL
+  SELECT
+    node.id AS node_id
+  FROM treewalk
+    JOIN tree_link link ON link.supernode_id = treewalk.node_id
+    JOIN tree_node node ON link.subnode_id = node.id
+  WHERE node.checked_in_at_id is null
+)
+SELECT
+  node_id
+FROM treewalk
+$$ LANGUAGE SQL;
+
 -- other-setup.sql
 --other setup
 ALTER TABLE instance
