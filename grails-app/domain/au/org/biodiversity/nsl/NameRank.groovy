@@ -24,6 +24,7 @@ class NameRank {
     String name
     Boolean deprecated = false
     Boolean visibleInName = true
+    Boolean useVerbatimRank = false
     Boolean italicize = false
     Boolean major = false
     Integer sortOrder = 0
@@ -44,6 +45,7 @@ class NameRank {
         sortOrder defaultValue: "0"
         deprecated defaultvalue: "false"
         visibleInName defaultValue: "true"
+        useVerbatimRank defaultvalue: "false"
         italicize defaultvalue: "false"
         major defaultvalue: "false"
         hasParent defaultValue: "false"
