@@ -51,10 +51,10 @@
         drop constraint if exists FK_f6s94njexmutjxjv8t5dy1ugt;
 
     alter table if exists instance_resources 
-        drop constraint if exists FK_49ic33s4xgbdoa4p5j107rtpf;
+        drop constraint if exists FK_8mal9hru5u3ypaosfoju8ulpd;
 
     alter table if exists instance_resources 
-        drop constraint if exists FK_8mal9hru5u3ypaosfoju8ulpd;
+        drop constraint if exists FK_49ic33s4xgbdoa4p5j107rtpf;
 
     alter table if exists name 
         drop constraint if exists FK_airfjupm6ohehj1lj82yqkwdx;
@@ -464,8 +464,8 @@
     );
 
     create table instance_resources (
-        resource_id int8 not null,
         instance_id int8 not null,
+        resource_id int8 not null,
         primary key (instance_id, resource_id)
     );
 
@@ -1212,14 +1212,14 @@
         references namespace;
 
     alter table if exists instance_resources 
-        add constraint FK_49ic33s4xgbdoa4p5j107rtpf 
-        foreign key (instance_id) 
-        references instance;
-
-    alter table if exists instance_resources 
         add constraint FK_8mal9hru5u3ypaosfoju8ulpd 
         foreign key (resource_id) 
         references resource;
+
+    alter table if exists instance_resources 
+        add constraint FK_49ic33s4xgbdoa4p5j107rtpf 
+        foreign key (instance_id) 
+        references instance;
 
     alter table if exists name 
         add constraint FK_airfjupm6ohehj1lj82yqkwdx 
@@ -2435,7 +2435,7 @@ CREATE INDEX name_lower_unacent_full_name_gin_trgm
 CREATE INDEX name_lower_unacent_simple_name_gin_trgm
   ON name USING GIN (lower(f_unaccent(simple_name)) gin_trgm_ops);
 
-INSERT INTO db_version (id, version) VALUES (1, 22);
+INSERT INTO db_version (id, version) VALUES (1, 23);
 
 -- populate-lookup-tables.sql
 -- Populate lookup tables (currently botanical)
@@ -2891,6 +2891,10 @@ INSERT INTO public.instance_type (id, lock_version, citing, deprecated, doubtful
 INSERT INTO public.instance_type (id, lock_version, citing, deprecated, doubtful, misapplied, name, nomenclatural, primary_instance, pro_parte, protologue, relationship, secondary_instance, sort_order, standalone, synonym, taxonomic, unsourced, description_html, rdf_id, has_label, of_label, bidirectional) VALUES (453837, 0, false, false, true, false, 'doubtful nomenclatural synonym', true, false, false, false, false, false, 40, false, true, false, false, '(description of <b>doubtful nomenclatural synonym</b>)', 'doubtful-nomenclatural-synonym', 'doubtful nomenclatural synonym', 'doubtful nomenclatural synonym of', false);
 INSERT INTO public.instance_type (id, lock_version, citing, deprecated, doubtful, misapplied, name, nomenclatural, primary_instance, pro_parte, protologue, relationship, secondary_instance, sort_order, standalone, synonym, taxonomic, unsourced, description_html, rdf_id, has_label, of_label, bidirectional) VALUES (453840, 0, false, false, false, false, 'pro parte nomenclatural synonym', true, false, true, false, false, false, 50, false, true, false, false, '(description of <b>pro parte nomenclatural synonym</b>)', 'pro-parte-nomenclatural-synonym', 'pro parte nomenclatural synonym', 'pro parte nomenclatural synonym of', false);
 INSERT INTO public.instance_type (id, lock_version, citing, deprecated, doubtful, misapplied, name, nomenclatural, primary_instance, pro_parte, protologue, relationship, secondary_instance, sort_order, standalone, synonym, taxonomic, unsourced, description_html, rdf_id, has_label, of_label, bidirectional) VALUES (453841, 0, false, false, false, false, 'pro parte replaced synonym', false, false, true, false, false, false, 20, false, true, false, false, '(description of <b>pro parte replaced synonym</b>)', 'pro-parte-replaced-synonym', 'pro parte replaced synonym', 'pro parte replaced synonym of', false);
+INSERT INTO public.instance_type (id, lock_version, citing, deprecated, doubtful, misapplied, name, nomenclatural, primary_instance, pro_parte, protologue, relationship, secondary_instance, sort_order, standalone, synonym, taxonomic, unsourced, description_html, rdf_id, has_label, of_label, bidirectional) VALUES (nextval('nsl_global_seq'), 0, true, false, false, true, 'unsourced misapplied', false, false, false, false, true, false, 400, false, false, false, true, '(description of <b>unsourced misapplied</b>)', 'unsourced-misapplied', 'misapplication', 'misapplied to', false);
+INSERT INTO public.instance_type (id, lock_version, citing, deprecated, doubtful, misapplied, name, nomenclatural, primary_instance, pro_parte, protologue, relationship, secondary_instance, sort_order, standalone, synonym, taxonomic, unsourced, description_html, rdf_id, has_label, of_label, bidirectional) VALUES (nextval('nsl_global_seq'), 0, true, false, false, true, 'unsourced pro parte misapplied', false, false, true, false, true, false, 70, false, false, false, true, '(description of <b>unsourced pro parte misapplied</b>)', 'unsourced-pro-parte-misapplied', 'pro parte misapplication', 'pro parte misapplied to', false);
+INSERT INTO public.instance_type (id, lock_version, citing, deprecated, doubtful, misapplied, name, nomenclatural, primary_instance, pro_parte, protologue, relationship, secondary_instance, sort_order, standalone, synonym, taxonomic, unsourced, description_html, rdf_id, has_label, of_label, bidirectional) VALUES (nextval('nsl_global_seq'), 0, true, false, true, true, 'unsourced doubtful misapplied', false, false, false, false, true, false, 80, false, false, false, true, '(description of <b>unsourced doubtful misapplied</b>)', 'unsourced-doubtful-misapplied', 'doubtful misapplication', 'doubtful misapplied to', false);
+INSERT INTO public.instance_type (id, lock_version, citing, deprecated, doubtful, misapplied, name, nomenclatural, primary_instance, pro_parte, protologue, relationship, secondary_instance, sort_order, standalone, synonym, taxonomic, unsourced, description_html, rdf_id, has_label, of_label, bidirectional) VALUES (nextval('nsl_global_seq'), 0, true, false, true, true, 'unsourced doubtful pro parte misapplied', false, false, false, false, true, false, 90, false, false, false, true, '(description of <b>unsourced doubtful pro parte misapplied</b>)', 'unsourced-doubtful-pro-parte-misapplied', 'doubtful pro parte misapplication', 'doubtful pro parte misapplied to', false);
 -- name category
 INSERT INTO public.name_category (id, lock_version, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, '[unknown]', 1, '(description of <b>[unknown]</b>)', 'unknown');
 INSERT INTO public.name_category (id, lock_version, name, sort_order, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 0, '[n/a]', 2, '(description of <b>[n/a]</b>)', 'n-a');
