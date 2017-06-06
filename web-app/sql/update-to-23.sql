@@ -9,6 +9,11 @@ update name_type set sort_order = sort_order + 1 where sort_order > 15;
 
 --NSL-2341 add use verbatim rank to name ranks so they can be specified in name construction
 alter table name_rank add COLUMN use_verbatim_rank boolean default false not null;
+update name_rank set use_verbatim_rank = true where name = '[infrafamily]';
+update name_rank set use_verbatim_rank = true where name = '[infragenus]';
+update name_rank set use_verbatim_rank = true where name = '[unknown]';
+update name_rank set use_verbatim_rank = true where name = '[unranked]';
+update name_rank set use_verbatim_rank = true where name = '[infraspecies]';
 
 -- version
 UPDATE db_version
