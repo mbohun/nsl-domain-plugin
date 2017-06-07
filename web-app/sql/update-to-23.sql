@@ -6,6 +6,8 @@ INSERT INTO public.instance_type (id, lock_version, citing, deprecated, doubtful
 
 -- NSL-2228 add vernacular name
 update name_type set sort_order = sort_order + 1 where sort_order > 15;
+INSERT INTO public.name_type (id, lock_version, autonym, connector, cultivar, formula, hybrid, name, name_category_id, name_group_id, scientific, sort_order, description_html, rdf_id, deprecated)
+VALUES (nextval('nsl_global_seq'), 0, false, null, false, false, false, 'vernacular', (select id from name_category where name = 'common'), (select id from name_group where name = 'botanical'), false, 16, '(description of <b>vernacular</b>)', 'vernacular', false);
 
 --NSL-2341 add use verbatim rank to name ranks so they can be specified in name construction
 alter table name_rank add COLUMN use_verbatim_rank boolean default false not null;
