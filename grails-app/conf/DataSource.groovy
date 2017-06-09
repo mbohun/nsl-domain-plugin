@@ -36,7 +36,7 @@ environments {
             driverClassName = "org.postgresql.Driver"
             username = "nsldev"
             password = "nsldev"
-            dialect = "org.hibernate.dialect.PostgreSQLDialect"
+            dialect = "au.org.biodiversity.nsl.ExtendedPostgreSQLDialect"
             dbCreate = "update"
             url = "jdbc:postgresql://localhost:5432/nslimport"
             formatSql = false
@@ -62,7 +62,7 @@ environments {
             driverClassName = "org.postgresql.Driver"
             username = "nsldev"
             password = "nsldev"
-            dialect = "org.hibernate.dialect.PostgreSQLDialect"
+            dialect = "au.org.biodiversity.nsl.ExtendedPostgreSQLDialect"
             dbCreate = "update"
             url = "jdbc:postgresql://localhost:5432/nslimport"
             formatSql = false
@@ -88,7 +88,7 @@ environments {
             driverClassName = "org.postgresql.Driver"
             username = "nsldev"
             password = "nsldev"
-            dialect = "org.hibernate.dialect.PostgreSQLDialect"
+            dialect = "au.org.biodiversity.nsl.ExtendedPostgreSQLDialect"
             dbCreate = "update"
             url = "jdbc:postgresql://localhost:5432/nslimport"
             formatSql = false

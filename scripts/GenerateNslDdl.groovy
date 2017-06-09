@@ -23,7 +23,7 @@ target(main: "Generate the NSL ddl sql from the current schema including views")
     File ddl = new File("${grailsSettings.projectTargetDir}/ddl.sql")
     String text = ddl.text
                      .replaceAll(/alter table/, 'alter table if exists')
-                     .replaceAll(/drop constraint/, 'drop constraint if exists')
+                     .replaceAll(/drop table/, 'drop table if exists')
                      .replaceAll(/boolean not null/, 'boolean default false not null')
                      .replaceAll(/create sequence nsl_global_seq;/, '')
                      .replaceAll(/drop sequence nsl_global_seq;/, 'drop sequence nsl_global_seq;\n    create sequence nsl_global_seq minvalue 1000 maxvalue 10000000;')
