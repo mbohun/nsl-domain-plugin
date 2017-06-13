@@ -31,7 +31,9 @@ class TreeVersion {
 
     static constraints = {
         draftName maxSize: 1000
-        logEntry maxSize: 4000
-        publishedBy maxSize: 100
+        logEntry maxSize: 4000, nullable: true
+        publishedBy maxSize: 100, nullable: true
+        publishedAt nullable: true
+        previousVersion nullable: true
     }
 }

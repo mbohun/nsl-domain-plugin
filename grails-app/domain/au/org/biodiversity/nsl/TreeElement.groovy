@@ -16,6 +16,7 @@ class TreeElement implements Serializable {
     String displayString
     String simpleName
     String treePath
+    String namePath
     Map rankPath
     Map profile
     String elementLink
@@ -37,6 +38,7 @@ class TreeElement implements Serializable {
         displayString sqlType: 'Text'
         simpleName sqlType: 'Text'
         treePath sqlType: 'Text'
+        namePath sqlType: 'Text'
         elementLink sqlType: 'Text'
         nameLink sqlType: 'Text'
         instanceLink sqlType: 'Text'
@@ -45,12 +47,12 @@ class TreeElement implements Serializable {
 
         columns {
             parentElement {
-                column name: 'parentVersionId'
-                column name: 'parentElementId'
+                column name: 'parent_Version_Id'
+                column name: 'parent_Element_Id'
             }
             previousElement {
-                column name: 'previousVersionId'
-                column name: 'previousElementId'
+                column name: 'previous_Version_Id'
+                column name: 'previous_Element_Id'
             }
         }
     }

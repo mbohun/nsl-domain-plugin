@@ -4,8 +4,8 @@ class Tree {
 
     String name
     String groupName  //the role group that owns/edits this tree
-    TreeVersion defaultDraftTree
-    TreeVersion currentTree
+    TreeVersion defaultDraftTreeVersion
+    TreeVersion currentTreeVersion
 
     static hasMany = [treeVersions: TreeVersion]
 
@@ -22,7 +22,7 @@ class Tree {
     static constraints = {
         name maxSize: 1000  //because it may be a citation
         groupName maxSize: 100
-        currentTree nullable: true
-        defaultDraftTree nullable: true
+        currentTreeVersion nullable: true
+        defaultDraftTreeVersion nullable: true
     }
 }
