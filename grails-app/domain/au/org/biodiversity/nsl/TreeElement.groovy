@@ -14,7 +14,7 @@ class TreeElement implements Serializable {
 
     Instance instance
     Name name
-    Boolean accepted = false //accepted or excluded concept
+    Boolean excluded = false //is this an excluded concept
 
     String displayString
     String simpleName
@@ -48,7 +48,7 @@ class TreeElement implements Serializable {
         instanceLink sqlType: 'Text'
         rankPath type: JsonbMapType
         profile type: JsonbMapType
-        accepted defaultValue: false
+        excluded defaultValue: false
 
         columns {
             parentElement {
