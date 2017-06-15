@@ -86,6 +86,7 @@ create table tree_element (
   tree_version_id int8 not null,
   tree_element_id int8 not null,
   lock_version int8 default 0 not null,
+  accepted boolean default false not null,
   display_string Text not null,
   element_link Text not null,
   instance_id int8 not null,

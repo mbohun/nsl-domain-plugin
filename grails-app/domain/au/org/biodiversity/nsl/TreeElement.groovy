@@ -9,16 +9,20 @@ class TreeElement implements Serializable {
 
     Long treeElementId
     TreeVersion treeVersion
-    Instance instance
-    Name name
     TreeElement previousElement
     TreeElement parentElement
+
+    Instance instance
+    Name name
+    Boolean accepted = false //accepted or excluded concept
+
     String displayString
     String simpleName
     String treePath
     String namePath
     Map rankPath
     Map profile
+
     String elementLink
     String nameLink
     String instanceLink
@@ -44,6 +48,7 @@ class TreeElement implements Serializable {
         instanceLink sqlType: 'Text'
         rankPath type: JsonbMapType
         profile type: JsonbMapType
+        accepted defaultValue: false
 
         columns {
             parentElement {
