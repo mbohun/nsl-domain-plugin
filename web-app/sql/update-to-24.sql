@@ -1,157 +1,161 @@
 -- new tree structure
+ALTER TABLE IF EXISTS name
+  DROP CONSTRAINT IF EXISTS FK_whce6pgnqjtxgt67xy2lfo34;
 
--- old
-alter table if exists tree
-  drop constraint if exists FK_smitro8m4hxw85sm5c6vvbd7t;
+ALTER TABLE IF EXISTS tree
+  DROP CONSTRAINT IF EXISTS FK_svg2ee45qvpomoer2otdc5oyc;
 
-alter table if exists tree
-  drop constraint if exists FK_sn8jtgc2ga18vl1vqq6srjdx9;
--- new
-alter table if exists tree
-  drop constraint if exists FK_svg2ee45qvpomoer2otdc5oyc;
+ALTER TABLE IF EXISTS tree
+  DROP CONSTRAINT IF EXISTS FK_48skgw51tamg6ud4qa8oh0ycm;
 
-alter table if exists tree
-  drop constraint if exists FK_48skgw51tamg6ud4qa8oh0ycm;
---
+ALTER TABLE IF EXISTS tree_version
+  DROP CONSTRAINT IF EXISTS FK_tiniptsqbb5fgygt1idm1isfy;
 
-alter table if exists tree_version
-  drop constraint if exists FK_tiniptsqbb5fgygt1idm1isfy;
+ALTER TABLE IF EXISTS tree_version
+  DROP CONSTRAINT IF EXISTS FK_4q3huja5dv8t9xyvt5rg83a35;
 
-alter table if exists tree_version
-  drop constraint if exists FK_4q3huja5dv8t9xyvt5rg83a35;
+ALTER TABLE IF EXISTS tree_element
+  DROP CONSTRAINT IF EXISTS FK_tb2tweovvy36a4bgym73jhbbk;
 
-alter table if exists tree_element
-  drop constraint if exists FK_tb2tweovvy36a4bgym73jhbbk;
+ALTER TABLE IF EXISTS tree_element
+  DROP CONSTRAINT IF EXISTS FK_slpx4w0673tudgw4fcodauilv;
 
-alter table if exists tree_element
-  drop constraint if exists FK_slpx4w0673tudgw4fcodauilv;
+ALTER TABLE IF EXISTS tree_element
+  DROP CONSTRAINT IF EXISTS FK_89rcrnlb8ed10mgp22d3cj646;
 
-alter table if exists tree_element
-  drop constraint if exists FK_89rcrnlb8ed10mgp22d3cj646;
+ALTER TABLE IF EXISTS tree_element
+  DROP CONSTRAINT IF EXISTS FK_964uyddp8ju1ya5v2px9wx5tf;
 
---old
-alter table if exists tree_element
-  drop constraint if exists FK_bxv8f6p0bemojla1j8po0g7y3;
+ALTER TABLE IF EXISTS tree_element
+  DROP CONSTRAINT IF EXISTS FK_kaotdsllnfojld6pdxb8c9gml;
 
-alter table if exists tree_element
-  drop constraint if exists FK_6eu6l7khjvp6c7ii0yqyger21;
--- new
-alter table if exists tree_element
-  drop constraint if exists FK_964uyddp8ju1ya5v2px9wx5tf;
-
-alter table if exists tree_element
-  drop constraint if exists FK_kaotdsllnfojld6pdxb8c9gml;
---
-
-DROP TABLE if EXISTS distribution;
-create table distribution (
-  id int8 default nextval('nsl_global_seq') not null,
-  lock_version int8 default 0 not null,
-  description varchar(100) not null,
-  is_doubtfully_naturalised boolean default false not null,
-  is_extinct boolean default false not null,
-  is_native boolean default false not null,
-  is_naturalised boolean default false not null,
-  region varchar(10) not null,
-  primary key (id)
+DROP TABLE IF EXISTS distribution;
+CREATE TABLE distribution (
+  id                        INT8 DEFAULT nextval('nsl_global_seq') NOT NULL,
+  lock_version              INT8 DEFAULT 0                         NOT NULL,
+  description               VARCHAR(100)                           NOT NULL,
+  is_doubtfully_naturalised BOOLEAN DEFAULT FALSE                  NOT NULL,
+  is_extinct                BOOLEAN DEFAULT FALSE                  NOT NULL,
+  is_native                 BOOLEAN DEFAULT FALSE                  NOT NULL,
+  is_naturalised            BOOLEAN DEFAULT FALSE                  NOT NULL,
+  region                    VARCHAR(10)                            NOT NULL,
+  PRIMARY KEY (id)
 );
 
 DROP TABLE IF EXISTS tree;
-create table tree (
-  id int8 default nextval('nsl_global_seq') not null,
-  lock_version int8 default 0 not null,
-  current_tree_version_id int8,
-  default_draft_tree_version_id int8,
-  group_name Text not null,
-  name Text not null,
-  primary key (id)
+CREATE TABLE tree (
+  id                            INT8 DEFAULT nextval('nsl_global_seq') NOT NULL,
+  lock_version                  INT8 DEFAULT 0                         NOT NULL,
+  current_tree_version_id       INT8,
+  default_draft_tree_version_id INT8,
+  group_name                    TEXT                                   NOT NULL,
+  name                          TEXT                                   NOT NULL,
+  PRIMARY KEY (id)
 );
 
-DROP TABLE IF EXISTS  tree_version;
-create table tree_version (
-  id int8 default nextval('nsl_global_seq') not null,
-  lock_version int8 default 0 not null,
-  draft_name Text not null,
-  log_entry Text ,
-  previous_version_id int8,
-  published boolean default false not null,
-  published_at timestamp with time zone,
-  published_by varchar(100),
-  tree_id int8 not null,
-  primary key (id)
+DROP TABLE IF EXISTS tree_version;
+CREATE TABLE tree_version (
+  id                  INT8 DEFAULT nextval('nsl_global_seq') NOT NULL,
+  lock_version        INT8 DEFAULT 0                         NOT NULL,
+  draft_name          TEXT                                   NOT NULL,
+  log_entry           TEXT,
+  previous_version_id INT8,
+  published           BOOLEAN DEFAULT FALSE                  NOT NULL,
+  published_at        TIMESTAMP WITH TIME ZONE,
+  published_by        VARCHAR(100),
+  tree_id             INT8                                   NOT NULL,
+  PRIMARY KEY (id)
 );
 
 DROP TABLE IF EXISTS tree_element;
-create table tree_element (
-  tree_version_id int8 not null,
-  tree_element_id int8 not null,
-  lock_version int8 default 0 not null,
-  display_string Text not null,
-  element_link Text not null,
-  excluded boolean default false not null,
-  instance_id int8 not null,
-  instance_link Text not null,
-  name_id int8 not null,
-  name_link Text not null,
-  name_path Text not null,
-  parent_Version_Id int8,
-  parent_Element_Id int8,
-  previous_Version_Id int8,
-  previous_Element_Id int8,
-  profile jsonb,
-  rank_path jsonb,
-  simple_name Text not null,
-  tree_path Text not null,
-  updated_at timestamp with time zone not null,
-  updated_by varchar(255) not null,
-  primary key (tree_version_id, tree_element_id)
+CREATE TABLE tree_element (
+  tree_version_id     INT8                     NOT NULL,
+  tree_element_id     INT8                     NOT NULL,
+  lock_version        INT8 DEFAULT 0           NOT NULL,
+  display_string      TEXT                     NOT NULL,
+  element_link        TEXT                     NOT NULL,
+  excluded            BOOLEAN DEFAULT FALSE    NOT NULL,
+  instance_id         INT8                     NOT NULL,
+  instance_link       TEXT                     NOT NULL,
+  name_id             INT8                     NOT NULL,
+  name_link           TEXT                     NOT NULL,
+  name_path           TEXT                     NOT NULL,
+  parent_Version_Id   INT8,
+  parent_Element_Id   INT8,
+  previous_Version_Id INT8,
+  previous_Element_Id INT8,
+  profile             JSONB,
+  rank_path           JSONB,
+  simple_name         TEXT                     NOT NULL,
+  tree_path           TEXT                     NOT NULL,
+  updated_at          TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_by          VARCHAR(255)             NOT NULL,
+  PRIMARY KEY (tree_version_id, tree_element_id)
 );
 
-alter table if exists tree
-  add constraint FK_svg2ee45qvpomoer2otdc5oyc
-foreign key (current_tree_version_id)
-references tree_version;
+ALTER TABLE name
+  ADD COLUMN family_id INT8;
+ALTER TABLE name
+  ADD COLUMN name_path TEXT DEFAULT '' NOT NULL;
 
-alter table if exists tree
-  add constraint FK_48skgw51tamg6ud4qa8oh0ycm
-foreign key (default_draft_tree_version_id)
-references tree_version;
+ALTER TABLE IF EXISTS tree
+  ADD CONSTRAINT FK_svg2ee45qvpomoer2otdc5oyc
+FOREIGN KEY (current_tree_version_id)
+REFERENCES tree_version;
 
-alter table if exists tree_element
-  add constraint FK_tb2tweovvy36a4bgym73jhbbk
-foreign key (tree_version_id)
-references tree_version;
+ALTER TABLE IF EXISTS tree
+  ADD CONSTRAINT FK_48skgw51tamg6ud4qa8oh0ycm
+FOREIGN KEY (default_draft_tree_version_id)
+REFERENCES tree_version;
 
-alter table if exists tree_element
-  add constraint FK_slpx4w0673tudgw4fcodauilv
-foreign key (instance_id)
-references instance;
+ALTER TABLE IF EXISTS tree_element
+  ADD CONSTRAINT FK_tb2tweovvy36a4bgym73jhbbk
+FOREIGN KEY (tree_version_id)
+REFERENCES tree_version;
 
-alter table if exists tree_element
-  add constraint FK_89rcrnlb8ed10mgp22d3cj646
-foreign key (name_id)
-references name;
+ALTER TABLE IF EXISTS tree_element
+  ADD CONSTRAINT FK_slpx4w0673tudgw4fcodauilv
+FOREIGN KEY (instance_id)
+REFERENCES instance;
 
-alter table if exists tree_element
-  add constraint FK_964uyddp8ju1ya5v2px9wx5tf
-foreign key (parent_Version_Id, parent_Element_Id)
-references tree_element;
+ALTER TABLE IF EXISTS tree_element
+  ADD CONSTRAINT FK_89rcrnlb8ed10mgp22d3cj646
+FOREIGN KEY (name_id)
+REFERENCES name;
 
-alter table if exists tree_element
-  add constraint FK_kaotdsllnfojld6pdxb8c9gml
-foreign key (previous_Version_Id, previous_Element_Id)
-references tree_element;
+ALTER TABLE IF EXISTS tree_element
+  ADD CONSTRAINT FK_964uyddp8ju1ya5v2px9wx5tf
+FOREIGN KEY (parent_Version_Id, parent_Element_Id)
+REFERENCES tree_element;
 
-alter table if exists tree_version
-  add constraint FK_tiniptsqbb5fgygt1idm1isfy
-foreign key (previous_version_id)
-references tree_version;
+ALTER TABLE IF EXISTS tree_element
+  ADD CONSTRAINT FK_kaotdsllnfojld6pdxb8c9gml
+FOREIGN KEY (previous_Version_Id, previous_Element_Id)
+REFERENCES tree_element;
 
-alter table if exists tree_version
-  add constraint FK_4q3huja5dv8t9xyvt5rg83a35
-foreign key (tree_id)
-references tree;
+ALTER TABLE IF EXISTS tree_version
+  ADD CONSTRAINT FK_tiniptsqbb5fgygt1idm1isfy
+FOREIGN KEY (previous_version_id)
+REFERENCES tree_version;
 
+ALTER TABLE IF EXISTS tree_version
+  ADD CONSTRAINT FK_4q3huja5dv8t9xyvt5rg83a35
+FOREIGN KEY (tree_id)
+REFERENCES tree;
+
+CREATE INDEX tree_name_path_Index
+  ON tree_element (name_path);
+
+CREATE INDEX tree_simple_name_Index
+  ON tree_element (simple_name);
+
+CREATE INDEX name_name_path_Index
+  ON name (name_path);
+
+ALTER TABLE IF EXISTS name
+  ADD CONSTRAINT FK_whce6pgnqjtxgt67xy2lfo34
+FOREIGN KEY (family_id)
+REFERENCES name;
 
 -- version
 UPDATE db_version

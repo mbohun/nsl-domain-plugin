@@ -37,6 +37,8 @@ class Name {
 
     Name parent
     Name secondParent
+    Name family
+    String namePath = "" // the taxonomic name path
 
     Author author
     Author baseAuthor
@@ -66,15 +68,11 @@ class Name {
 
     static hasMany = [
             instances     : Instance,
-            nameParts     : NamePart,
-            childNameParts: NamePart,
             comments      : Comment,
             tags          : NameTagName
     ]
 
     static mappedBy = [
-            nameParts     : "name",
-            childNameParts: "precedingName",
             comments      : "name"
     ]
 
@@ -110,6 +108,7 @@ class Name {
         whyIsThisHere index: "Name_whyIsThisHere_Index"
         parent index: "name_parent_id_Index"
         secondParent index: "name_second_parent_id_Index"
+        namePath sqlType: 'text', index: "name_name_path_Index", defaultValue: ""
 
         updatedAt sqlType: 'timestamp with time zone'
         createdAt sqlType: 'timestamp with time zone'
@@ -137,6 +136,7 @@ class Name {
         duplicateOf nullable: true
         parent nullable: true
         secondParent nullable: true
+        family nullable: true
         whyIsThisHere nullable: true
         verbatimRank nullable: true, maxSize: 50
     }

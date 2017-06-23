@@ -72,6 +72,9 @@
         drop constraint if exists FK_rp659tjcxokf26j8551k6an2y;
 
     alter table if exists name 
+        drop constraint if exists FK_whce6pgnqjtxgt67xy2lfo34;
+
+    alter table if exists name 
         drop constraint if exists FK_sk2iikq8wla58jeypkw6h74hc;
 
     alter table if exists name 
@@ -569,9 +572,11 @@
         duplicate_of_id int8,
         ex_author_id int8,
         ex_base_author_id int8,
+        family_id int8,
         full_name varchar(512),
         full_name_html varchar(2048),
         name_element varchar(255),
+        name_path text default '' not null,
         name_rank_id int8 not null,
         name_status_id int8 not null,
         name_type_id int8 not null,
@@ -1089,6 +1094,8 @@
 
     create index Name_Name_Element_Index on name (name_element);
 
+    create index name_name_path_Index on name (name_path);
+
     create index Name_Rank_Index on name (name_rank_id);
 
     create index Name_Status_Index on name (name_status_id);
@@ -1172,6 +1179,10 @@
     create index tree_arrangement_label on tree_arrangement (label, namespace_id);
 
     create index tree_arrangement_node on tree_arrangement (node_id);
+
+    create index tree_name_path_Index on tree_element (name_path);
+
+    create index tree_simple_name_Index on tree_element (simple_name);
 
     create index tree_link_subnode on tree_link (subnode_id);
 
@@ -1341,6 +1352,11 @@
         add constraint FK_rp659tjcxokf26j8551k6an2y 
         foreign key (ex_base_author_id) 
         references author;
+
+    alter table if exists name 
+        add constraint FK_whce6pgnqjtxgt67xy2lfo34 
+        foreign key (family_id) 
+        references name;
 
     alter table if exists name 
         add constraint FK_sk2iikq8wla58jeypkw6h74hc 
