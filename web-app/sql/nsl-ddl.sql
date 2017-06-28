@@ -192,12 +192,6 @@
         drop constraint if exists FK_tb2tweovvy36a4bgym73jhbbk;
 
     alter table if exists tree_element 
-        drop constraint if exists FK_slpx4w0673tudgw4fcodauilv;
-
-    alter table if exists tree_element 
-        drop constraint if exists FK_89rcrnlb8ed10mgp22d3cj646;
-
-    alter table if exists tree_element 
         drop constraint if exists FK_964uyddp8ju1ya5v2px9wx5tf;
 
     alter table if exists tree_element 
@@ -576,7 +570,7 @@
         full_name varchar(512),
         full_name_html varchar(2048),
         name_element varchar(255),
-        name_path text default '' not null,
+        name_path text not null,
         name_rank_id int8 not null,
         name_status_id int8 not null,
         name_type_id int8 not null,
@@ -879,6 +873,7 @@
         name_id int8 not null,
         name_link Text not null,
         name_path Text not null,
+        names Text default '' not null,
         parent_Version_Id int8,
         parent_Element_Id int8,
         previous_Version_Id int8,
@@ -886,6 +881,7 @@
         profile jsonb,
         rank_path jsonb,
         simple_name Text not null,
+        source_shard Text default '' not null,
         tree_path Text not null,
         updated_at timestamp with time zone not null,
         updated_by varchar(255) not null,
@@ -1552,16 +1548,6 @@
         add constraint FK_tb2tweovvy36a4bgym73jhbbk 
         foreign key (tree_version_id) 
         references tree_version;
-
-    alter table if exists tree_element 
-        add constraint FK_slpx4w0673tudgw4fcodauilv 
-        foreign key (instance_id) 
-        references instance;
-
-    alter table if exists tree_element 
-        add constraint FK_89rcrnlb8ed10mgp22d3cj646 
-        foreign key (name_id) 
-        references name;
 
     alter table if exists tree_element 
         add constraint FK_964uyddp8ju1ya5v2px9wx5tf 
@@ -2591,6 +2577,10 @@ CREATE INDEX name_lower_unacent_full_name_gin_trgm
   ON name USING GIN (lower(f_unaccent(full_name)) gin_trgm_ops);
 CREATE INDEX name_lower_unacent_simple_name_gin_trgm
   ON name USING GIN (lower(f_unaccent(simple_name)) gin_trgm_ops);
+CREATE INDEX name_path_gin_trgm
+  ON tree_element USING GIN (name_path gin_trgm_ops);
+CREATE INDEX names_gin_trgm
+  ON tree_element USING GIN (names gin_trgm_ops);
 
 INSERT INTO db_version (id, version) VALUES (1, 24);
 

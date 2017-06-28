@@ -12,14 +12,16 @@ class TreeElement implements Serializable {
     TreeElement previousElement
     TreeElement parentElement
 
-    Instance instance
-    Name name
+    Long instanceId //non enforced FK to the instance - depends on the shard
+    Long nameId     //non enforced FK to the name - depends on the shard
     Boolean excluded = false //is this an excluded concept
 
     String displayString
     String simpleName
     String treePath
     String namePath
+    String names            //a pipe separated list of name and synonyms
+    String sourceShard      //where the taxon comes from
     Map rankPath
     Map profile
 
@@ -43,6 +45,8 @@ class TreeElement implements Serializable {
         simpleName sqlType: 'Text', index: "tree_simple_name_Index"
         treePath sqlType: 'Text'
         namePath sqlType: 'Text', index: "tree_name_path_Index"
+        names sqlType: 'Text'
+        sourceShard sqlType: 'Text'
         elementLink sqlType: 'Text'
         nameLink sqlType: 'Text'
         instanceLink sqlType: 'Text'

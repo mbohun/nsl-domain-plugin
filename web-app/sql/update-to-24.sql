@@ -17,11 +17,13 @@ ALTER TABLE IF EXISTS tree_version
 ALTER TABLE IF EXISTS tree_element
   DROP CONSTRAINT IF EXISTS FK_tb2tweovvy36a4bgym73jhbbk;
 
+-- 8< ---
 ALTER TABLE IF EXISTS tree_element
   DROP CONSTRAINT IF EXISTS FK_slpx4w0673tudgw4fcodauilv;
 
 ALTER TABLE IF EXISTS tree_element
   DROP CONSTRAINT IF EXISTS FK_89rcrnlb8ed10mgp22d3cj646;
+-- 8< ---
 
 ALTER TABLE IF EXISTS tree_element
   DROP CONSTRAINT IF EXISTS FK_964uyddp8ju1ya5v2px9wx5tf;
@@ -69,27 +71,29 @@ CREATE TABLE tree_version (
 
 DROP TABLE IF EXISTS tree_element;
 CREATE TABLE tree_element (
-  tree_version_id     INT8                     NOT NULL,
-  tree_element_id     INT8                     NOT NULL,
-  lock_version        INT8 DEFAULT 0           NOT NULL,
-  display_string      TEXT                     NOT NULL,
-  element_link        TEXT                     NOT NULL,
-  excluded            BOOLEAN DEFAULT FALSE    NOT NULL,
-  instance_id         INT8                     NOT NULL,
-  instance_link       TEXT                     NOT NULL,
-  name_id             INT8                     NOT NULL,
-  name_link           TEXT                     NOT NULL,
-  name_path           TEXT                     NOT NULL,
+  tree_version_id     INT8                              NOT NULL,
+  tree_element_id     INT8                              NOT NULL,
+  lock_version        INT8 DEFAULT 0                    NOT NULL,
+  display_string      TEXT                              NOT NULL,
+  element_link        TEXT                              NOT NULL,
+  excluded            BOOLEAN DEFAULT FALSE             NOT NULL,
+  instance_id         INT8                              NOT NULL,
+  instance_link       TEXT                              NOT NULL,
+  name_id             INT8                              NOT NULL,
+  name_link           TEXT                              NOT NULL,
+  name_path           TEXT                              NOT NULL,
+  names               TEXT DEFAULT ''                   NOT NULL,
   parent_Version_Id   INT8,
   parent_Element_Id   INT8,
   previous_Version_Id INT8,
   previous_Element_Id INT8,
   profile             JSONB,
   rank_path           JSONB,
-  simple_name         TEXT                     NOT NULL,
-  tree_path           TEXT                     NOT NULL,
-  updated_at          TIMESTAMP WITH TIME ZONE NOT NULL,
-  updated_by          VARCHAR(255)             NOT NULL,
+  simple_name         TEXT                              NOT NULL,
+  source_shard        TEXT DEFAULT ''                   NOT NULL,
+  tree_path           TEXT                              NOT NULL,
+  updated_at          TIMESTAMP WITH TIME ZONE          NOT NULL,
+  updated_by          VARCHAR(255)                      NOT NULL,
   PRIMARY KEY (tree_version_id, tree_element_id)
 );
 
@@ -112,16 +116,6 @@ ALTER TABLE IF EXISTS tree_element
   ADD CONSTRAINT FK_tb2tweovvy36a4bgym73jhbbk
 FOREIGN KEY (tree_version_id)
 REFERENCES tree_version;
-
-ALTER TABLE IF EXISTS tree_element
-  ADD CONSTRAINT FK_slpx4w0673tudgw4fcodauilv
-FOREIGN KEY (instance_id)
-REFERENCES instance;
-
-ALTER TABLE IF EXISTS tree_element
-  ADD CONSTRAINT FK_89rcrnlb8ed10mgp22d3cj646
-FOREIGN KEY (name_id)
-REFERENCES name;
 
 ALTER TABLE IF EXISTS tree_element
   ADD CONSTRAINT FK_964uyddp8ju1ya5v2px9wx5tf
@@ -156,6 +150,11 @@ ALTER TABLE IF EXISTS name
   ADD CONSTRAINT FK_whce6pgnqjtxgt67xy2lfo34
 FOREIGN KEY (family_id)
 REFERENCES name;
+
+CREATE INDEX name_path_gin_trgm
+  ON tree_element USING GIN (name_path gin_trgm_ops);
+CREATE INDEX names_gin_trgm
+  ON tree_element USING GIN (names gin_trgm_ops);
 
 -- version
 UPDATE db_version
