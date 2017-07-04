@@ -91,6 +91,7 @@ CREATE TABLE tree_element (
   rank_path           JSONB,
   simple_name         TEXT                              NOT NULL,
   source_shard        TEXT DEFAULT ''                   NOT NULL,
+  synonyms            JSONB,
   tree_path           TEXT                              NOT NULL,
   updated_at          TIMESTAMP WITH TIME ZONE          NOT NULL,
   updated_by          VARCHAR(255)                      NOT NULL,

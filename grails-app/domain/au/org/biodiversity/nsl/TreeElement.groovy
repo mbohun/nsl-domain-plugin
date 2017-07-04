@@ -22,6 +22,7 @@ class TreeElement implements Serializable {
     String namePath
     String names            //a pipe separated list of name and synonyms
     String sourceShard      //where the taxon comes from
+    Map synonyms
     Map rankPath
     Map profile
 
@@ -50,6 +51,7 @@ class TreeElement implements Serializable {
         elementLink sqlType: 'Text'
         nameLink sqlType: 'Text'
         instanceLink sqlType: 'Text'
+        synonyms type: JsonbMapType
         rankPath type: JsonbMapType
         profile type: JsonbMapType
         excluded defaultValue: false
