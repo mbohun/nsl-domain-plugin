@@ -30,8 +30,8 @@ CREATE INDEX name_lower_unacent_full_name_gin_trgm
 CREATE INDEX name_lower_unacent_simple_name_gin_trgm
   ON name USING GIN (lower(f_unaccent(simple_name)) gin_trgm_ops);
 CREATE INDEX name_path_gin_trgm
-  ON tree_element USING GIN (name_path gin_trgm_ops);
+  ON tree_element USING GIN (lower(name_path) gin_trgm_ops);
 CREATE INDEX names_gin_trgm
-  ON tree_element USING GIN (names gin_trgm_ops);
+  ON tree_element USING GIN (lower(names) gin_trgm_ops);
 
 INSERT INTO db_version (id, version) VALUES (1, 24);

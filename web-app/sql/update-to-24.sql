@@ -90,6 +90,7 @@ CREATE TABLE tree_element (
   profile             JSONB,
   rank_path           JSONB,
   simple_name         TEXT                              NOT NULL,
+  source_element_link Text,
   source_shard        TEXT DEFAULT ''                   NOT NULL,
   synonyms            JSONB,
   tree_path           TEXT                              NOT NULL,
@@ -153,9 +154,9 @@ FOREIGN KEY (family_id)
 REFERENCES name;
 
 CREATE INDEX name_path_gin_trgm
-  ON tree_element USING GIN (name_path gin_trgm_ops);
+  ON tree_element USING GIN (lower(name_path) gin_trgm_ops);
 CREATE INDEX names_gin_trgm
-  ON tree_element USING GIN (names gin_trgm_ops);
+  ON tree_element USING GIN (lower(names) gin_trgm_ops);
 
 -- version
 UPDATE db_version

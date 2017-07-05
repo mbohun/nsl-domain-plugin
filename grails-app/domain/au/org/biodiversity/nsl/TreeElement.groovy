@@ -12,8 +12,8 @@ class TreeElement implements Serializable {
     TreeElement previousElement
     TreeElement parentElement
 
-    Long instanceId //non enforced FK to the instance - depends on the shard
-    Long nameId     //non enforced FK to the name - depends on the shard
+    Long instanceId          //unconstrained FK to the instance - depends on the shard
+    Long nameId              //unconstrained FK to the name - depends on the shard
     Boolean excluded = false //is this an excluded concept
 
     String displayString
@@ -26,6 +26,7 @@ class TreeElement implements Serializable {
     Map rankPath
     Map profile
 
+    String sourceElementLink //Link to the source tree element for composed trees
     String elementLink
     String nameLink
     String instanceLink
@@ -51,6 +52,7 @@ class TreeElement implements Serializable {
         elementLink sqlType: 'Text'
         nameLink sqlType: 'Text'
         instanceLink sqlType: 'Text'
+        sourceElementLink sqlType: 'Text'
         synonyms type: JsonbMapType
         rankPath type: JsonbMapType
         profile type: JsonbMapType
@@ -72,6 +74,7 @@ class TreeElement implements Serializable {
         treeVersion nullable: false
         previousElement nullable: true
         parentElement nullable: true
+        sourceElementLink nullable: true
     }
 
     boolean equals(other) {
