@@ -143,16 +143,17 @@ ALTER TABLE IF EXISTS tree_version
 FOREIGN KEY (tree_id)
 REFERENCES tree;
 
-CREATE INDEX tree_simple_name_Index
-  ON tree_element (simple_name);
-
 ALTER TABLE IF EXISTS name
   ADD CONSTRAINT FK_whce6pgnqjtxgt67xy2lfo34
 FOREIGN KEY (family_id)
 REFERENCES name;
 
+CREATE INDEX tree_simple_name_Index
+  ON tree_element (simple_name);
+
 CREATE INDEX name_path_gin_trgm
   ON tree_element USING GIN (lower(name_path) gin_trgm_ops);
+
 CREATE INDEX names_gin_trgm
   ON tree_element USING GIN (lower(names) gin_trgm_ops);
 
