@@ -1,4 +1,8 @@
 -- new tree structure
+DROP INDEX IF EXISTS name_path_gin_trgm;
+DROP INDEX IF EXISTS names_gin_trgm;
+DROP INDEX IF EXISTS tree_name_path_Index;
+
 ALTER TABLE IF EXISTS name
   DROP CONSTRAINT IF EXISTS FK_whce6pgnqjtxgt67xy2lfo34;
 
@@ -90,7 +94,7 @@ CREATE TABLE tree_element (
   profile             JSONB,
   rank_path           JSONB,
   simple_name         TEXT                              NOT NULL,
-  source_element_link Text,
+  source_element_link TEXT,
   source_shard        TEXT DEFAULT ''                   NOT NULL,
   synonyms            JSONB,
   tree_path           TEXT                              NOT NULL,
@@ -139,14 +143,8 @@ ALTER TABLE IF EXISTS tree_version
 FOREIGN KEY (tree_id)
 REFERENCES tree;
 
-CREATE INDEX tree_name_path_Index
-  ON tree_element (name_path);
-
 CREATE INDEX tree_simple_name_Index
   ON tree_element (simple_name);
-
-CREATE INDEX name_name_path_Index
-  ON name (name_path);
 
 ALTER TABLE IF EXISTS name
   ADD CONSTRAINT FK_whce6pgnqjtxgt67xy2lfo34

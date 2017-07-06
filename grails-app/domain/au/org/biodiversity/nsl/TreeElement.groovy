@@ -46,7 +46,7 @@ class TreeElement implements Serializable {
         displayString sqlType: 'Text'
         simpleName sqlType: 'Text', index: "tree_simple_name_Index"
         treePath sqlType: 'Text'
-        namePath sqlType: 'Text', index: "tree_name_path_Index"
+        namePath sqlType: 'Text'
         names sqlType: 'Text'
         sourceShard sqlType: 'Text'
         elementLink sqlType: 'Text'

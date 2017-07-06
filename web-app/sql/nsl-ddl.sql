@@ -1178,8 +1178,6 @@
 
     create index tree_arrangement_node on tree_arrangement (node_id);
 
-    create index tree_name_path_Index on tree_element (name_path);
-
     create index tree_simple_name_Index on tree_element (simple_name);
 
     create index tree_link_subnode on tree_link (subnode_id);
