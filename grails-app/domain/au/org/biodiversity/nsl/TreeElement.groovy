@@ -77,6 +77,8 @@ class TreeElement implements Serializable {
         sourceElementLink nullable: true
     }
 
+    static transients = ['name', 'instance']
+
     boolean equals(other) {
         if (!(other instanceof TreeElement)) {
             return false
@@ -90,5 +92,21 @@ class TreeElement implements Serializable {
         builder.append(treeVersion.id)
         builder.append(treeElementId)
         builder.toHashCode()
+    }
+
+    /**
+     * Null if name doesn't exist
+     * @return the name for NameId. Note this doesn't work for trees outside the shard
+     */
+    Name getName() {
+        Name.get(nameId)
+    }
+
+    /**
+     * Null if instance doesn't exist
+     * @return the instance for InstanceId. Note this doesn't work for trees outside the shard
+     */
+    Instance getInstance() {
+        Instance.get(instanceId)
     }
 }

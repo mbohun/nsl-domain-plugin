@@ -151,12 +151,6 @@ REFERENCES name;
 CREATE INDEX tree_simple_name_Index
   ON tree_element (simple_name);
 
-CREATE INDEX name_path_gin_trgm
-  ON tree_element USING GIN (lower(name_path) gin_trgm_ops);
-
-CREATE INDEX names_gin_trgm
-  ON tree_element USING GIN (lower(names) gin_trgm_ops);
-
 -- version
 UPDATE db_version
 SET version = 24
