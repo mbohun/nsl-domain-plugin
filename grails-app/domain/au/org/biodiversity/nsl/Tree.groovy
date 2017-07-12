@@ -6,6 +6,7 @@ class Tree {
     String groupName  //the role group that owns/edits this tree
     TreeVersion defaultDraftTreeVersion
     TreeVersion currentTreeVersion
+    Long referenceId  // an unconstrained FK to Reference for in-reference trees only.
 
     static hasMany = [treeVersions: TreeVersion]
 
@@ -24,5 +25,6 @@ class Tree {
         groupName maxSize: 100
         currentTreeVersion nullable: true
         defaultDraftTreeVersion nullable: true
+        referenceId nullable: true
     }
 }

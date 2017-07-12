@@ -56,6 +56,7 @@ CREATE TABLE tree (
   default_draft_tree_version_id INT8,
   group_name                    TEXT                                   NOT NULL,
   name                          TEXT                                   NOT NULL,
+  reference_id                  INT8,
   PRIMARY KEY (id)
 );
 

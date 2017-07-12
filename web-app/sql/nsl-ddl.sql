@@ -842,6 +842,7 @@
         default_draft_tree_version_id int8,
         group_name Text not null,
         name Text not null,
+        reference_id int8,
         primary key (id)
     );
 
