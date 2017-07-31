@@ -602,7 +602,7 @@ UPDATE tree_element
 SET synonyms = synonyms_as_jsonb(tree_version_id, tree_element_id);
 
 -- add jsonb profile data to tree_elements
-DROP FUNCTION IF EXISTS synonyms_as_jsonb( BIGINT, BIGINT );
+DROP FUNCTION IF EXISTS profile_as_jsonb( BIGINT, BIGINT );
 CREATE FUNCTION profile_as_jsonb(version_id BIGINT, element_id BIGINT)
   RETURNS JSONB
 LANGUAGE SQL
