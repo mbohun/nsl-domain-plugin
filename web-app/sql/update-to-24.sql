@@ -363,36 +363,36 @@ INSERT INTO tree_element
  updated_at,
  updated_by)
   (SELECT
-     v.id                                                                    AS tree_version_id,
-     el_data.node_id                                                         AS tree_element_id,
-     0 :: BIGINT                                                             AS lock_version,
-     el_data.excluded                                                        AS excluded,
-     el_data.display                                                         AS display_string,
-     'http://' || host.host_name || '/node/apni/' || el_data.node_id         AS element_link,
-     el_data.instance_id :: BIGINT                                           AS instance_id,
-     'http://' || host.host_name || '/instance/apni/' || el_data.instance_id AS instance_link,
-     el_data.name_id :: BIGINT                                               AS name_id,
-     'http://' || host.host_name || '/name/apni/' || el_data.name_id         AS name_link,
+     v.id                                                                      AS tree_version_id,
+     el_data.node_id                                                           AS tree_element_id,
+     0 :: BIGINT                                                               AS lock_version,
+     el_data.excluded                                                          AS excluded,
+     el_data.display                                                           AS display_string,
+     'http://' || host.host_name || '/tree/' || v.id || '/' || el_data.node_id AS element_link,
+     el_data.instance_id :: BIGINT                                             AS instance_id,
+     'http://' || host.host_name || '/instance/apni/' || el_data.instance_id   AS instance_link,
+     el_data.name_id :: BIGINT                                                 AS name_id,
+     'http://' || host.host_name || '/name/apni/' || el_data.name_id           AS name_link,
      CASE WHEN el_data.parent_id IS NOT NULL AND el_data.parent_id != dtn.latest_node_id
        THEN
          v.id
      ELSE NULL :: BIGINT
-     END                                                                     AS parentversionid,
+     END                                                                       AS parentversionid,
      CASE WHEN el_data.parent_id IS NOT NULL AND el_data.parent_id != dtn.latest_node_id
        THEN
          el_data.parent_id :: BIGINT
      ELSE NULL :: BIGINT
-     END                                                                     AS parentelementid,
-     NULL                                                                    AS previousversionid,
-     NULL                                                                    AS previouselementid,
-     ('{}' :: JSONB)                                                         AS profile,
-     el_data.rank_path :: JSONB                                              AS rank_path,
-     el_data.simple_name                                                     AS simple_name,
-     el_data.tree_path                                                       AS tree_path,
-     el_data.name_path                                                       AS name_path,
-     'APNI'                                                                  AS source_shard,
-     v.published_at                                                          AS updated_at,
-     v.published_by                                                          AS updated_by
+     END                                                                       AS parentelementid,
+     NULL                                                                      AS previousversionid,
+     NULL                                                                      AS previouselementid,
+     ('{}' :: JSONB)                                                           AS profile,
+     el_data.rank_path :: JSONB                                                AS rank_path,
+     el_data.simple_name                                                       AS simple_name,
+     el_data.tree_path                                                         AS tree_path,
+     el_data.name_path                                                         AS name_path,
+     'APNI'                                                                    AS source_shard,
+     v.published_at                                                            AS updated_at,
+     v.published_by                                                            AS updated_by
    FROM daily_top_nodes('APC', '2016-01-01') AS dtn,
      tree_version v,
          tree_element_data_from_node(dtn.latest_node_id) AS el_data,
@@ -486,6 +486,7 @@ WHERE name.id = s.name_id
       AND synonym.id = i.name_id;
 
 -- 88888 repeatedly do this until all names have been joined to an APC parent (6 times as of writing)
+DROP FUNCTION IF EXISTS join_non_apc_names_back_to_apc_names();
 CREATE FUNCTION join_non_apc_names_back_to_apc_names()
   RETURNS VOID AS $$
 DECLARE
@@ -528,6 +529,7 @@ WHERE n.name_rank_id = rank.id
 -- 88888 now we repeatedly look at parent name to see if it has a family set and use that until we update none
 -- this uses names that don't have instances because some names with instances have name parents that do not have instances
 -- after this there are about 56 names (ranked family and below) with instances that don't have a family. see NSL-2440
+DROP FUNCTION IF EXISTS link_back_missing_family_names();
 CREATE FUNCTION link_back_missing_family_names()
   RETURNS VOID AS $$
 DECLARE
@@ -575,7 +577,7 @@ UPDATE tree_element
 SET names = '|' || simple_name
 WHERE names = '';
 
--- add synonyms jsonb data to tree_element
+-- add synonyms jsonb data to tree_elements
 
 DROP FUNCTION IF EXISTS synonyms_as_jsonb( BIGINT, BIGINT );
 CREATE FUNCTION synonyms_as_jsonb(version_id BIGINT, element_id BIGINT)
@@ -598,6 +600,55 @@ $$;
 
 UPDATE tree_element
 SET synonyms = synonyms_as_jsonb(tree_version_id, tree_element_id);
+
+-- add jsonb profile data to tree_elements
+DROP FUNCTION IF EXISTS synonyms_as_jsonb( BIGINT, BIGINT );
+CREATE FUNCTION profile_as_jsonb(version_id BIGINT, element_id BIGINT)
+  RETURNS JSONB
+LANGUAGE SQL
+AS $$
+SELECT jsonb_build_object(
+    'name', key.name,
+    'value', note.value,
+    'created_at', note.created_at,
+    'created_by', note.created_by,
+    'updated_at', note.updated_at,
+    'updated_by', note.updated_by,
+    'source_id', note.source_id,
+    'source_system', note.source_system
+)
+FROM tree_element element
+  JOIN instance i ON element.instance_id = i.id
+  JOIN instance_note note ON i.id = note.instance_id
+  JOIN instance_note_key key ON note.instance_note_key_id = key.id
+WHERE tree_version_id = version_id
+      AND tree_element_id = element_id;
+$$;
+
+UPDATE tree_element
+SET profile = profile_as_jsonb(tree_version_id, tree_element_id);
+
+-- drop name_tree_path
+
+ALTER TABLE IF EXISTS name_tree_path
+  DROP CONSTRAINT IF EXISTS FK_4kc2kv5choyybkaetmshegbet;
+
+ALTER TABLE IF EXISTS name_tree_path
+  DROP CONSTRAINT IF EXISTS FK_j4j0kq9duod9gm019pl1xec7c;
+
+ALTER TABLE IF EXISTS name_tree_path
+  DROP CONSTRAINT IF EXISTS FK_try5dwb6jcy5fngk09bf7f7on;
+
+ALTER TABLE IF EXISTS name_tree_path
+  DROP CONSTRAINT IF EXISTS FK_sfj3hoevcuni3ak7no6byjp3;
+
+ALTER TABLE IF EXISTS name_tree_path
+  DROP CONSTRAINT IF EXISTS FK_3xnmxe5p6ed258euacrfflwrj;
+
+DROP MATERIALIZED VIEW IF EXISTS taxon_view;
+DROP MATERIALIZED VIEW IF EXISTS name_view;
+
+DROP TABLE IF EXISTS name_tree_path;
 
 -- version
 UPDATE db_version

@@ -122,21 +122,6 @@
     alter table if exists name_tag_name 
         drop constraint if exists FK_2uiijd73snf6lh5s6a82yjfin;
 
-    alter table if exists name_tree_path 
-        drop constraint if exists FK_4kc2kv5choyybkaetmshegbet;
-
-    alter table if exists name_tree_path 
-        drop constraint if exists FK_j4j0kq9duod9gm019pl1xec7c;
-
-    alter table if exists name_tree_path 
-        drop constraint if exists FK_try5dwb6jcy5fngk09bf7f7on;
-
-    alter table if exists name_tree_path 
-        drop constraint if exists FK_sfj3hoevcuni3ak7no6byjp3;
-
-    alter table if exists name_tree_path 
-        drop constraint if exists FK_3xnmxe5p6ed258euacrfflwrj;
-
     alter table if exists name_type 
         drop constraint if exists FK_10d0jlulq2woht49j5ccpeehu;
 
@@ -303,8 +288,6 @@
     drop table if exists name_tag cascade;
 
     drop table if exists name_tag_name cascade;
-
-    drop table if exists name_tree_path cascade;
 
     drop table if exists name_type cascade;
 
@@ -673,21 +656,6 @@
         updated_at timestamp with time zone not null,
         updated_by varchar(255) not null,
         primary key (name_id, tag_id)
-    );
-
-    create table name_tree_path (
-        id int8 default nextval('hibernate_sequence') not null,
-        version int8 not null,
-        family_id int8,
-        inserted int8 not null,
-        name_id int8 not null,
-        name_id_path TEXT not null,
-        name_path TEXT not null,
-        next_id int8,
-        parent_id int8,
-        rank_path TEXT not null,
-        tree_id int8 not null,
-        primary key (id)
     );
 
     create table name_type (
@@ -1135,14 +1103,6 @@
 
     create index Name_Tag_Tag_Index on name_tag_name (tag_id);
 
-    create index name_tree_path_family_index on name_tree_path (family_id);
-
-    create index name_tree_path_name_index on name_tree_path (name_id);
-
-    create index name_tree_path_treename_index on name_tree_path (name_id, tree_id);
-
-    create index name_tree_path_path_index on name_tree_path (name_id_path);
-
     alter table if exists name_type 
         add constraint UK_314uhkq8i7r46050kd1nfrs95  unique (name);
 
@@ -1434,31 +1394,6 @@
         add constraint FK_2uiijd73snf6lh5s6a82yjfin 
         foreign key (tag_id) 
         references name_tag;
-
-    alter table if exists name_tree_path 
-        add constraint FK_4kc2kv5choyybkaetmshegbet 
-        foreign key (family_id) 
-        references name;
-
-    alter table if exists name_tree_path 
-        add constraint FK_j4j0kq9duod9gm019pl1xec7c 
-        foreign key (name_id) 
-        references name;
-
-    alter table if exists name_tree_path 
-        add constraint FK_try5dwb6jcy5fngk09bf7f7on 
-        foreign key (next_id) 
-        references name_tree_path;
-
-    alter table if exists name_tree_path 
-        add constraint FK_sfj3hoevcuni3ak7no6byjp3 
-        foreign key (parent_id) 
-        references name_tree_path;
-
-    alter table if exists name_tree_path 
-        add constraint FK_3xnmxe5p6ed258euacrfflwrj 
-        foreign key (tree_id) 
-        references tree_arrangement;
 
     alter table if exists name_type 
         add constraint FK_10d0jlulq2woht49j5ccpeehu 
