@@ -59,11 +59,12 @@ class NslDomainService {
             log.info "updating to version $versionNumber"
             File updateFile = getUpdateFile(versionNumber)
             if(updateFile?.exists()) {
-                String sqlSource = updateFile.text
+                String sqlSource = updateFile.text.replaceAll('\\$\\$', 'DollarDelimit')
                 def engine = new SimpleTemplateEngine()
                 def template = engine.createTemplate(sqlSource).make(params)
-                log.debug template
-                sql.execute(template.toString()) { isResultSet, result ->
+                sqlSource = template.toString().replaceAll('DollarDelimit', '\\$\\$')
+                log.debug sqlSource
+                sql.execute(sqlSource) { isResultSet, result ->
                     if(isResultSet) log.debug result
                 }
             }
