@@ -607,8 +607,7 @@ CREATE FUNCTION profile_as_jsonb(version_id BIGINT, element_id BIGINT)
   RETURNS JSONB
 LANGUAGE SQL
 AS $$
-SELECT jsonb_build_object(
-    'name', key.name,
+SELECT jsonb_object_agg(key.name, jsonb_build_object(
     'value', note.value,
     'created_at', note.created_at,
     'created_by', note.created_by,
@@ -616,7 +615,7 @@ SELECT jsonb_build_object(
     'updated_by', note.updated_by,
     'source_id', note.source_id,
     'source_system', note.source_system
-)
+))
 FROM tree_element element
   JOIN instance i ON element.instance_id = i.id
   JOIN instance_note note ON i.id = note.instance_id
