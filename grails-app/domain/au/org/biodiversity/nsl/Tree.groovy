@@ -16,7 +16,7 @@ class Tree {
         id generator: 'native', params: [sequence: 'nsl_global_seq'], defaultValue: "nextval('nsl_global_seq')"
         version column: 'lock_version', defaultValue: "0"
 
-        name sqlType: 'Text'
+        name sqlType: 'Text', unique: true
         groupName sqlType: 'Text'
     }
 

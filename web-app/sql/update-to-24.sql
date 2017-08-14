@@ -439,6 +439,9 @@ WHERE tree_element_id IN (SELECT id
                           FROM tree_node node
                           WHERE node.type_uri_id_part = 'DeclaredBt');
 
+ALTER TABLE IF EXISTS tree
+  ADD CONSTRAINT UK_92xj3n7tgp4h7abxijoo7skmp UNIQUE (name);
+
 ALTER TABLE IF EXISTS tree_element
   ADD CONSTRAINT FK_tb2tweovvy36a4bgym73jhbbk
 FOREIGN KEY (tree_version_id)
