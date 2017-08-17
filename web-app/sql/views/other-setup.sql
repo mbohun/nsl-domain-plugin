@@ -30,4 +30,13 @@ CREATE INDEX name_lower_unacent_full_name_gin_trgm
 CREATE INDEX name_lower_unacent_simple_name_gin_trgm
   ON name USING GIN (lower(f_unaccent(simple_name)) gin_trgm_ops);
 
+-- new tree indexes
+DROP INDEX IF EXISTS parent_element_index;
+CREATE INDEX parent_element_index
+  ON tree_element (parent_version_id, parent_element_id);
+
+DROP INDEX IF EXISTS previous_element_index;
+CREATE INDEX previous_element_index
+  ON tree_element (previous_version_id, previous_element_id);
+
 INSERT INTO db_version (id, version) VALUES (1, 24);

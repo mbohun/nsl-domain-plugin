@@ -2,6 +2,9 @@
 DROP INDEX IF EXISTS name_path_gin_trgm;
 DROP INDEX IF EXISTS names_gin_trgm;
 DROP INDEX IF EXISTS tree_name_path_Index;
+DROP INDEX IF EXISTS tree_simple_name_Index;
+DROP INDEX IF EXISTS parent_element_index;
+DROP INDEX IF EXISTS previous_element_index;
 
 ALTER TABLE IF EXISTS name
   DROP CONSTRAINT IF EXISTS FK_whce6pgnqjtxgt67xy2lfo34;
@@ -151,6 +154,12 @@ REFERENCES name;
 
 CREATE INDEX tree_simple_name_Index
   ON tree_element (simple_name);
+
+CREATE INDEX parent_element_index
+  ON tree_element (parent_version_id, parent_element_id);
+
+CREATE INDEX previous_element_index
+  ON tree_element (previous_version_id, previous_element_id);
 
 -- import old tree data into the new structure - this will take a while
 
@@ -328,12 +337,6 @@ ALTER TABLE IF EXISTS tree_element
   DROP CONSTRAINT IF EXISTS FK_tb2tweovvy36a4bgym73jhbbk;
 
 ALTER TABLE IF EXISTS tree_element
-  DROP CONSTRAINT IF EXISTS FK_slpx4w0673tudgw4fcodauilv;
-
-ALTER TABLE IF EXISTS tree_element
-  DROP CONSTRAINT IF EXISTS FK_89rcrnlb8ed10mgp22d3cj646;
-
-ALTER TABLE IF EXISTS tree_element
   DROP CONSTRAINT IF EXISTS FK_964uyddp8ju1ya5v2px9wx5tf;
 
 ALTER TABLE IF EXISTS tree_element
@@ -446,16 +449,6 @@ ALTER TABLE IF EXISTS tree_element
   ADD CONSTRAINT FK_tb2tweovvy36a4bgym73jhbbk
 FOREIGN KEY (tree_version_id)
 REFERENCES tree_version;
-
-ALTER TABLE IF EXISTS tree_element
-  ADD CONSTRAINT FK_slpx4w0673tudgw4fcodauilv
-FOREIGN KEY (instance_id)
-REFERENCES instance;
-
-ALTER TABLE IF EXISTS tree_element
-  ADD CONSTRAINT FK_89rcrnlb8ed10mgp22d3cj646
-FOREIGN KEY (name_id)
-REFERENCES name;
 
 ALTER TABLE IF EXISTS tree_element
   ADD CONSTRAINT FK_964uyddp8ju1ya5v2px9wx5tf

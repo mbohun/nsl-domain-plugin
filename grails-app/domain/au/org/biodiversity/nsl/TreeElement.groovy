@@ -109,4 +109,8 @@ class TreeElement implements Serializable {
     Instance getInstance() {
         Instance.get(instanceId)
     }
+
+    String toString() {
+        "TreeElement: $simpleName v:$treeVersion.id e:$treeElementId #${hashCode()}"
+    }
 }
