@@ -79,31 +79,34 @@ CREATE TABLE tree_version (
 
 DROP TABLE IF EXISTS tree_element;
 CREATE TABLE tree_element (
-  tree_version_id     INT8                              NOT NULL,
-  tree_element_id     INT8                              NOT NULL,
-  lock_version        INT8 DEFAULT 0                    NOT NULL,
-  display_string      TEXT                              NOT NULL,
-  element_link        TEXT                              NOT NULL,
-  excluded            BOOLEAN DEFAULT FALSE             NOT NULL,
-  instance_id         INT8                              NOT NULL,
-  instance_link       TEXT                              NOT NULL,
-  name_id             INT8                              NOT NULL,
-  name_link           TEXT                              NOT NULL,
-  name_path           TEXT                              NOT NULL,
-  names               TEXT DEFAULT ''                   NOT NULL,
+  tree_version_id     INT8                     NOT NULL,
+  tree_element_id     INT8                     NOT NULL,
+  lock_version        INT8 DEFAULT 0           NOT NULL,
+  depth               INT4                     NOT NULL,
+  display_html        TEXT                     NOT NULL,
+  element_link        TEXT                     NOT NULL,
+  excluded            BOOLEAN DEFAULT FALSE    NOT NULL,
+  instance_id         INT8                     NOT NULL,
+  instance_link       TEXT                     NOT NULL,
+  name_element        VARCHAR(255)             NOT NULL,
+  name_id             INT8                     NOT NULL,
+  name_link           TEXT                     NOT NULL,
+  name_path           TEXT                     NOT NULL,
   parent_Version_Id   INT8,
   parent_Element_Id   INT8,
   previous_Version_Id INT8,
   previous_Element_Id INT8,
   profile             JSONB,
+  rank                VARCHAR(50)              NOT NULL,
   rank_path           JSONB,
-  simple_name         TEXT                              NOT NULL,
+  simple_name         TEXT                     NOT NULL,
   source_element_link TEXT,
-  source_shard        TEXT DEFAULT ''                   NOT NULL,
+  source_shard        TEXT                     NOT NULL,
   synonyms            JSONB,
-  tree_path           TEXT                              NOT NULL,
-  updated_at          TIMESTAMP WITH TIME ZONE          NOT NULL,
-  updated_by          VARCHAR(255)                      NOT NULL,
+  synonyms_html       TEXT                     NOT NULL,
+  tree_path           TEXT                     NOT NULL,
+  updated_at          TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_by          VARCHAR(255)             NOT NULL,
   PRIMARY KEY (tree_version_id, tree_element_id)
 );
 
@@ -205,7 +208,8 @@ CREATE FUNCTION tree_element_data_from_node(root_node BIGINT)
                 simple_name TEXT, display TEXT, prev_node_id BIGINT, tree_path TEXT, name_path TEXT, rank_path JSONB)
 LANGUAGE SQL
 AS $$
-WITH RECURSIVE treewalk (tree_id, parent_id, node_id, excluded, instance_id, name_id, simple_name, display, prev_node_id, tree_path, name_path, rank_path) AS (
+WITH RECURSIVE treewalk (tree_id, parent_id, node_id, excluded, instance_id, name_id, simple_name, name_element,
+    display, prev_node_id, tree_path, name_path, rank_name, rank_path, depth) AS (
   SELECT
     tree.id                                                                                              AS tree_id,
     NULL :: BIGINT                                                                                       AS parent_id,
@@ -214,13 +218,14 @@ WITH RECURSIVE treewalk (tree_id, parent_id, node_id, excluded, instance_id, nam
     node.instance_id                                                                                     AS instance_id,
     node.name_id                                                                                         AS name_id,
     name.simple_name :: TEXT                                                                             AS simple_name,
-    '<div class="tr ' || rank.name || 'level1"><data>' || name.full_name_html || ' <citation>'
-    || ref.citation_html || '</citation></data></div>'                                                   AS display,
+    name.name_element                                                                                    AS name_element,
+    '<data>' || name.full_name_html || '<citation>' || ref.citation_html || '</citation></data>'         AS display,
     node.prev_node_id                                                                                    AS prev_node_id,
     node.id :: TEXT                                                                                      AS tree_path,
     coalesce(name.name_element, '?') :: TEXT                                                             AS name_path,
+    rank.name                                                                                            AS rank_name,
     jsonb_build_object(rank.name, jsonb_build_object('name', name.name_element, 'id', name.id)) :: JSONB AS rank_path,
-    2                                                                                                    AS depth
+    1                                                                                                    AS depth
 
   FROM tree_link link
     JOIN tree_node node ON link.subnode_id = node.id
@@ -233,21 +238,22 @@ WITH RECURSIVE treewalk (tree_id, parent_id, node_id, excluded, instance_id, nam
         AND node.internal_type = 'T'
   UNION ALL
   SELECT
-    treewalk.tree_id                                                                            AS tree_id,
-    treewalk.node_id                                                                            AS parent_id,
-    node.id                                                                                     AS node_id,
-    (node.type_uri_id_part <> 'ApcConcept') :: BOOLEAN                                          AS excluded,
-    node.instance_id                                                                            AS instance_id,
-    node.name_id                                                                                AS name_id,
-    name.simple_name :: TEXT                                                                    AS simple_name,
-    '<div class="tr ' || rank.name || ' level' || treewalk.depth || '"><data>'
-    || name.full_name_html || ' <citation>' || ref.citation_html || '</citation></data></div>'  AS display,
-    node.prev_node_id                                                                           AS prev_node_id,
-    treewalk.tree_path || '/' || node.id                                                        AS tree_path,
-    treewalk.name_path || '/' || coalesce(name.name_element, '?')                               AS name_path,
+    treewalk.tree_id                                                                             AS tree_id,
+    treewalk.node_id                                                                             AS parent_id,
+    node.id                                                                                      AS node_id,
+    (node.type_uri_id_part <> 'ApcConcept') :: BOOLEAN                                           AS excluded,
+    node.instance_id                                                                             AS instance_id,
+    node.name_id                                                                                 AS name_id,
+    name.simple_name :: TEXT                                                                     AS simple_name,
+    name.name_element                                                                            AS name_element,
+    '<data>' || name.full_name_html || '<citation>' || ref.citation_html || '</citation></data>' AS display,
+    node.prev_node_id                                                                            AS prev_node_id,
+    treewalk.tree_path || '/' || node.id                                                         AS tree_path,
+    treewalk.name_path || '/' || coalesce(name.name_element, '?')                                AS name_path,
     treewalk.rank_path ||
-    jsonb_build_object(rank.name, jsonb_build_object('name', name.name_element, 'id', name.id)) AS rank_path,
-    treewalk.depth + 1                                                                          AS depth
+    rank.name                                                                                    AS rank_name,
+    jsonb_build_object(rank.name, jsonb_build_object('name', name.name_element, 'id', name.id))  AS rank_path,
+    treewalk.depth + 1                                                                           AS depth
   FROM treewalk
     JOIN tree_link link ON link.supernode_id = treewalk.node_id
     JOIN tree_node node ON link.subnode_id = node.id
@@ -266,11 +272,14 @@ SELECT
   instance_id,
   name_id,
   simple_name,
+  name_element,
   display,
   prev_node_id,
   tree_path,
   name_path,
-  rank_path
+  rank_name,
+  rank_path,
+  depth
 FROM treewalk
 $$;
 
@@ -335,7 +344,7 @@ INSERT INTO tree_element
  tree_element_id,
  lock_version,
  excluded,
- display_string,
+ display_html,
  element_link,
  instance_id,
  instance_link,
@@ -346,10 +355,13 @@ INSERT INTO tree_element
  previous_version_id,
  previous_element_id,
  profile,
+ rank,
  rank_path,
  simple_name,
+ name_element,
  tree_path,
  name_path,
+ depth,
  source_shard,
  updated_at,
  updated_by)
@@ -358,7 +370,7 @@ INSERT INTO tree_element
      el_data.node_id                                                           AS tree_element_id,
      0 :: BIGINT                                                               AS lock_version,
      el_data.excluded                                                          AS excluded,
-     el_data.display                                                           AS display_string,
+     el_data.display                                                           AS display_html,
      'http://' || host.host_name || '/tree/' || v.id || '/' || el_data.node_id AS element_link,
      el_data.instance_id :: BIGINT                                             AS instance_id,
      'http://' || host.host_name || '/instance/apni/' || el_data.instance_id   AS instance_link,
@@ -377,10 +389,13 @@ INSERT INTO tree_element
      NULL                                                                      AS previousversionid,
      NULL                                                                      AS previouselementid,
      ('{}' :: JSONB)                                                           AS profile,
+     el_data.rank_name                                                         AS rank,
      el_data.rank_path :: JSONB                                                AS rank_path,
      el_data.simple_name                                                       AS simple_name,
+     el_data.name_element                                                      AS name_element,
      el_data.tree_path                                                         AS tree_path,
      el_data.name_path                                                         AS name_path,
+     el_data.depth                                                             AS depth,
      'APNI'                                                                    AS source_shard,
      v.published_at                                                            AS updated_at,
      v.published_by                                                            AS updated_by

@@ -16,11 +16,14 @@ class TreeElement implements Serializable {
     Long nameId              //unconstrained FK to the name - depends on the shard
     Boolean excluded = false //is this an excluded concept
 
-    String displayString
+    String displayHtml
+    String synonymsHtml
     String simpleName
+    String nameElement
     String treePath
     String namePath
-    String names            //a pipe separated list of name and synonyms
+    String rank
+    Integer depth = 0
     String sourceShard      //where the taxon comes from
     Map synonyms
     Map rankPath
@@ -43,11 +46,11 @@ class TreeElement implements Serializable {
         version column: 'lock_version', defaultValue: "0"
 
         updatedAt sqlType: 'timestamp with time zone'
-        displayString sqlType: 'Text'
+        displayHtml sqlType: 'Text'
+        synonymsHtml sqlType: 'Text'
         simpleName sqlType: 'Text', index: "tree_simple_name_Index"
         treePath sqlType: 'Text'
         namePath sqlType: 'Text'
-        names sqlType: 'Text'
         sourceShard sqlType: 'Text'
         elementLink sqlType: 'Text'
         nameLink sqlType: 'Text'
@@ -57,6 +60,7 @@ class TreeElement implements Serializable {
         rankPath type: JsonbMapType
         profile type: JsonbMapType
         excluded defaultValue: false
+        depth defaultValue: 0
 
         columns {
             parentElement {
@@ -75,6 +79,9 @@ class TreeElement implements Serializable {
         previousElement nullable: true
         parentElement nullable: true
         sourceElementLink nullable: true
+        rank maxSize: 50
+        nameElement maxSize: 255
+
     }
 
     static transients = ['name', 'instance']
