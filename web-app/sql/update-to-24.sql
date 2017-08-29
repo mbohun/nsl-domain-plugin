@@ -251,8 +251,8 @@ WITH RECURSIVE treewalk (tree_id, parent_id, node_id, excluded, instance_id, nam
     node.prev_node_id                                                                            AS prev_node_id,
     treewalk.tree_path || '/' || node.id                                                         AS tree_path,
     treewalk.name_path || '/' || coalesce(name.name_element, '?')                                AS name_path,
-    treewalk.rank_path ||
     rank.name :: VARCHAR(50)                                                                     AS rank_name,
+    treewalk.rank_path ||
     jsonb_build_object(rank.name, jsonb_build_object('name', name.name_element, 'id', name.id))  AS rank_path,
     treewalk.depth + 1                                                                           AS depth
   FROM treewalk
