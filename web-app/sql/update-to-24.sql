@@ -556,30 +556,6 @@ SELECT link_back_missing_family_names();
 
 DROP FUNCTION link_back_missing_family_names();
 
--- get the simple name with all it's synonyms in a string
-WITH synonym_strings AS
-(SELECT
-   element.tree_version_id,
-   element.tree_element_id,
-   '|' || name.simple_name || '|' ||
-   string_agg(DISTINCT (synonym.simple_name), '|') AS synonym_names
- FROM Name name, tree_element element, Instance i, Instance s, name synonym
- WHERE name.id = i.name_id
-       AND s.cited_by_id = i.id
-       AND i.id = element.instance_id
-       AND synonym.id = s.name_id
- GROUP BY name.simple_name, element.tree_version_id, element.tree_element_id)
-UPDATE tree_element el
-SET names = synonym_strings.synonym_names
-FROM synonym_strings
-WHERE el.tree_version_id = synonym_strings.tree_version_id
-      AND el.tree_element_id = synonym_strings.tree_element_id;
-
--- set the names element for names without synonyms to | simple_name
-UPDATE tree_element
-SET names = '|' || simple_name
-WHERE names = '';
-
 -- add synonyms jsonb data to tree_elements
 
 DROP FUNCTION IF EXISTS synonyms_as_jsonb( BIGINT, BIGINT );
