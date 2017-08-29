@@ -205,7 +205,8 @@ $$;
 DROP FUNCTION IF EXISTS tree_element_data_from_node( BIGINT );
 CREATE FUNCTION tree_element_data_from_node(root_node BIGINT)
   RETURNS TABLE(tree_id     BIGINT, parent_id BIGINT, node_id BIGINT, excluded BOOLEAN, instance_id BIGINT, name_id BIGINT,
-                simple_name TEXT, display TEXT, prev_node_id BIGINT, tree_path TEXT, name_path TEXT, rank_path JSONB)
+                simple_name TEXT, name_element VARCHAR(255), display TEXT, prev_node_id BIGINT, tree_path TEXT,
+                name_path   TEXT, rank_name VARCHAR(50), rank_path JSONB, depth INT4)
 LANGUAGE SQL
 AS $$
 WITH RECURSIVE treewalk (tree_id, parent_id, node_id, excluded, instance_id, name_id, simple_name, name_element,
@@ -218,12 +219,12 @@ WITH RECURSIVE treewalk (tree_id, parent_id, node_id, excluded, instance_id, nam
     node.instance_id                                                                                     AS instance_id,
     node.name_id                                                                                         AS name_id,
     name.simple_name :: TEXT                                                                             AS simple_name,
-    name.name_element                                                                                    AS name_element,
+    name.name_element :: VARCHAR(255)                                                                    AS name_element,
     '<data>' || name.full_name_html || '<citation>' || ref.citation_html || '</citation></data>'         AS display,
     node.prev_node_id                                                                                    AS prev_node_id,
     node.id :: TEXT                                                                                      AS tree_path,
     coalesce(name.name_element, '?') :: TEXT                                                             AS name_path,
-    rank.name                                                                                            AS rank_name,
+    rank.name :: VARCHAR(50)                                                                             AS rank_name,
     jsonb_build_object(rank.name, jsonb_build_object('name', name.name_element, 'id', name.id)) :: JSONB AS rank_path,
     1                                                                                                    AS depth
 
@@ -245,13 +246,13 @@ WITH RECURSIVE treewalk (tree_id, parent_id, node_id, excluded, instance_id, nam
     node.instance_id                                                                             AS instance_id,
     node.name_id                                                                                 AS name_id,
     name.simple_name :: TEXT                                                                     AS simple_name,
-    name.name_element                                                                            AS name_element,
+    name.name_element :: VARCHAR(255)                                                            AS name_element,
     '<data>' || name.full_name_html || '<citation>' || ref.citation_html || '</citation></data>' AS display,
     node.prev_node_id                                                                            AS prev_node_id,
     treewalk.tree_path || '/' || node.id                                                         AS tree_path,
     treewalk.name_path || '/' || coalesce(name.name_element, '?')                                AS name_path,
     treewalk.rank_path ||
-    rank.name                                                                                    AS rank_name,
+    rank.name :: VARCHAR(50)                                                                     AS rank_name,
     jsonb_build_object(rank.name, jsonb_build_object('name', name.name_element, 'id', name.id))  AS rank_path,
     treewalk.depth + 1                                                                           AS depth
   FROM treewalk
