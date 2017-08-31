@@ -48,7 +48,7 @@ class TreeElement implements Serializable {
         updatedAt sqlType: 'timestamp with time zone'
         displayHtml sqlType: 'Text'
         synonymsHtml sqlType: 'Text'
-        simpleName sqlType: 'Text', index: "tree_simple_name_Index"
+        simpleName sqlType: 'Text', index: "tree_simple_name_index"
         treePath sqlType: 'Text'
         namePath sqlType: 'Text'
         sourceShard sqlType: 'Text'

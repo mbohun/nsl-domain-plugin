@@ -39,4 +39,29 @@ DROP INDEX IF EXISTS previous_element_index;
 CREATE INDEX previous_element_index
   ON tree_element (previous_version_id, previous_element_id);
 
+DROP INDEX IF EXISTS tree_version_id_index;
+CREATE INDEX tree_version_id_index
+  ON tree_element (tree_version_id);
+
+DROP INDEX IF EXISTS tree_element_id_index;
+CREATE INDEX tree_element_id_index
+  ON tree_element (tree_element_id);
+
+DROP INDEX IF EXISTS tree_simple_name_index;
+CREATE INDEX tree_simple_name_index
+  ON tree_element (simple_name);
+
+DROP INDEX IF EXISTS tree_name_path_index;
+CREATE INDEX tree_name_path_index
+  ON tree_element (name_path);
+
+DROP INDEX IF EXISTS tree_tree_path_index;
+CREATE INDEX tree_tree_path_index
+  ON tree_element (tree_path);
+
+DROP INDEX IF EXISTS tree_synonyms_index;
+CREATE INDEX tree_synonyms_index
+  ON tree_element USING GIN (synonyms);
+
+
 INSERT INTO db_version (id, version) VALUES (1, 24);

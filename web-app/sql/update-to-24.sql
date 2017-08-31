@@ -1,10 +1,12 @@
 -- new tree structure
-DROP INDEX IF EXISTS name_path_gin_trgm;
-DROP INDEX IF EXISTS names_gin_trgm;
-DROP INDEX IF EXISTS tree_name_path_Index;
-DROP INDEX IF EXISTS tree_simple_name_Index;
 DROP INDEX IF EXISTS parent_element_index;
 DROP INDEX IF EXISTS previous_element_index;
+DROP INDEX IF EXISTS tree_version_id_index;
+DROP INDEX IF EXISTS tree_element_id_index;
+DROP INDEX IF EXISTS tree_simple_name_index;
+DROP INDEX IF EXISTS tree_name_path_index;
+DROP INDEX IF EXISTS tree_tree_path_index;
+DROP INDEX IF EXISTS tree_synonyms_index;
 
 ALTER TABLE IF EXISTS name
   DROP CONSTRAINT IF EXISTS FK_whce6pgnqjtxgt67xy2lfo34;
@@ -155,7 +157,7 @@ ALTER TABLE IF EXISTS name
 FOREIGN KEY (family_id)
 REFERENCES name;
 
-CREATE INDEX tree_simple_name_Index
+CREATE INDEX tree_simple_name_index
   ON tree_element (simple_name);
 
 CREATE INDEX parent_element_index
@@ -163,6 +165,21 @@ CREATE INDEX parent_element_index
 
 CREATE INDEX previous_element_index
   ON tree_element (previous_version_id, previous_element_id);
+
+CREATE INDEX tree_version_id_index
+  ON tree_element (tree_version_id);
+
+CREATE INDEX tree_element_id_index
+  ON tree_element (tree_element_id);
+
+CREATE INDEX tree_name_path_index
+  ON tree_element (name_path);
+
+CREATE INDEX tree_tree_path_index
+  ON tree_element (tree_path);
+
+CREATE INDEX tree_synonyms_index
+  ON tree_element USING GIN (synonyms);
 
 -- import old tree data into the new structure - this will take a while
 
@@ -529,9 +546,10 @@ WHERE n.name_rank_id = rank.id
       AND rank.name = 'Familia'
       AND family_id IS NULL;
 
--- 88888 now we repeatedly look at parent name to see if it has a family set and use that until we update none
+-- Repeatedly look at parent name to see if it has a family set and use that until we update none
 -- this uses names that don't have instances because some names with instances have name parents that do not have instances
 -- after this there are about 56 names (ranked family and below) with instances that don't have a family. see NSL-2440
+-- TODO THIS IS PROBABLY WRONG and there has been discussion around how to do this better.
 DROP FUNCTION IF EXISTS link_back_missing_family_names();
 CREATE FUNCTION link_back_missing_family_names()
   RETURNS VOID AS $$
@@ -565,23 +583,73 @@ LANGUAGE SQL
 AS $$
 SELECT jsonb_object_agg(synonym.simple_name, jsonb_build_object(
     'type', it.name,
-    'name_id', synonym.id
+    'name_id', synonym.id,
+    'full_name_html', synonym.full_name_html,
+    'nom', it.nomenclatural,
+    'tax', it.taxonomic,
+    'mis', it.misapplied,
+    'cites', cites_ref.citation_html
 ))
-FROM tree_element element,
+FROM tree_element elem,
   Instance i,
-  Instance s
-  JOIN instance_type it ON s.instance_type_id = it.id
+  Instance syn_inst
+  JOIN instance_type it ON syn_inst.instance_type_id = it.id
+  JOIN instance cites_inst ON syn_inst.cites_id = cites_inst.id
+  JOIN reference cites_ref ON cites_inst.reference_id = cites_ref.id
   ,
   name synonym
-WHERE s.cited_by_id = i.id
-      AND i.id = element.instance_id
-      AND synonym.id = s.name_id
-      AND element.tree_version_id = version_id
-      AND element.tree_element_id = element_id;
+WHERE syn_inst.cited_by_id = i.id
+      AND i.id = elem.instance_id
+      AND synonym.id = syn_inst.name_id
+      AND elem.tree_version_id = version_id
+      AND elem.tree_element_id = element_id;
 $$;
 
 UPDATE tree_element
 SET synonyms = synonyms_as_jsonb(tree_version_id, tree_element_id);
+
+-- set synonym html
+
+DROP FUNCTION IF EXISTS synonyms_as_html( BIGINT, BIGINT );
+CREATE FUNCTION synonyms_as_html(version_id BIGINT, element_id BIGINT)
+  RETURNS TABLE(html TEXT)
+LANGUAGE SQL
+AS $$
+SELECT CASE
+       WHEN it.nomenclatural
+         THEN '<nom>' || synonym.full_name_html || ' <type>' || it.name || '</type></nom>'
+       WHEN it.taxonomic
+         THEN '<tax>' || synonym.full_name_html || ' <type>' || it.name || '</type></tax>'
+       WHEN it.misapplied
+         THEN '<mis>' || synonym.full_name_html || ' <type>' || it.name || '</type> by <citation>' ||
+              cites_ref.citation_html
+              ||
+              '</citation></mis>'
+       ELSE ''
+       END
+FROM tree_element ELEMENT,
+  Instance i,
+  Instance syn_inst
+  JOIN instance_type it ON syn_inst.instance_type_id = it.id
+  JOIN instance cites_inst ON syn_inst.cites_id = cites_inst.id
+  JOIN reference cites_ref ON cites_inst.reference_id = cites_ref.id
+  ,
+  NAME synonym
+WHERE syn_inst.cited_by_id = i.id
+      AND i.id = ELEMENT.instance_id
+      AND synonym.id = syn_inst.name_id
+      AND ELEMENT.tree_version_id = version_id
+      AND ELEMENT.tree_element_id = element_id
+ORDER BY it.nomenclatural DESC, it.taxonomic DESC, it.misapplied DESC, cites_ref.year ASC;
+$$;
+
+UPDATE tree_element el
+SET synonyms_html = coalesce((SELECT '<synonyms>' || string_agg(html, '') || '</synonyms>'
+                              FROM
+                                tree_element elem, synonyms_as_html(elem.tree_version_id, elem.tree_element_id) AS html
+                              WHERE elem.tree_element_id = el.tree_element_id AND
+                                    elem.tree_version_id = el.tree_version_id), '<synonyms></synonyms>')
+WHERE el.synonyms IS NOT NULL;
 
 -- add jsonb profile data to tree_elements
 DROP FUNCTION IF EXISTS profile_as_jsonb( BIGINT, BIGINT );
