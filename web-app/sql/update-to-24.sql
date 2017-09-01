@@ -391,7 +391,7 @@ INSERT INTO tree_element
      0 :: BIGINT                                                               AS lock_version,
      el_data.excluded                                                          AS excluded,
      el_data.display                                                           AS display_html,
-     '<synonyms>Not Set</synonyms>'                                            AS synonyms_html,
+     '<synonyms></synonyms>'                                                   AS synonyms_html,
      'http://' || host.host_name || '/tree/' || v.id || '/' || el_data.node_id AS element_link,
      el_data.instance_id :: BIGINT                                             AS instance_id,
      'http://' || host.host_name || '/instance/apni/' || el_data.instance_id   AS instance_link,
