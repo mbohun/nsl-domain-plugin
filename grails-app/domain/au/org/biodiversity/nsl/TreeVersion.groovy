@@ -13,7 +13,7 @@ class TreeVersion {
     String publishedBy
     Timestamp publishedAt
 
-    static hasMany = [treeElements: TreeElement]
+    static hasMany = [treeVersionElements: TreeVersionElement]
     static belongsTo = [Tree]
 
     static mapping = {

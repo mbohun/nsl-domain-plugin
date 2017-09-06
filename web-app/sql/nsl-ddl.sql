@@ -242,11 +242,11 @@
     alter table if exists tree_version 
         drop constraint if exists FK_4q3huja5dv8t9xyvt5rg83a35;
 
-    alter table if exists tree_version_tree_elements 
-        drop constraint if exists FK_6pcmcnh5t2ccpcxycmdk1hoyw;
+    alter table if exists tree_version_element 
+        drop constraint if exists FK_ufme7yt6bqyf3uxvuvouowhh;
 
-    alter table if exists tree_version_tree_elements 
-        drop constraint if exists FK_1aqiekd9a99mfdi4l6x1jrne9;
+    alter table if exists tree_version_element 
+        drop constraint if exists FK_80khvm60q13xwqgpy43twlnoe;
 
     drop table if exists author cascade;
 
@@ -330,7 +330,7 @@
 
     drop table if exists tree_version cascade;
 
-    drop table if exists tree_version_tree_elements cascade;
+    drop table if exists tree_version_element cascade;
 
     drop table if exists user_query cascade;
 
@@ -840,7 +840,6 @@
         lock_version int8 default 0 not null,
         depth int4 not null,
         display_html Text not null,
-        element_link Text not null,
         excluded boolean default false not null,
         instance_id int8 not null,
         instance_link Text not null,
@@ -859,6 +858,8 @@
         synonyms jsonb,
         synonyms_html Text not null,
         tree_path Text not null,
+        updated_at timestamp with time zone not null,
+        updated_by varchar(255) not null,
         primary key (id)
     );
 
@@ -954,10 +955,11 @@
         primary key (id)
     );
 
-    create table tree_version_tree_elements (
-        tree_version_id int8 not null,
+    create table tree_version_element (
+        element_link Text not null,
         tree_element_id int8 not null,
-        primary key (tree_version_id, tree_element_id)
+        tree_version_id int8 not null,
+        primary key (element_link)
     );
 
     create table user_query (
@@ -1202,6 +1204,8 @@
     create index node_uri_index on tree_value_uri (node_uri_id_part, node_uri_ns_part_id, root_id);
 
     create index by_root_id on tree_value_uri (root_id);
+
+    create index tree_version_element_link_index on tree_version_element (element_link);
 
     alter table if exists why_is_this_here 
         add constraint UK_sv1q1i7xve7xgmkwvmdbeo1mb  unique (name);
@@ -1611,13 +1615,13 @@
         foreign key (tree_id) 
         references tree;
 
-    alter table if exists tree_version_tree_elements 
-        add constraint FK_6pcmcnh5t2ccpcxycmdk1hoyw 
+    alter table if exists tree_version_element 
+        add constraint FK_ufme7yt6bqyf3uxvuvouowhh 
         foreign key (tree_element_id) 
         references tree_element;
 
-    alter table if exists tree_version_tree_elements 
-        add constraint FK_1aqiekd9a99mfdi4l6x1jrne9 
+    alter table if exists tree_version_element 
+        add constraint FK_80khvm60q13xwqgpy43twlnoe 
         foreign key (tree_version_id) 
         references tree_version;
 

@@ -1,8 +1,4 @@
 -- new tree structure
-DROP INDEX IF EXISTS parent_element_index;
-DROP INDEX IF EXISTS previous_element_index;
-DROP INDEX IF EXISTS tree_version_id_index;
-DROP INDEX IF EXISTS tree_element_id_index;
 DROP INDEX IF EXISTS tree_simple_name_index;
 DROP INDEX IF EXISTS tree_name_path_index;
 DROP INDEX IF EXISTS tree_tree_path_index;
@@ -24,21 +20,23 @@ ALTER TABLE IF EXISTS tree_version
   DROP CONSTRAINT IF EXISTS FK_4q3huja5dv8t9xyvt5rg83a35;
 
 ALTER TABLE IF EXISTS tree_element
-  DROP CONSTRAINT IF EXISTS FK_tb2tweovvy36a4bgym73jhbbk;
-
--- 8< ---
-ALTER TABLE IF EXISTS tree_element
-  DROP CONSTRAINT IF EXISTS FK_slpx4w0673tudgw4fcodauilv;
+  DROP CONSTRAINT IF EXISTS FK_eoywd7l5fhjpjgn461r6ni2ak;
 
 ALTER TABLE IF EXISTS tree_element
-  DROP CONSTRAINT IF EXISTS FK_89rcrnlb8ed10mgp22d3cj646;
--- 8< ---
+  DROP CONSTRAINT IF EXISTS FK_5sv181ivf7oybb6hud16ptmo5;
 
-ALTER TABLE IF EXISTS tree_element
-  DROP CONSTRAINT IF EXISTS FK_964uyddp8ju1ya5v2px9wx5tf;
+-- todo remove tree_version_tree_element join table
+ALTER TABLE IF EXISTS tree_version_tree_elements
+  DROP CONSTRAINT IF EXISTS FK_6pcmcnh5t2ccpcxycmdk1hoyw;
 
-ALTER TABLE IF EXISTS tree_element
-  DROP CONSTRAINT IF EXISTS FK_kaotdsllnfojld6pdxb8c9gml;
+ALTER TABLE IF EXISTS tree_version_tree_elements
+  DROP CONSTRAINT IF EXISTS FK_1aqiekd9a99mfdi4l6x1jrne9;
+--
+ALTER TABLE IF EXISTS tree_version_element
+  DROP CONSTRAINT IF EXISTS FK_ufme7yt6bqyf3uxvuvouowhh;
+
+ALTER TABLE IF EXISTS tree_version_element
+  DROP CONSTRAINT IF EXISTS FK_80khvm60q13xwqgpy43twlnoe;
 
 DROP TABLE IF EXISTS distribution;
 CREATE TABLE distribution (
@@ -81,36 +79,44 @@ CREATE TABLE tree_version (
 
 DROP TABLE IF EXISTS tree_element;
 CREATE TABLE tree_element (
-  tree_version_id     INT8                     NOT NULL,
-  tree_element_id     INT8                     NOT NULL,
-  lock_version        INT8 DEFAULT 0           NOT NULL,
-  depth               INT4                     NOT NULL,
-  display_html        TEXT                     NOT NULL,
-  element_link        TEXT                     NOT NULL,
-  excluded            BOOLEAN DEFAULT FALSE    NOT NULL,
-  instance_id         INT8                     NOT NULL,
-  instance_link       TEXT                     NOT NULL,
-  name_element        VARCHAR(255)             NOT NULL,
-  name_id             INT8                     NOT NULL,
-  name_link           TEXT                     NOT NULL,
-  name_path           TEXT                     NOT NULL,
-  parent_Version_Id   INT8,
-  parent_Element_Id   INT8,
-  previous_Version_Id INT8,
-  previous_Element_Id INT8,
+  id                  INT8 DEFAULT nextval('nsl_global_seq') NOT NULL,
+  lock_version        INT8 DEFAULT 0                         NOT NULL,
+  depth               INT4                                   NOT NULL,
+  display_html        TEXT                                   NOT NULL,
+  excluded            BOOLEAN DEFAULT FALSE                  NOT NULL,
+  instance_id         INT8                                   NOT NULL,
+  instance_link       TEXT                                   NOT NULL,
+  name_element        VARCHAR(255)                           NOT NULL,
+  name_id             INT8                                   NOT NULL,
+  name_link           TEXT                                   NOT NULL,
+  name_path           TEXT                                   NOT NULL,
+  parent_element_id   INT8,
+  previous_element_id INT8,
   profile             JSONB,
-  rank                VARCHAR(50)              NOT NULL,
+  rank                VARCHAR(50)                            NOT NULL,
   rank_path           JSONB,
-  simple_name         TEXT                     NOT NULL,
+  simple_name         TEXT                                   NOT NULL,
   source_element_link TEXT,
-  source_shard        TEXT                     NOT NULL,
+  source_shard        TEXT                                   NOT NULL,
   synonyms            JSONB,
-  synonyms_html       TEXT                     NOT NULL,
-  tree_path           TEXT                     NOT NULL,
-  updated_at          TIMESTAMP WITH TIME ZONE NOT NULL,
-  updated_by          VARCHAR(255)             NOT NULL,
-  PRIMARY KEY (tree_version_id, tree_element_id)
+  synonyms_html       TEXT                                   NOT NULL,
+  tree_path           TEXT                                   NOT NULL,
+  updated_at          TIMESTAMP WITH TIME ZONE               NOT NULL,
+  updated_by          VARCHAR(255)                           NOT NULL,
+  PRIMARY KEY (id)
 );
+
+-- todo remove
+DROP TABLE IF EXISTS tree_version_tree_elements;
+--
+DROP TABLE IF EXISTS tree_version_element;
+CREATE TABLE tree_version_element (
+  element_link    TEXT NOT NULL,
+  tree_element_id INT8 NOT NULL,
+  tree_version_id INT8 NOT NULL,
+  PRIMARY KEY (element_link)
+);
+
 
 ALTER TABLE name
   ADD COLUMN family_id INT8;
@@ -128,18 +134,13 @@ FOREIGN KEY (default_draft_tree_version_id)
 REFERENCES tree_version;
 
 ALTER TABLE IF EXISTS tree_element
-  ADD CONSTRAINT FK_tb2tweovvy36a4bgym73jhbbk
-FOREIGN KEY (tree_version_id)
-REFERENCES tree_version;
-
-ALTER TABLE IF EXISTS tree_element
-  ADD CONSTRAINT FK_964uyddp8ju1ya5v2px9wx5tf
-FOREIGN KEY (parent_Version_Id, parent_Element_Id)
+  ADD CONSTRAINT FK_eoywd7l5fhjpjgn461r6ni2ak
+FOREIGN KEY (parent_element_id)
 REFERENCES tree_element;
 
 ALTER TABLE IF EXISTS tree_element
-  ADD CONSTRAINT FK_kaotdsllnfojld6pdxb8c9gml
-FOREIGN KEY (previous_Version_Id, previous_Element_Id)
+  ADD CONSTRAINT FK_5sv181ivf7oybb6hud16ptmo5
+FOREIGN KEY (previous_element_id)
 REFERENCES tree_element;
 
 ALTER TABLE IF EXISTS tree_version
@@ -157,25 +158,26 @@ ALTER TABLE IF EXISTS name
 FOREIGN KEY (family_id)
 REFERENCES name;
 
+ALTER TABLE IF EXISTS tree_version_element
+  ADD CONSTRAINT FK_ufme7yt6bqyf3uxvuvouowhh
+FOREIGN KEY (tree_element_id)
+REFERENCES tree_element;
+
+ALTER TABLE IF EXISTS tree_version_element
+  ADD CONSTRAINT FK_80khvm60q13xwqgpy43twlnoe
+FOREIGN KEY (tree_version_id)
+REFERENCES tree_version;
+
+CREATE INDEX tree_version_element_link_index
+  ON tree_version_element (element_link);
+
 CREATE INDEX tree_simple_name_index
   ON tree_element (simple_name);
-
-CREATE INDEX parent_element_index
-  ON tree_element (parent_version_id, parent_element_id);
-
-CREATE INDEX previous_element_index
-  ON tree_element (previous_version_id, previous_element_id);
-
-CREATE INDEX tree_version_id_index
-  ON tree_element (tree_version_id);
-
-CREATE INDEX tree_element_id_index
-  ON tree_element (tree_element_id);
 
 CREATE INDEX tree_name_path_index
   ON tree_element (name_path);
 
-CREATE INDEX tree_tree_path_index
+CREATE INDEX tree_path_index
   ON tree_element (tree_path);
 
 CREATE INDEX tree_synonyms_index
@@ -217,100 +219,99 @@ GROUP BY year, month, day
 ORDER BY latest_node_id ASC
 $$;
 
--- get tree element data from a tree
-
-DROP FUNCTION IF EXISTS tree_element_data_from_node( BIGINT );
-CREATE FUNCTION tree_element_data_from_node(root_node BIGINT)
-  RETURNS TABLE(tree_id     BIGINT, parent_id BIGINT, node_id BIGINT, excluded BOOLEAN, instance_id BIGINT, name_id BIGINT,
-                simple_name TEXT, name_element VARCHAR(255), display TEXT, prev_node_id BIGINT, tree_path TEXT,
-                name_path   TEXT, rank_name VARCHAR(50), rank_path JSONB, depth INT4)
+DROP FUNCTION IF EXISTS tree_element_data_from_start_node( BIGINT );
+CREATE FUNCTION tree_element_data_from_start_node(root_node BIGINT)
+  RETURNS TABLE(tree_id     BIGINT, node_id BIGINT, excluded BOOLEAN, declared_bt BOOLEAN, instance_id BIGINT, name_id BIGINT,
+                simple_name TEXT, name_path TEXT, instance_path TEXT, parent_instance_path TEXT, parent_excluded BOOLEAN,
+                rank_path   JSONB, depth INT4)
 LANGUAGE SQL
 AS $$
-WITH RECURSIVE treewalk (tree_id, parent_id, node_id, excluded, instance_id, name_id, simple_name, name_element,
-    display, prev_node_id, tree_path, name_path, rank_name, rank_path, depth) AS (
+WITH RECURSIVE treewalk (tree_id, node_id, excluded, declared_bt, instance_id, name_id, simple_name, name_path, instance_path,
+    parent_instance_path, parent_excluded, rank_path, depth) AS (
   SELECT
-    tree.id                                                                                              AS tree_id,
-    NULL :: BIGINT                                                                                       AS parent_id,
-    node.id                                                                                              AS node_id,
-    (node.type_uri_id_part <> 'ApcConcept') :: BOOLEAN                                                   AS excluded,
-    node.instance_id                                                                                     AS instance_id,
-    node.name_id                                                                                         AS name_id,
-    name.simple_name :: TEXT                                                                             AS simple_name,
-    coalesce(name.name_element,
-             '?') :: VARCHAR(255)                                                                        AS name_element,
-    '<data>' || name.full_name_html || '<citation>' || ref.citation_html || '</citation></data>'         AS display,
-    node.prev_node_id                                                                                    AS prev_node_id,
-    node.id :: TEXT                                                                                      AS tree_path,
-    coalesce(name.name_element, '?') :: TEXT                                                             AS name_path,
-    rank.name :: VARCHAR(50)                                                                             AS rank_name,
-    jsonb_build_object(rank.name, jsonb_build_object('name', name.name_element, 'id', name.id)) :: JSONB AS rank_path,
-    1                                                                                                    AS depth
-
+    tree.id                                                                                        AS tree_id,
+    node.id                                                                                        AS node_id,
+    (node.type_uri_id_part <> 'ApcConcept') :: BOOLEAN                                             AS excluded,
+    (node.type_uri_id_part = 'DeclaredBt') :: BOOLEAN                                              AS declared_bt,
+    node.instance_id                                                                               AS instance_id,
+    node.name_id                                                                                   AS name_id,
+    n.simple_name :: TEXT                                                                          AS simple_name,
+    coalesce(n.name_element, '?')                                                                  AS name_path,
+    CASE WHEN (node.type_uri_id_part <> 'ApcConcept')
+      THEN
+        'x' || node.instance_id :: TEXT
+    ELSE
+      node.instance_id :: TEXT
+    END                                                                                            AS instance_path,
+    ''                                                                                             AS parent_instance_path,
+    FALSE                                                                                          AS parent_excluded,
+    jsonb_build_object(rank.name, jsonb_build_object('name', n.name_element, 'id', n.id)) :: JSONB AS rank_path,
+    1                                                                                              AS depth
   FROM tree_link link
     JOIN tree_node node ON link.subnode_id = node.id
     JOIN tree_arrangement tree ON node.tree_arrangement_id = tree.id
-    JOIN name ON node.name_id = name.id
-    JOIN name_rank rank ON name.name_rank_id = rank.id
+    JOIN name n ON node.name_id = n.id
+    JOIN name_rank rank ON n.name_rank_id = rank.id
     JOIN instance inst ON node.instance_id = inst.id
     JOIN reference ref ON inst.reference_id = ref.id
   WHERE link.supernode_id = root_node
         AND node.internal_type = 'T'
   UNION ALL
   SELECT
-    treewalk.tree_id                                                                             AS tree_id,
-    treewalk.node_id                                                                             AS parent_id,
-    node.id                                                                                      AS node_id,
-    (node.type_uri_id_part <> 'ApcConcept') :: BOOLEAN                                           AS excluded,
-    node.instance_id                                                                             AS instance_id,
-    node.name_id                                                                                 AS name_id,
-    name.simple_name :: TEXT                                                                     AS simple_name,
-    coalesce(name.name_element, '?') :: VARCHAR(255)                                             AS name_element,
-    '<data>' || name.full_name_html || '<citation>' || ref.citation_html || '</citation></data>' AS display,
-    node.prev_node_id                                                                            AS prev_node_id,
-    treewalk.tree_path || '/' || node.id                                                         AS tree_path,
-    treewalk.name_path || '/' || coalesce(name.name_element, '?')                                AS name_path,
-    rank.name :: VARCHAR(50)                                                                     AS rank_name,
+    treewalk.tree_id                                                                      AS tree_id,
+    node.id                                                                               AS node_id,
+    (node.type_uri_id_part <>
+     'ApcConcept') :: BOOLEAN                                                             AS excluded,
+    (node.type_uri_id_part =
+     'DeclaredBt') :: BOOLEAN                                                             AS declared_bt,
+    node.instance_id                                                                      AS instance_id,
+    node.name_id                                                                          AS name_id,
+    n.simple_name :: TEXT                                                                 AS simple_name,
+    treewalk.name_path || '/' || COALESCE(n.name_element,
+                                          '?')                                            AS name_path,
+    CASE WHEN (node.type_uri_id_part <> 'ApcConcept')
+      THEN
+        treewalk.instance_path || '/x' || node.instance_id :: TEXT
+    ELSE
+      treewalk.instance_path || '/' || node.instance_id :: TEXT
+    END                                                                                   AS instance_path,
+    treewalk.instance_path                                                                AS parent_instance_path,
+    treewalk.excluded                                                                     AS parent_excluded,
     treewalk.rank_path ||
-    jsonb_build_object(rank.name, jsonb_build_object('name', name.name_element, 'id', name.id))  AS rank_path,
-    treewalk.depth + 1                                                                           AS depth
+    jsonb_build_object(rank.name, jsonb_build_object('name', n.name_element, 'id', n.id)) AS rank_path,
+    treewalk.depth + 1                                                                    AS depth
   FROM treewalk
     JOIN tree_link link ON link.supernode_id = treewalk.node_id
     JOIN tree_node node ON link.subnode_id = node.id
-    JOIN name ON node.name_id = name.id
-    JOIN name_rank rank ON name.name_rank_id = rank.id
+    JOIN name n ON node.name_id = n.id
+    JOIN name_rank rank ON n.name_rank_id = rank.id
     JOIN instance inst ON node.instance_id = inst.id
-    JOIN reference ref ON inst.reference_id = ref.id
+    JOIN reference REF ON inst.reference_id = REF.id
   WHERE node.internal_type = 'T'
         AND node.tree_arrangement_id = treewalk.tree_id
 )
 SELECT
   tree_id,
-  parent_id,
   node_id,
   excluded,
+  declared_bt,
   instance_id,
   name_id,
   simple_name,
-  name_element,
-  display,
-  prev_node_id,
-  tree_path,
   name_path,
-  rank_name,
+  instance_path,
+  parent_instance_path,
+  parent_excluded,
   rank_path,
   depth
 FROM treewalk
 $$;
 
-VACUUM ANALYSE;
-
-DROP SEQUENCE IF EXISTS test_seq;
-CREATE SEQUENCE test_seq;
+-- ************ build new tree data *******************
 
 INSERT INTO tree (group_name, name) VALUES ('treebuilder', 'APC');
 
 -- create versions
-
 INSERT INTO tree_version
 (id,
  lock_version,
@@ -322,7 +323,7 @@ INSERT INTO tree_version
  published_by,
  tree_id)
   (SELECT
-     nextval('test_seq' :: REGCLASS)                   AS id,
+     nextval('nsl_global_seq' :: REGCLASS)             AS id,
      0                                                 AS lock_version,
      'import'                                          AS draft_name,
      'import'                                          AS log_entry,
@@ -349,32 +350,160 @@ VACUUM ANALYSE;
 
 -- create elements
 
-ALTER TABLE IF EXISTS tree_element
-  DROP CONSTRAINT IF EXISTS FK_tb2tweovvy36a4bgym73jhbbk;
 
-ALTER TABLE IF EXISTS tree_element
-  DROP CONSTRAINT IF EXISTS FK_964uyddp8ju1ya5v2px9wx5tf;
+DROP INDEX IF EXISTS instance_path_index;
+DROP INDEX IF EXISTS parent_instance_path_index;
+DROP INDEX IF EXISTS unique_instance_path_index;
 
-ALTER TABLE IF EXISTS tree_element
-  DROP CONSTRAINT IF EXISTS FK_kaotdsllnfojld6pdxb8c9gml;
+DROP TABLE IF EXISTS instance_paths;
+CREATE TABLE instance_paths (
+    id,
+    instance_path,
+    parent_instance_path,
+    name_path,
+    rank_path,
+    instance_id,
+    name_id,
+    excluded,
+    declared_bt,
+    depth,
+    versions_str,
+    nodes,
+    versions
+) AS
+  SELECT
+    nextval('nsl_global_seq'),
+    instance_path,
+    parent_instance_path,
+    name_path,
+    rank_path,
+    instance_id,
+    name_id,
+    excluded,
+    declared_bt,
+    depth,
+    string_agg(v.id :: TEXT, ','),
+    jsonb_agg(DISTINCT (node_id)),
+    jsonb_agg(v.id)
+  FROM daily_top_nodes('APC', '2016-01-01') AS dtn,
+    tree_version v,
+        tree_element_data_from_start_node(dtn.latest_node_id) AS el_data,
+    mapper.host host
+  WHERE v.published_at = (dtn.year || '-' || dtn.month || '-' || dtn.day) :: TIMESTAMP
+        AND el_data.instance_id IS NOT NULL
+        AND host.preferred = TRUE
+  GROUP BY instance_path, excluded,
+    declared_bt, parent_instance_path, name_path, rank_path, instance_id, name_id,
+    depth;
+
+CREATE INDEX instance_path_index
+  ON instance_paths (instance_path);
+CREATE INDEX parent_instance_path_index
+  ON instance_paths (parent_instance_path);
+CREATE UNIQUE INDEX unique_instance_path_index
+  ON instance_paths (instance_path, excluded);
+
+DROP FUNCTION IF EXISTS synonym_as_html( BIGINT );
+CREATE FUNCTION synonym_as_html(instance_id BIGINT)
+  RETURNS TABLE(html TEXT)
+LANGUAGE SQL
+AS $$
+SELECT CASE
+       WHEN it.nomenclatural
+         THEN '<nom>' || synonym.full_name_html || ' <type>' || it.name || '</type></nom>'
+       WHEN it.taxonomic
+         THEN '<tax>' || synonym.full_name_html || ' <type>' || it.name || '</type></tax>'
+       WHEN it.misapplied
+         THEN '<mis>' || synonym.full_name_html || ' <type>' || it.name || '</type> by <citation>' ||
+              cites_ref.citation_html
+              ||
+              '</citation></mis>'
+       ELSE ''
+       END
+FROM Instance i,
+  Instance syn_inst
+  JOIN instance_type it ON syn_inst.instance_type_id = it.id
+  JOIN instance cites_inst ON syn_inst.cites_id = cites_inst.id
+  JOIN reference cites_ref ON cites_inst.reference_id = cites_ref.id
+  ,
+  NAME synonym
+WHERE syn_inst.cited_by_id = i.id
+      AND i.id = instance_id
+      AND synonym.id = syn_inst.name_id
+ORDER BY it.nomenclatural DESC, it.taxonomic DESC, it.misapplied DESC, cites_ref.year ASC;
+$$;
+
+DROP FUNCTION IF EXISTS synonyms_as_html( BIGINT );
+CREATE FUNCTION synonyms_as_html(instance_id BIGINT)
+  RETURNS TEXT
+LANGUAGE SQL
+AS $$
+SELECT '<synonyms>' || string_agg(html, '') || '</synonyms>'
+FROM synonym_as_html(instance_id) AS html;
+$$;
+
+SELECT coalesce(synonyms_as_html(738442), '<synonyms></synonyms>');
+
+DROP FUNCTION IF EXISTS profile_as_jsonb( BIGINT );
+CREATE FUNCTION profile_as_jsonb(source_instance_id BIGINT)
+  RETURNS JSONB
+LANGUAGE SQL
+AS $$
+SELECT jsonb_object_agg(key.name, jsonb_build_object(
+    'value', note.value,
+    'created_at', note.created_at,
+    'created_by', note.created_by,
+    'updated_at', note.updated_at,
+    'updated_by', note.updated_by,
+    'source_id', note.source_id,
+    'source_system', note.source_system
+))
+FROM instance i
+  JOIN instance_note note ON i.id = note.instance_id
+  JOIN instance_note_key key ON note.instance_note_key_id = key.id
+WHERE i.id = source_instance_id;
+$$;
+
+DROP FUNCTION IF EXISTS synonyms_as_jsonb( BIGINT );
+CREATE FUNCTION synonyms_as_jsonb(instance_id BIGINT)
+  RETURNS JSONB
+LANGUAGE SQL
+AS $$
+SELECT jsonb_object_agg(synonym.simple_name, jsonb_build_object(
+    'type', it.name,
+    'name_id', synonym.id,
+    'full_name_html', synonym.full_name_html,
+    'nom', it.nomenclatural,
+    'tax', it.taxonomic,
+    'mis', it.misapplied,
+    'cites', cites_ref.citation_html
+))
+FROM Instance i,
+  Instance syn_inst
+  JOIN instance_type it ON syn_inst.instance_type_id = it.id
+  JOIN instance cites_inst ON syn_inst.cites_id = cites_inst.id
+  JOIN reference cites_ref ON cites_inst.reference_id = cites_ref.id
+  ,
+  name synonym
+WHERE i.id = instance_id
+      AND syn_inst.cited_by_id = i.id
+      AND synonym.id = syn_inst.name_id;
+$$;
 
 INSERT INTO tree_element
-(tree_version_id,
- tree_element_id,
+(id,
  lock_version,
  excluded,
  display_html,
  synonyms_html,
- element_link,
  instance_id,
  instance_link,
  name_id,
  name_link,
- parent_version_id,
  parent_element_id,
- previous_version_id,
  previous_element_id,
  profile,
+ synonyms,
  rank,
  rank_path,
  simple_name,
@@ -384,107 +513,95 @@ INSERT INTO tree_element
  depth,
  source_shard,
  updated_at,
- updated_by)
+ updated_by
+)
   (SELECT
-     v.id                                                                      AS tree_version_id,
-     el_data.node_id                                                           AS tree_element_id,
-     0 :: BIGINT                                                               AS lock_version,
-     el_data.excluded                                                          AS excluded,
-     el_data.display                                                           AS display_html,
-     '<synonyms></synonyms>'                                                   AS synonyms_html,
-     'http://' || host.host_name || '/tree/' || v.id || '/' || el_data.node_id AS element_link,
-     el_data.instance_id :: BIGINT                                             AS instance_id,
-     'http://' || host.host_name || '/instance/apni/' || el_data.instance_id   AS instance_link,
-     el_data.name_id :: BIGINT                                                 AS name_id,
-     'http://' || host.host_name || '/name/apni/' || el_data.name_id           AS name_link,
-     CASE WHEN el_data.parent_id IS NOT NULL AND el_data.parent_id != dtn.latest_node_id
-       THEN
-         v.id
-     ELSE NULL :: BIGINT
-     END                                                                       AS parentversionid,
-     CASE WHEN el_data.parent_id IS NOT NULL AND el_data.parent_id != dtn.latest_node_id
-       THEN
-         el_data.parent_id :: BIGINT
-     ELSE NULL :: BIGINT
-     END                                                                       AS parentelementid,
-     NULL                                                                      AS previousversionid,
-     NULL                                                                      AS previouselementid,
-     ('{}' :: JSONB)                                                           AS profile,
-     el_data.rank_name                                                         AS rank,
-     el_data.rank_path :: JSONB                                                AS rank_path,
-     el_data.simple_name                                                       AS simple_name,
-     el_data.name_element                                                      AS name_element,
-     el_data.tree_path                                                         AS tree_path,
-     el_data.name_path                                                         AS name_path,
-     el_data.depth                                                             AS depth,
-     'APNI'                                                                    AS source_shard,
-     v.published_at                                                            AS updated_at,
-     v.published_by                                                            AS updated_by
-   FROM daily_top_nodes('APC', '2016-01-01') AS dtn,
-     tree_version v,
-         tree_element_data_from_node(dtn.latest_node_id) AS el_data,
+     ipath.id                                                                                  AS id,
+     0 :: BIGINT                                                                               AS lock_version,
+     ipath.excluded                                                                            AS excluded,
+     '<data>' || n.full_name_html || '<citation>' || ref.citation_html || '</citation></data>' AS display_html,
+     coalesce(synonyms_as_html(ipath.instance_id), '<synonyms></synonyms>')                    AS synonyms_html,
+     ipath.instance_id :: BIGINT                                                               AS instance_id,
+     'http://' || host.host_name || '/instance/apni/' || ipath.instance_id                     AS instance_link,
+     ipath.name_id :: BIGINT                                                                   AS name_id,
+     'http://' || host.host_name || '/name/apni/' || ipath.name_id                             AS name_link,
+     coalesce(parent_ipath.id, NULL)                                                           AS parentelementid,
+     NULL                                                                                      AS previouselementid,
+     profile_as_jsonb(ipath.instance_id)                                                       AS profile,
+     synonyms_as_jsonb(ipath.instance_id)                                                      AS synonyms,
+     rank.name                                                                                 AS rank,
+     ipath.rank_path                                                                           AS rank_path,
+     n.simple_name                                                                             AS simple_name,
+     coalesce(n.name_element, '?')                                                             AS name_element,
+     ipath.instance_path                                                                       AS tree_path,
+     ipath.name_path                                                                           AS name_path,
+     ipath.depth                                                                               AS depth,
+     'APNI'                                                                                    AS source_shard,
+     now()                                                                                     AS updated_at,
+     'import'                                                                                  AS updated_by
+   FROM instance_paths ipath
+     JOIN name n ON ipath.name_id = n.id
+     JOIN name_rank rank ON n.name_rank_id = rank.id
+     JOIN instance i ON ipath.instance_id = i.id
+     JOIN reference ref ON i.reference_id = ref.id
+     LEFT OUTER JOIN instance_paths parent_ipath
+       ON ipath.parent_instance_path = parent_ipath.instance_path
+     ,
      mapper.host host
-   WHERE v.published_at = (dtn.year || '-' || dtn.month || '-' || dtn.day) :: TIMESTAMP
-         AND instance_id IS NOT NULL
-         AND host.preferred = TRUE);
+   WHERE host.preferred = TRUE);
 
-VACUUM ANALYSE;
+-- remove declared BTs by making the children point to the next parent up.
 
-UPDATE tree_element ce
-SET previous_element_id = pe.tree_element_id,
-  previous_version_id   = pe.tree_version_id
-FROM tree_element pe
-WHERE ce.parent_version_id - 1 = pe.tree_version_id AND ce.name_id = pe.name_id;
-
--- update all names with BT to point to the BTs parent
-UPDATE tree_element element
-SET parent_element_id = bt_element.parent_element_id,
-  parent_version_id   = bt_element.parent_version_id
-FROM tree_node node, tree_element bt_element
-WHERE node.id = element.parent_element_id
-      AND node.type_uri_id_part = 'DeclaredBt'
-      AND bt_element.tree_element_id = element.parent_element_id
-      AND bt_element.tree_version_id = element.tree_version_id;
-
--- * delete BT elements *
---- clean up foreign keys
-UPDATE tree_element
-SET parent_element_id = NULL, parent_version_id = NULL, previous_version_id = NULL, previous_element_id = NULL
-WHERE tree_element_id IN (SELECT id
-                          FROM tree_node node
-                          WHERE node.type_uri_id_part = 'DeclaredBt');
-
-UPDATE tree_element
-SET previous_version_id = NULL, previous_element_id = NULL
-WHERE previous_element_id IN (SELECT id
-                              FROM tree_node node
-                              WHERE node.type_uri_id_part = 'DeclaredBt');
-
+UPDATE tree_element child_el
+SET parent_element_id = par_el.parent_element_id
+FROM instance_paths ipath
+  JOIN tree_element par_el ON par_el.id = ipath.id
+WHERE child_el.parent_element_id = par_el.id
+      AND ipath.declared_bt = TRUE;
 
 DELETE FROM tree_element
-WHERE tree_element_id IN (SELECT id
-                          FROM tree_node node
-                          WHERE node.type_uri_id_part = 'DeclaredBt');
+WHERE tree_element.id IN (SELECT ipath.id
+                          FROM instance_paths ipath
+                          WHERE ipath.declared_bt);
 
-ALTER TABLE IF EXISTS tree
-  ADD CONSTRAINT UK_92xj3n7tgp4h7abxijoo7skmp UNIQUE (name);
+-- link tree_elements to versions
 
-ALTER TABLE IF EXISTS tree_element
-  ADD CONSTRAINT FK_tb2tweovvy36a4bgym73jhbbk
-FOREIGN KEY (tree_version_id)
-REFERENCES tree_version;
+INSERT INTO tree_version_element (element_link, tree_version_id, tree_element_id)
+  SELECT
+    'http://' || host.host_name || '/tree/' || v.id || '/' || ipath.id,
+    v.id,
+    ipath.id
+  FROM instance_paths ipath, tree_version v, mapper.host host
+  WHERE host.preferred = TRUE
+        AND ipath.versions @> to_jsonb(v.id)
+        AND exists(SELECT 1
+                   FROM tree_element e
+                   WHERE e.id = ipath.id);
 
-ALTER TABLE IF EXISTS tree_element
-  ADD CONSTRAINT FK_964uyddp8ju1ya5v2px9wx5tf
-FOREIGN KEY (parent_Version_Id, parent_Element_Id)
-REFERENCES tree_element;
+-- set the tree_path to tree elements instead of instance path
 
-ALTER TABLE IF EXISTS tree_element
-  ADD CONSTRAINT FK_kaotdsllnfojld6pdxb8c9gml
-FOREIGN KEY (previous_Version_Id, previous_Element_Id)
-REFERENCES tree_element;
+WITH RECURSIVE walk (element_id, tree_path) AS (
+  SELECT
+    id        AS element_id,
+    '/' || id AS tree_path
+  FROM tree_element
+  WHERE parent_element_id IS NULL
+  UNION ALL
+  SELECT
+    e.id                          AS element_id,
+    walk.tree_path || '/' || e.id AS tree_path
+  FROM walk, tree_element e
+  WHERE e.parent_element_id = walk.element_id
+
+)
+UPDATE tree_element element
+SET tree_path = walk.tree_path
+FROM walk
+WHERE element.id = walk.element_id;
 
 VACUUM ANALYSE;
+
+-- *************** end tree creation ***************
 
 -- set all the existing name paths and family from APC tree
 UPDATE name n
@@ -495,7 +612,8 @@ SET family_id = fam.id,
   name_path   = element.name_path
 FROM
   tree_element element
-  JOIN tree ON element.tree_version_id = tree.current_tree_version_id AND tree.name = 'APC'
+  JOIN tree_version_element tvte ON element.id = tvte.tree_element_id
+  JOIN tree ON tvte.tree_version_id = tree.current_tree_version_id AND tree.name = 'APC'
   LEFT OUTER JOIN name fam ON fam.id = (element.rank_path -> 'Familia' ->> 'id') :: BIGINT
   ,
   Instance i,
@@ -573,109 +691,6 @@ $$ LANGUAGE plpgsql;
 SELECT link_back_missing_family_names();
 
 DROP FUNCTION link_back_missing_family_names();
-
--- add synonyms jsonb data to tree_elements
-
-DROP FUNCTION IF EXISTS synonyms_as_jsonb( BIGINT, BIGINT );
-CREATE FUNCTION synonyms_as_jsonb(version_id BIGINT, element_id BIGINT)
-  RETURNS JSONB
-LANGUAGE SQL
-AS $$
-SELECT jsonb_object_agg(synonym.simple_name, jsonb_build_object(
-    'type', it.name,
-    'name_id', synonym.id,
-    'full_name_html', synonym.full_name_html,
-    'nom', it.nomenclatural,
-    'tax', it.taxonomic,
-    'mis', it.misapplied,
-    'cites', cites_ref.citation_html
-))
-FROM tree_element elem,
-  Instance i,
-  Instance syn_inst
-  JOIN instance_type it ON syn_inst.instance_type_id = it.id
-  JOIN instance cites_inst ON syn_inst.cites_id = cites_inst.id
-  JOIN reference cites_ref ON cites_inst.reference_id = cites_ref.id
-  ,
-  name synonym
-WHERE syn_inst.cited_by_id = i.id
-      AND i.id = elem.instance_id
-      AND synonym.id = syn_inst.name_id
-      AND elem.tree_version_id = version_id
-      AND elem.tree_element_id = element_id;
-$$;
-
-UPDATE tree_element
-SET synonyms = synonyms_as_jsonb(tree_version_id, tree_element_id);
-
--- set synonym html
-
-DROP FUNCTION IF EXISTS synonyms_as_html( BIGINT, BIGINT );
-CREATE FUNCTION synonyms_as_html(version_id BIGINT, element_id BIGINT)
-  RETURNS TABLE(html TEXT)
-LANGUAGE SQL
-AS $$
-SELECT CASE
-       WHEN it.nomenclatural
-         THEN '<nom>' || synonym.full_name_html || ' <type>' || it.name || '</type></nom>'
-       WHEN it.taxonomic
-         THEN '<tax>' || synonym.full_name_html || ' <type>' || it.name || '</type></tax>'
-       WHEN it.misapplied
-         THEN '<mis>' || synonym.full_name_html || ' <type>' || it.name || '</type> by <citation>' ||
-              cites_ref.citation_html
-              ||
-              '</citation></mis>'
-       ELSE ''
-       END
-FROM tree_element ELEMENT,
-  Instance i,
-  Instance syn_inst
-  JOIN instance_type it ON syn_inst.instance_type_id = it.id
-  JOIN instance cites_inst ON syn_inst.cites_id = cites_inst.id
-  JOIN reference cites_ref ON cites_inst.reference_id = cites_ref.id
-  ,
-  NAME synonym
-WHERE syn_inst.cited_by_id = i.id
-      AND i.id = ELEMENT.instance_id
-      AND synonym.id = syn_inst.name_id
-      AND ELEMENT.tree_version_id = version_id
-      AND ELEMENT.tree_element_id = element_id
-ORDER BY it.nomenclatural DESC, it.taxonomic DESC, it.misapplied DESC, cites_ref.year ASC;
-$$;
-
-UPDATE tree_element el
-SET synonyms_html = coalesce((SELECT '<synonyms>' || string_agg(html, '') || '</synonyms>'
-                              FROM
-                                tree_element elem, synonyms_as_html(elem.tree_version_id, elem.tree_element_id) AS html
-                              WHERE elem.tree_element_id = el.tree_element_id AND
-                                    elem.tree_version_id = el.tree_version_id), '<synonyms></synonyms>')
-WHERE el.synonyms IS NOT NULL;
-
--- add jsonb profile data to tree_elements
-DROP FUNCTION IF EXISTS profile_as_jsonb( BIGINT, BIGINT );
-CREATE FUNCTION profile_as_jsonb(version_id BIGINT, element_id BIGINT)
-  RETURNS JSONB
-LANGUAGE SQL
-AS $$
-SELECT jsonb_object_agg(key.name, jsonb_build_object(
-    'value', note.value,
-    'created_at', note.created_at,
-    'created_by', note.created_by,
-    'updated_at', note.updated_at,
-    'updated_by', note.updated_by,
-    'source_id', note.source_id,
-    'source_system', note.source_system
-))
-FROM tree_element element
-  JOIN instance i ON element.instance_id = i.id
-  JOIN instance_note note ON i.id = note.instance_id
-  JOIN instance_note_key key ON note.instance_note_key_id = key.id
-WHERE tree_version_id = version_id
-      AND tree_element_id = element_id;
-$$;
-
-UPDATE tree_element
-SET profile = profile_as_jsonb(tree_version_id, tree_element_id);
 
 -- drop name_tree_path
 

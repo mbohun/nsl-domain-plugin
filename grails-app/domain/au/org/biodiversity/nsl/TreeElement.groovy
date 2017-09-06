@@ -1,14 +1,11 @@
 package au.org.biodiversity.nsl
 
 import net.kaleidos.hibernate.usertype.JsonbMapType
-import org.apache.commons.lang.builder.HashCodeBuilder
 
-import java.sql.Timestamp
+import java.security.Timestamp
 
-class TreeElement implements Serializable {
+class TreeElement {
 
-    Long treeElementId
-    TreeVersion treeVersion
     TreeElement previousElement
     TreeElement parentElement
 
@@ -30,29 +27,27 @@ class TreeElement implements Serializable {
     Map profile
 
     String sourceElementLink //Link to the source tree element for composed trees
-    String elementLink
     String nameLink
     String instanceLink
 
     String updatedBy
     Timestamp updatedAt
 
-    static belongsTo = [TreeVersion]
+    static hasMany = [treeVersionElements: TreeVersionElement]
 
     static mapping = {
         datasource 'nsl'
 
-        id composite: ['treeVersion', 'treeElementId']
+        id generator: 'native', params: [sequence: 'nsl_global_seq'], defaultValue: "nextval('nsl_global_seq')"
         version column: 'lock_version', defaultValue: "0"
 
         updatedAt sqlType: 'timestamp with time zone'
         displayHtml sqlType: 'Text'
         synonymsHtml sqlType: 'Text'
         simpleName sqlType: 'Text', index: "tree_simple_name_index"
-        treePath sqlType: 'Text'
-        namePath sqlType: 'Text'
+        treePath sqlType: 'Text', index: "tree_path_index"
+        namePath sqlType: 'Text', index: "tree_name_path_index"
         sourceShard sqlType: 'Text'
-        elementLink sqlType: 'Text'
         nameLink sqlType: 'Text'
         instanceLink sqlType: 'Text'
         sourceElementLink sqlType: 'Text'
@@ -61,45 +56,17 @@ class TreeElement implements Serializable {
         profile type: JsonbMapType
         excluded defaultValue: false
         depth defaultValue: 0
-
-        columns {
-            parentElement {
-                column name: 'parent_Version_Id'
-                column name: 'parent_Element_Id'
-            }
-            previousElement {
-                column name: 'previous_Version_Id'
-                column name: 'previous_Element_Id'
-            }
-        }
     }
 
     static constraints = {
-        treeVersion nullable: false
         previousElement nullable: true
         parentElement nullable: true
         sourceElementLink nullable: true
         rank maxSize: 50
         nameElement maxSize: 255
-
     }
 
     static transients = ['name', 'instance']
-
-    boolean equals(other) {
-        if (!(other instanceof TreeElement)) {
-            return false
-        }
-
-        other.treeVersion.id == treeVersion.id && other.treeElementId == treeElementId
-    }
-
-    int hashCode() {
-        def builder = new HashCodeBuilder()
-        builder.append(treeVersion.id)
-        builder.append(treeElementId)
-        builder.toHashCode()
-    }
 
     /**
      * Null if name doesn't exist
@@ -118,6 +85,6 @@ class TreeElement implements Serializable {
     }
 
     String toString() {
-        "TreeElement: $simpleName v:$treeVersion.id e:$treeElementId #${hashCode()}"
+        "TreeElement: $simpleName : $id"
     }
 }
