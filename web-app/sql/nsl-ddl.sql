@@ -51,10 +51,10 @@
         drop constraint if exists FK_f6s94njexmutjxjv8t5dy1ugt;
 
     alter table if exists instance_resources 
-        drop constraint if exists FK_49ic33s4xgbdoa4p5j107rtpf;
+        drop constraint if exists FK_8mal9hru5u3ypaosfoju8ulpd;
 
     alter table if exists instance_resources 
-        drop constraint if exists FK_8mal9hru5u3ypaosfoju8ulpd;
+        drop constraint if exists FK_49ic33s4xgbdoa4p5j107rtpf;
 
     alter table if exists name 
         drop constraint if exists FK_airfjupm6ohehj1lj82yqkwdx;
@@ -174,13 +174,10 @@
         drop constraint if exists FK_fvfq13j3dqv994o9vg54yj5kk;
 
     alter table if exists tree_element 
-        drop constraint if exists FK_tb2tweovvy36a4bgym73jhbbk;
+        drop constraint if exists FK_eoywd7l5fhjpjgn461r6ni2ak;
 
     alter table if exists tree_element 
-        drop constraint if exists FK_964uyddp8ju1ya5v2px9wx5tf;
-
-    alter table if exists tree_element 
-        drop constraint if exists FK_kaotdsllnfojld6pdxb8c9gml;
+        drop constraint if exists FK_5sv181ivf7oybb6hud16ptmo5;
 
     alter table if exists tree_event 
         drop constraint if exists FK_7y8cj9fpsh1sblm744xuq6i1g;
@@ -244,6 +241,12 @@
 
     alter table if exists tree_version 
         drop constraint if exists FK_4q3huja5dv8t9xyvt5rg83a35;
+
+    alter table if exists tree_version_tree_elements 
+        drop constraint if exists FK_6pcmcnh5t2ccpcxycmdk1hoyw;
+
+    alter table if exists tree_version_tree_elements 
+        drop constraint if exists FK_1aqiekd9a99mfdi4l6x1jrne9;
 
     drop table if exists author cascade;
 
@@ -326,6 +329,8 @@
     drop table if exists tree_value_uri cascade;
 
     drop table if exists tree_version cascade;
+
+    drop table if exists tree_version_tree_elements cascade;
 
     drop table if exists user_query cascade;
 
@@ -491,8 +496,8 @@
     );
 
     create table instance_resources (
-        resource_id int8 not null,
         instance_id int8 not null,
+        resource_id int8 not null,
         primary key (instance_id, resource_id)
     );
 
@@ -831,8 +836,7 @@
     );
 
     create table tree_element (
-        tree_version_id int8 not null,
-        tree_element_id int8 not null,
+        id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
         depth int4 not null,
         display_html Text not null,
@@ -844,10 +848,8 @@
         name_id int8 not null,
         name_link Text not null,
         name_path Text not null,
-        parent_Version_Id int8,
-        parent_Element_Id int8,
-        previous_Version_Id int8,
-        previous_Element_Id int8,
+        parent_element_id int8,
+        previous_element_id int8,
         profile jsonb,
         rank varchar(50) not null,
         rank_path jsonb,
@@ -857,9 +859,7 @@
         synonyms jsonb,
         synonyms_html Text not null,
         tree_path Text not null,
-        updated_at timestamp with time zone not null,
-        updated_by varchar(255) not null,
-        primary key (tree_version_id, tree_element_id)
+        primary key (id)
     );
 
     create table tree_event (
@@ -952,6 +952,12 @@
         published_by varchar(100),
         tree_id int8 not null,
         primary key (id)
+    );
+
+    create table tree_version_tree_elements (
+        tree_version_id int8 not null,
+        tree_element_id int8 not null,
+        primary key (tree_version_id, tree_element_id)
     );
 
     create table user_query (
@@ -1145,7 +1151,11 @@
 
     create index tree_arrangement_node on tree_arrangement (node_id);
 
-    create index tree_simple_name_Index on tree_element (simple_name);
+    create index tree_name_path_index on tree_element (name_path);
+
+    create index tree_simple_name_index on tree_element (simple_name);
+
+    create index tree_path_index on tree_element (tree_path);
 
     create index tree_link_subnode on tree_link (subnode_id);
 
@@ -1282,14 +1292,14 @@
         references namespace;
 
     alter table if exists instance_resources 
-        add constraint FK_49ic33s4xgbdoa4p5j107rtpf 
-        foreign key (instance_id) 
-        references instance;
-
-    alter table if exists instance_resources 
         add constraint FK_8mal9hru5u3ypaosfoju8ulpd 
         foreign key (resource_id) 
         references resource;
+
+    alter table if exists instance_resources 
+        add constraint FK_49ic33s4xgbdoa4p5j107rtpf 
+        foreign key (instance_id) 
+        references instance;
 
     alter table if exists name 
         add constraint FK_airfjupm6ohehj1lj82yqkwdx 
@@ -1487,18 +1497,13 @@
         references tree_node;
 
     alter table if exists tree_element 
-        add constraint FK_tb2tweovvy36a4bgym73jhbbk 
-        foreign key (tree_version_id) 
-        references tree_version;
-
-    alter table if exists tree_element 
-        add constraint FK_964uyddp8ju1ya5v2px9wx5tf 
-        foreign key (parent_Version_Id, parent_Element_Id) 
+        add constraint FK_eoywd7l5fhjpjgn461r6ni2ak 
+        foreign key (parent_element_id) 
         references tree_element;
 
     alter table if exists tree_element 
-        add constraint FK_kaotdsllnfojld6pdxb8c9gml 
-        foreign key (previous_Version_Id, previous_Element_Id) 
+        add constraint FK_5sv181ivf7oybb6hud16ptmo5 
+        foreign key (previous_element_id) 
         references tree_element;
 
     alter table if exists tree_event 
@@ -1605,6 +1610,16 @@
         add constraint FK_4q3huja5dv8t9xyvt5rg83a35 
         foreign key (tree_id) 
         references tree;
+
+    alter table if exists tree_version_tree_elements 
+        add constraint FK_6pcmcnh5t2ccpcxycmdk1hoyw 
+        foreign key (tree_element_id) 
+        references tree_element;
+
+    alter table if exists tree_version_tree_elements 
+        add constraint FK_1aqiekd9a99mfdi4l6x1jrne9 
+        foreign key (tree_version_id) 
+        references tree_version;
 
     
 
@@ -2520,15 +2535,12 @@ CREATE INDEX name_lower_unacent_full_name_gin_trgm
 CREATE INDEX name_lower_unacent_simple_name_gin_trgm
   ON name USING GIN (lower(f_unaccent(simple_name)) gin_trgm_ops);
 
--- new tree indexes
-DROP INDEX IF EXISTS parent_element_index;
-CREATE INDEX parent_element_index
-  ON tree_element (parent_version_id, parent_element_id);
+-- new tree GIN indexes
+DROP INDEX IF EXISTS tree_synonyms_index;
+CREATE INDEX tree_synonyms_index
+  ON tree_element USING GIN (synonyms);
 
-DROP INDEX IF EXISTS previous_element_index;
-CREATE INDEX previous_element_index
-  ON tree_element (previous_version_id, previous_element_id);
-
+--
 INSERT INTO db_version (id, version) VALUES (1, 24);
 
 -- populate-lookup-tables.sql
