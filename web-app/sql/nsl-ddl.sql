@@ -1207,6 +1207,10 @@
 
     create index tree_version_element_link_index on tree_version_element (element_link);
 
+    create index tree_version_element_element_index on tree_version_element (tree_element_id);
+
+    create index tree_version_element_version_index on tree_version_element (tree_version_id);
+
     alter table if exists why_is_this_here 
         add constraint UK_sv1q1i7xve7xgmkwvmdbeo1mb  unique (name);
 

@@ -15,6 +15,8 @@ class TreeVersionElement {
         version false
 
         elementLink sqlType: 'Text', index: 'tree_version_element_link_index'
+        treeElement index: 'tree_version_element_element_index'
+        treeVersion index: 'tree_version_element_version_index'
     }
 
     static constraints = {

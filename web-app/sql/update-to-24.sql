@@ -3,6 +3,8 @@ DROP INDEX IF EXISTS tree_simple_name_index;
 DROP INDEX IF EXISTS tree_name_path_index;
 DROP INDEX IF EXISTS tree_tree_path_index;
 DROP INDEX IF EXISTS tree_synonyms_index;
+DROP INDEX IF EXISTS tree_version_element_element_index;
+DROP INDEX IF EXISTS tree_version_element_version_index;
 
 ALTER TABLE IF EXISTS name
   DROP CONSTRAINT IF EXISTS FK_whce6pgnqjtxgt67xy2lfo34;
@@ -25,13 +27,6 @@ ALTER TABLE IF EXISTS tree_element
 ALTER TABLE IF EXISTS tree_element
   DROP CONSTRAINT IF EXISTS FK_5sv181ivf7oybb6hud16ptmo5;
 
--- todo remove tree_version_tree_element join table
-ALTER TABLE IF EXISTS tree_version_tree_elements
-  DROP CONSTRAINT IF EXISTS FK_6pcmcnh5t2ccpcxycmdk1hoyw;
-
-ALTER TABLE IF EXISTS tree_version_tree_elements
-  DROP CONSTRAINT IF EXISTS FK_1aqiekd9a99mfdi4l6x1jrne9;
---
 ALTER TABLE IF EXISTS tree_version_element
   DROP CONSTRAINT IF EXISTS FK_ufme7yt6bqyf3uxvuvouowhh;
 
@@ -106,9 +101,6 @@ CREATE TABLE tree_element (
   PRIMARY KEY (id)
 );
 
--- todo remove
-DROP TABLE IF EXISTS tree_version_tree_elements;
---
 DROP TABLE IF EXISTS tree_version_element;
 CREATE TABLE tree_version_element (
   element_link    TEXT NOT NULL,
@@ -180,6 +172,13 @@ CREATE INDEX tree_name_path_index
 CREATE INDEX tree_path_index
   ON tree_element (tree_path);
 
+CREATE INDEX tree_version_element_element_index
+  ON tree_version_element (tree_element_id);
+
+CREATE INDEX tree_version_element_version_index
+  ON tree_version_element (tree_version_id);
+
+
 CREATE INDEX tree_synonyms_index
   ON tree_element USING GIN (synonyms);
 
@@ -229,57 +228,66 @@ AS $$
 WITH RECURSIVE treewalk (tree_id, node_id, excluded, declared_bt, instance_id, name_id, simple_name, name_path, instance_path,
     parent_instance_path, parent_excluded, rank_path, depth) AS (
   SELECT
-    tree.id                                                                                        AS tree_id,
-    node.id                                                                                        AS node_id,
-    (node.type_uri_id_part <> 'ApcConcept') :: BOOLEAN                                             AS excluded,
-    (node.type_uri_id_part = 'DeclaredBt') :: BOOLEAN                                              AS declared_bt,
-    node.instance_id                                                                               AS instance_id,
-    node.name_id                                                                                   AS name_id,
-    n.simple_name :: TEXT                                                                          AS simple_name,
-    coalesce(n.name_element, '?')                                                                  AS name_path,
+    tree.id                                                                                                          AS tree_id,
+    node.id                                                                                                          AS node_id,
+    (node.type_uri_id_part <>
+     'ApcConcept') :: BOOLEAN                                                                                        AS excluded,
+    (node.type_uri_id_part =
+     'DeclaredBt') :: BOOLEAN                                                                                        AS declared_bt,
+    node.instance_id                                                                                                 AS instance_id,
+    node.name_id                                                                                                     AS name_id,
+    n.simple_name :: TEXT                                                                                            AS simple_name,
+    coalesce(n.name_element,
+             '?')                                                                                                    AS name_path,
     CASE WHEN (node.type_uri_id_part <> 'ApcConcept')
       THEN
         'x' || node.instance_id :: TEXT
     ELSE
       node.instance_id :: TEXT
-    END                                                                                            AS instance_path,
-    ''                                                                                             AS parent_instance_path,
-    FALSE                                                                                          AS parent_excluded,
-    jsonb_build_object(rank.name, jsonb_build_object('name', n.name_element, 'id', n.id)) :: JSONB AS rank_path,
-    1                                                                                              AS depth
+    END                                                                                                              AS instance_path,
+    ''                                                                                                               AS parent_instance_path,
+    FALSE                                                                                                            AS parent_excluded,
+    jsonb_build_object(rank.name, jsonb_build_object('name', n.name_element, 'id', n.id, 'name_link',
+                                                     'http://' || host.host_name || '/name/apni/' ||
+                                                     n.id)) :: JSONB                                                 AS rank_path,
+    1                                                                                                                AS depth
   FROM tree_link link
     JOIN tree_node node ON link.subnode_id = node.id
     JOIN tree_arrangement tree ON node.tree_arrangement_id = tree.id
     JOIN name n ON node.name_id = n.id
     JOIN name_rank rank ON n.name_rank_id = rank.id
     JOIN instance inst ON node.instance_id = inst.id
-    JOIN reference ref ON inst.reference_id = ref.id
+    JOIN reference ref ON inst.reference_id = ref.id,
+    mapper.host host
   WHERE link.supernode_id = root_node
         AND node.internal_type = 'T'
+        AND host.preferred = TRUE
   UNION ALL
   SELECT
-    treewalk.tree_id                                                                      AS tree_id,
-    node.id                                                                               AS node_id,
+    treewalk.tree_id                                                                                        AS tree_id,
+    node.id                                                                                                 AS node_id,
     (node.type_uri_id_part <>
-     'ApcConcept') :: BOOLEAN                                                             AS excluded,
+     'ApcConcept') :: BOOLEAN                                                                               AS excluded,
     (node.type_uri_id_part =
-     'DeclaredBt') :: BOOLEAN                                                             AS declared_bt,
-    node.instance_id                                                                      AS instance_id,
-    node.name_id                                                                          AS name_id,
-    n.simple_name :: TEXT                                                                 AS simple_name,
+     'DeclaredBt') :: BOOLEAN                                                                               AS declared_bt,
+    node.instance_id                                                                                        AS instance_id,
+    node.name_id                                                                                            AS name_id,
+    n.simple_name :: TEXT                                                                                   AS simple_name,
     treewalk.name_path || '/' || COALESCE(n.name_element,
-                                          '?')                                            AS name_path,
+                                          '?')                                                              AS name_path,
     CASE WHEN (node.type_uri_id_part <> 'ApcConcept')
       THEN
         treewalk.instance_path || '/x' || node.instance_id :: TEXT
     ELSE
       treewalk.instance_path || '/' || node.instance_id :: TEXT
-    END                                                                                   AS instance_path,
-    treewalk.instance_path                                                                AS parent_instance_path,
-    treewalk.excluded                                                                     AS parent_excluded,
+    END                                                                                                     AS instance_path,
+    treewalk.instance_path                                                                                  AS parent_instance_path,
+    treewalk.excluded                                                                                       AS parent_excluded,
     treewalk.rank_path ||
-    jsonb_build_object(rank.name, jsonb_build_object('name', n.name_element, 'id', n.id)) AS rank_path,
-    treewalk.depth + 1                                                                    AS depth
+    jsonb_build_object(rank.name, jsonb_build_object('name', n.name_element, 'id', n.id, 'name_link',
+                                                     'http://' || host.host_name || '/name/apni/' ||
+                                                     n.id))                                                 AS rank_path,
+    treewalk.depth + 1                                                                                      AS depth
   FROM treewalk
     JOIN tree_link link ON link.supernode_id = treewalk.node_id
     JOIN tree_node node ON link.subnode_id = node.id
@@ -287,8 +295,11 @@ WITH RECURSIVE treewalk (tree_id, node_id, excluded, declared_bt, instance_id, n
     JOIN name_rank rank ON n.name_rank_id = rank.id
     JOIN instance inst ON node.instance_id = inst.id
     JOIN reference REF ON inst.reference_id = REF.id
+    ,
+    mapper.host host
   WHERE node.internal_type = 'T'
         AND node.tree_arrangement_id = treewalk.tree_id
+        AND host.preferred = TRUE
 )
 SELECT
   tree_id,
@@ -455,13 +466,15 @@ SELECT jsonb_object_agg(key.name, jsonb_build_object(
     'created_by', note.created_by,
     'updated_at', note.updated_at,
     'updated_by', note.updated_by,
-    'source_id', note.source_id,
+    'source_link', 'http://' || host.host_name || '/instanceNote/apni/' || note.source_id,
     'source_system', note.source_system
 ))
 FROM instance i
   JOIN instance_note note ON i.id = note.instance_id
   JOIN instance_note_key key ON note.instance_note_key_id = key.id
-WHERE i.id = source_instance_id;
+  ,
+  mapper.host host
+WHERE i.id = source_instance_id AND host.preferred = TRUE;
 $$;
 
 DROP FUNCTION IF EXISTS synonyms_as_jsonb( BIGINT );
@@ -472,6 +485,7 @@ AS $$
 SELECT jsonb_object_agg(synonym.simple_name, jsonb_build_object(
     'type', it.name,
     'name_id', synonym.id,
+    'name_link', 'http://' || host.host_name || '/name/apni/' || synonym.id,
     'full_name_html', synonym.full_name_html,
     'nom', it.nomenclatural,
     'tax', it.taxonomic,
@@ -484,10 +498,12 @@ FROM Instance i,
   JOIN instance cites_inst ON syn_inst.cites_id = cites_inst.id
   JOIN reference cites_ref ON cites_inst.reference_id = cites_ref.id
   ,
-  name synonym
+  name synonym,
+  mapper.host host
 WHERE i.id = instance_id
       AND syn_inst.cited_by_id = i.id
-      AND synonym.id = syn_inst.name_id;
+      AND synonym.id = syn_inst.name_id
+      AND host.preferred = TRUE;
 $$;
 
 INSERT INTO tree_element

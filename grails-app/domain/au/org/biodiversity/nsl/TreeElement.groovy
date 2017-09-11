@@ -2,7 +2,7 @@ package au.org.biodiversity.nsl
 
 import net.kaleidos.hibernate.usertype.JsonbMapType
 
-import java.security.Timestamp
+import java.sql.Timestamp
 
 class TreeElement {
 
