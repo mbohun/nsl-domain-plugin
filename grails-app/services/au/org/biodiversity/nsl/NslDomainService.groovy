@@ -34,7 +34,7 @@ class NslDomainService {
         return file
     }
 
-    public Boolean checkUpToDate() {
+    Boolean checkUpToDate() {
         try {
             DbVersion.get(1)?.version == currentVersion
         } catch (e) {
@@ -47,7 +47,7 @@ class NslDomainService {
      * update the database to the current version using update scripts
      * @return true if worked
      */
-    public Boolean updateToCurrentVersion(Sql sql, Map params) {
+    Boolean updateToCurrentVersion(Sql sql, Map params) {
         Integer dbVersion = DbVersion.get(1)?.version
         if (!dbVersion) {
             log.error "Database version not found, not updating."
@@ -71,6 +71,7 @@ class NslDomainService {
         }
         sessionFactory_nsl.getCurrentSession().flush()
         sessionFactory_nsl.getCurrentSession().clear()
+        log.info "Update complete"
         return checkUpToDate()
     }
 
