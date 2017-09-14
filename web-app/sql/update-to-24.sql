@@ -708,6 +708,9 @@ SELECT link_back_missing_family_names();
 
 DROP FUNCTION link_back_missing_family_names();
 
+-- remove all the notifications caused by the trigger on name changes
+delete from notification;
+
 -- drop name_tree_path
 
 ALTER TABLE IF EXISTS name_tree_path

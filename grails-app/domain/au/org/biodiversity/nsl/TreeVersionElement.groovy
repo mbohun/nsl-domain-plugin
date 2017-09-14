@@ -21,4 +21,8 @@ class TreeVersionElement {
 
     static constraints = {
     }
+
+    String toString() {
+        "TreeVersionElement $treeElement.simpleName v: $treeVersion.id e:$treeElement.id ($elementLink)"
+    }
 }
