@@ -466,8 +466,7 @@ SELECT jsonb_object_agg(key.name, jsonb_build_object(
     'created_by', note.created_by,
     'updated_at', note.updated_at,
     'updated_by', note.updated_by,
-    'source_link', 'http://' || host.host_name || '/instanceNote/apni/' || note.source_id,
-    'source_system', note.source_system
+    'source_link', 'http://' || host.host_name || '/instanceNote/apni/' || note.id
 ))
 FROM instance i
   JOIN instance_note note ON i.id = note.instance_id
