@@ -51,10 +51,10 @@
         drop constraint if exists FK_f6s94njexmutjxjv8t5dy1ugt;
 
     alter table if exists instance_resources 
-        drop constraint if exists FK_8mal9hru5u3ypaosfoju8ulpd;
+        drop constraint if exists FK_49ic33s4xgbdoa4p5j107rtpf;
 
     alter table if exists instance_resources 
-        drop constraint if exists FK_49ic33s4xgbdoa4p5j107rtpf;
+        drop constraint if exists FK_8mal9hru5u3ypaosfoju8ulpd;
 
     alter table if exists name 
         drop constraint if exists FK_airfjupm6ohehj1lj82yqkwdx;
@@ -496,8 +496,8 @@
     );
 
     create table instance_resources (
-        instance_id int8 not null,
         resource_id int8 not null,
+        instance_id int8 not null,
         primary key (instance_id, resource_id)
     );
 
@@ -957,6 +957,8 @@
 
     create table tree_version_element (
         element_link Text not null,
+        taxon_id int8 not null,
+        taxon_link Text not null,
         tree_element_id int8 not null,
         tree_version_id int8 not null,
         primary key (element_link)
@@ -1207,6 +1209,10 @@
 
     create index tree_version_element_link_index on tree_version_element (element_link);
 
+    create index tree_version_element_taxon_id_index on tree_version_element (taxon_id);
+
+    create index tree_version_element_taxon_link_index on tree_version_element (taxon_link);
+
     create index tree_version_element_element_index on tree_version_element (tree_element_id);
 
     create index tree_version_element_version_index on tree_version_element (tree_version_id);
@@ -1300,14 +1306,14 @@
         references namespace;
 
     alter table if exists instance_resources 
-        add constraint FK_8mal9hru5u3ypaosfoju8ulpd 
-        foreign key (resource_id) 
-        references resource;
-
-    alter table if exists instance_resources 
         add constraint FK_49ic33s4xgbdoa4p5j107rtpf 
         foreign key (instance_id) 
         references instance;
+
+    alter table if exists instance_resources 
+        add constraint FK_8mal9hru5u3ypaosfoju8ulpd 
+        foreign key (resource_id) 
+        references resource;
 
     alter table if exists name 
         add constraint FK_airfjupm6ohehj1lj82yqkwdx 

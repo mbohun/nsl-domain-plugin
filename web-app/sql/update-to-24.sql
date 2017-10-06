@@ -5,6 +5,8 @@ DROP INDEX IF EXISTS tree_tree_path_index;
 DROP INDEX IF EXISTS tree_synonyms_index;
 DROP INDEX IF EXISTS tree_version_element_element_index;
 DROP INDEX IF EXISTS tree_version_element_version_index;
+DROP INDEX IF EXISTS tree_version_element_taxon_id_index;
+DROP INDEX IF EXISTS tree_version_element_taxon_link_index;
 
 ALTER TABLE IF EXISTS name
   DROP CONSTRAINT IF EXISTS FK_whce6pgnqjtxgt67xy2lfo34;
@@ -104,11 +106,12 @@ CREATE TABLE tree_element (
 DROP TABLE IF EXISTS tree_version_element;
 CREATE TABLE tree_version_element (
   element_link    TEXT NOT NULL,
+  taxon_id        INT8 NOT NULL,
+  taxon_link      TEXT NOT NULL,
   tree_element_id INT8 NOT NULL,
   tree_version_id INT8 NOT NULL,
   PRIMARY KEY (element_link)
 );
-
 
 ALTER TABLE name
   ADD COLUMN family_id INT8;
@@ -178,13 +181,19 @@ CREATE INDEX tree_version_element_element_index
 CREATE INDEX tree_version_element_version_index
   ON tree_version_element (tree_version_id);
 
+CREATE INDEX tree_version_element_taxon_id_index
+  ON tree_version_element (taxon_id);
+
+CREATE INDEX tree_version_element_taxon_link_index
+  ON tree_version_element (taxon_link);
+
 
 CREATE INDEX tree_synonyms_index
   ON tree_element USING GIN (synonyms);
 
--- import old tree data into the new structure - this will take a while
+-- import old tree data into the new structure
 
--- get current classification-root and follow the prev links back to find versions back to jan 2015
+-- get current classification-root and follow the prev links back to find versions back to jan 2016
 DROP FUNCTION IF EXISTS daily_top_nodes( TEXT, TIMESTAMP );
 CREATE FUNCTION daily_top_nodes(tree_label TEXT, since TIMESTAMP)
   RETURNS TABLE(latest_node_id BIGINT, year DOUBLE PRECISION, month DOUBLE PRECISION, day DOUBLE PRECISION)
@@ -228,66 +237,67 @@ AS $$
 WITH RECURSIVE treewalk (tree_id, node_id, excluded, declared_bt, instance_id, name_id, simple_name, name_path, instance_path,
     parent_instance_path, parent_excluded, rank_path, depth) AS (
   SELECT
-    tree.id                                                                                                          AS tree_id,
-    node.id                                                                                                          AS node_id,
+    tree.id                                                          AS tree_id,
+    node.id                                                          AS node_id,
     (node.type_uri_id_part <>
-     'ApcConcept') :: BOOLEAN                                                                                        AS excluded,
+     'ApcConcept') :: BOOLEAN                                        AS excluded,
     (node.type_uri_id_part =
-     'DeclaredBt') :: BOOLEAN                                                                                        AS declared_bt,
-    node.instance_id                                                                                                 AS instance_id,
-    node.name_id                                                                                                     AS name_id,
-    n.simple_name :: TEXT                                                                                            AS simple_name,
+     'DeclaredBt') :: BOOLEAN                                        AS declared_bt,
+    node.instance_id                                                 AS instance_id,
+    node.name_id                                                     AS name_id,
+    n.simple_name :: TEXT                                            AS simple_name,
     coalesce(n.name_element,
-             '?')                                                                                                    AS name_path,
+             '?')                                                    AS name_path,
     CASE WHEN (node.type_uri_id_part <> 'ApcConcept')
       THEN
         'x' || node.instance_id :: TEXT
     ELSE
       node.instance_id :: TEXT
-    END                                                                                                              AS instance_path,
-    ''                                                                                                               AS parent_instance_path,
-    FALSE                                                                                                            AS parent_excluded,
+    END                                                              AS instance_path,
+    ''                                                               AS parent_instance_path,
+    FALSE                                                            AS parent_excluded,
     jsonb_build_object(rank.name, jsonb_build_object('name', n.name_element, 'id', n.id, 'name_link',
                                                      'http://' || host.host_name || '/name/apni/' ||
-                                                     n.id)) :: JSONB                                                 AS rank_path,
-    1                                                                                                                AS depth
+                                                     n.id)) :: JSONB AS rank_path,
+    1                                                                AS depth
   FROM tree_link link
     JOIN tree_node node ON link.subnode_id = node.id
     JOIN tree_arrangement tree ON node.tree_arrangement_id = tree.id
     JOIN name n ON node.name_id = n.id
     JOIN name_rank rank ON n.name_rank_id = rank.id
     JOIN instance inst ON node.instance_id = inst.id
-    JOIN reference ref ON inst.reference_id = ref.id,
+    JOIN reference ref ON inst.reference_id = ref.id
+    ,
     mapper.host host
   WHERE link.supernode_id = root_node
         AND node.internal_type = 'T'
         AND host.preferred = TRUE
   UNION ALL
   SELECT
-    treewalk.tree_id                                                                                        AS tree_id,
-    node.id                                                                                                 AS node_id,
+    treewalk.tree_id                                        AS tree_id,
+    node.id                                                 AS node_id,
     (node.type_uri_id_part <>
-     'ApcConcept') :: BOOLEAN                                                                               AS excluded,
+     'ApcConcept') :: BOOLEAN                               AS excluded,
     (node.type_uri_id_part =
-     'DeclaredBt') :: BOOLEAN                                                                               AS declared_bt,
-    node.instance_id                                                                                        AS instance_id,
-    node.name_id                                                                                            AS name_id,
-    n.simple_name :: TEXT                                                                                   AS simple_name,
+     'DeclaredBt') :: BOOLEAN                               AS declared_bt,
+    node.instance_id                                        AS instance_id,
+    node.name_id                                            AS name_id,
+    n.simple_name :: TEXT                                   AS simple_name,
     treewalk.name_path || '/' || COALESCE(n.name_element,
-                                          '?')                                                              AS name_path,
+                                          '?')              AS name_path,
     CASE WHEN (node.type_uri_id_part <> 'ApcConcept')
       THEN
         treewalk.instance_path || '/x' || node.instance_id :: TEXT
     ELSE
       treewalk.instance_path || '/' || node.instance_id :: TEXT
-    END                                                                                                     AS instance_path,
-    treewalk.instance_path                                                                                  AS parent_instance_path,
-    treewalk.excluded                                                                                       AS parent_excluded,
+    END                                                     AS instance_path,
+    treewalk.instance_path                                  AS parent_instance_path,
+    treewalk.excluded                                       AS parent_excluded,
     treewalk.rank_path ||
     jsonb_build_object(rank.name, jsonb_build_object('name', n.name_element, 'id', n.id, 'name_link',
                                                      'http://' || host.host_name || '/name/apni/' ||
-                                                     n.id))                                                 AS rank_path,
-    treewalk.depth + 1                                                                                      AS depth
+                                                     n.id)) AS rank_path,
+    treewalk.depth + 1                                      AS depth
   FROM treewalk
     JOIN tree_link link ON link.supernode_id = treewalk.node_id
     JOIN tree_node node ON link.subnode_id = node.id
@@ -380,7 +390,8 @@ CREATE TABLE instance_paths (
     depth,
     versions_str,
     nodes,
-    versions
+    versions,
+    ver_node_map
 ) AS
   SELECT
     nextval('nsl_global_seq'),
@@ -395,7 +406,8 @@ CREATE TABLE instance_paths (
     depth,
     string_agg(v.id :: TEXT, ','),
     jsonb_agg(DISTINCT (node_id)),
-    jsonb_agg(v.id)
+    jsonb_agg(v.id),
+    jsonb_object_agg(text(v.id), node_id)
   FROM daily_top_nodes('APC', '2016-01-01') AS dtn,
     tree_version v,
         tree_element_data_from_start_node(dtn.latest_node_id) AS el_data,
@@ -581,11 +593,13 @@ WHERE tree_element.id IN (SELECT ipath.id
 
 -- link tree_elements to versions
 
-INSERT INTO tree_version_element (element_link, tree_version_id, tree_element_id)
+INSERT INTO tree_version_element (element_link, taxon_link, tree_version_id, tree_element_id, taxon_id)
   SELECT
     'http://' || host.host_name || '/tree/' || v.id || '/' || ipath.id,
+    'http://' || host.host_name || '/node/apni/' || (ipath.ver_node_map ->> (text(v.id))),
     v.id,
-    ipath.id
+    ipath.id,
+    (ipath.ver_node_map ->> (text(v.id))) :: BIGINT
   FROM instance_paths ipath, tree_version v, mapper.host host
   WHERE host.preferred = TRUE
         AND ipath.versions @> to_jsonb(v.id)
@@ -708,7 +722,7 @@ SELECT link_back_missing_family_names();
 DROP FUNCTION link_back_missing_family_names();
 
 -- remove all the notifications caused by the trigger on name changes
-delete from notification;
+DELETE FROM notification;
 
 -- drop name_tree_path
 
