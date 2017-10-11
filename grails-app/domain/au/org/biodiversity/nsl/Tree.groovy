@@ -8,6 +8,10 @@ class Tree {
     TreeVersion currentTreeVersion
     Long referenceId  // an unconstrained FK to Reference for in-reference trees only.
 
+    Boolean acceptedTree = false
+    String descriptionHtml
+    String linkToHomePage
+
     static hasMany = [treeVersions: TreeVersion]
 
     static mapping = {
@@ -18,6 +22,9 @@ class Tree {
 
         name sqlType: 'Text', unique: true
         groupName sqlType: 'Text'
+        descriptionHtml sqlType: 'Text', defaultValue: "'Edit me'"
+        acceptedTree defaultvalue: "false"
+        linkToHomePage sqlType: 'Text'
     }
 
     static constraints = {
@@ -26,5 +33,6 @@ class Tree {
         currentTreeVersion nullable: true
         defaultDraftTreeVersion nullable: true
         referenceId nullable: true
+        linkToHomePage nullable: true
     }
 }

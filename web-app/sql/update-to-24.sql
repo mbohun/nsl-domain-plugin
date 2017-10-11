@@ -52,9 +52,12 @@ DROP TABLE IF EXISTS tree;
 CREATE TABLE tree (
   id                            INT8 DEFAULT nextval('nsl_global_seq') NOT NULL,
   lock_version                  INT8 DEFAULT 0                         NOT NULL,
+  accepted_tree                 BOOLEAN DEFAULT FALSE                  NOT NULL,
   current_tree_version_id       INT8,
   default_draft_tree_version_id INT8,
+  description_html              TEXT DEFAULT 'Edit me'                 NOT NULL,
   group_name                    TEXT                                   NOT NULL,
+  link_to_home_page             TEXT,
   name                          TEXT                                   NOT NULL,
   reference_id                  INT8,
   PRIMARY KEY (id)
