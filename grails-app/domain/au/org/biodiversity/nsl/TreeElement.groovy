@@ -41,6 +41,8 @@ class TreeElement {
         id generator: 'native', params: [sequence: 'nsl_global_seq'], defaultValue: "nextval('nsl_global_seq')"
         version column: 'lock_version', defaultValue: "0"
 
+        nameId index: "tree_element_name_index"
+        instanceId index: "tree_element_instance_index"
         updatedAt sqlType: 'timestamp with time zone'
         displayHtml sqlType: 'Text'
         synonymsHtml sqlType: 'Text'

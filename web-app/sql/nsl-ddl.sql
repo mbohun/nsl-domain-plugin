@@ -1158,6 +1158,10 @@
 
     create index tree_arrangement_node on tree_arrangement (node_id);
 
+    create index tree_element_instance_index on tree_element (instance_id);
+
+    create index tree_element_name_index on tree_element (name_id);
+
     create index tree_name_path_index on tree_element (name_path);
 
     create index tree_simple_name_index on tree_element (simple_name);
@@ -2557,6 +2561,9 @@ DROP INDEX IF EXISTS tree_synonyms_index;
 CREATE INDEX tree_synonyms_index
   ON tree_element USING GIN (synonyms);
 
+-- new tree make sure the draft is not also the current version.
+ALTER TABLE tree
+  ADD CONSTRAINT draft_not_current CHECK (current_tree_version_id <> default_draft_tree_version_id);
 --
 INSERT INTO db_version (id, version) VALUES (1, 24);
 

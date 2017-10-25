@@ -190,9 +190,18 @@ CREATE INDEX tree_version_element_taxon_id_index
 CREATE INDEX tree_version_element_taxon_link_index
   ON tree_version_element (taxon_link);
 
+CREATE INDEX tree_element_instance_index
+  ON tree_element (instance_id);
+
+CREATE INDEX tree_element_name_index
+  ON tree_element (name_id);
 
 CREATE INDEX tree_synonyms_index
   ON tree_element USING GIN (synonyms);
+
+-- new tree make sure the draft is not also the current version.
+ALTER TABLE tree
+  ADD CONSTRAINT draft_not_current CHECK (current_tree_version_id <> default_draft_tree_version_id);
 
 -- import old tree data into the new structure
 
