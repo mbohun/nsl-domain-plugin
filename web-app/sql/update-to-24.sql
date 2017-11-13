@@ -86,6 +86,7 @@ CREATE TABLE tree_element (
   excluded            BOOLEAN DEFAULT FALSE                  NOT NULL,
   instance_id         INT8                                   NOT NULL,
   instance_link       TEXT                                   NOT NULL,
+  instance_path       TEXT                                   NOT NULL,
   name_element        VARCHAR(255)                           NOT NULL,
   name_id             INT8                                   NOT NULL,
   name_link           TEXT                                   NOT NULL,
@@ -192,6 +193,8 @@ CREATE INDEX tree_version_element_taxon_link_index
 
 CREATE INDEX tree_element_instance_index
   ON tree_element (instance_id);
+CREATE INDEX instance_path_index
+  ON tree_element (instance_path);
 
 CREATE INDEX tree_element_name_index
   ON tree_element (name_id);
@@ -548,6 +551,7 @@ INSERT INTO tree_element
  simple_name,
  name_element,
  tree_path,
+ instance_path,
  name_path,
  depth,
  source_shard,
@@ -573,6 +577,7 @@ INSERT INTO tree_element
      n.simple_name                                                                             AS simple_name,
      coalesce(n.name_element, '?')                                                             AS name_element,
      ipath.instance_path                                                                       AS tree_path,
+     regexp_replace(ipath.instance_path, 'x', '', 'g')                                         AS instance_path,
      ipath.name_path                                                                           AS name_path,
      ipath.depth                                                                               AS depth,
      'APNI'                                                                                    AS source_shard,

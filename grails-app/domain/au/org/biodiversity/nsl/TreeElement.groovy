@@ -18,6 +18,7 @@ class TreeElement {
     String simpleName
     String nameElement
     String treePath
+    String instancePath
     String namePath
     String rank
     Integer depth = 0
@@ -48,6 +49,7 @@ class TreeElement {
         synonymsHtml sqlType: 'Text'
         simpleName sqlType: 'Text', index: "tree_simple_name_index"
         treePath sqlType: 'Text', index: "tree_path_index"
+        instancePath sqlType: 'Text', index: "instance_path_index"
         namePath sqlType: 'Text', index: "tree_name_path_index"
         sourceShard sqlType: 'Text'
         nameLink sqlType: 'Text'
