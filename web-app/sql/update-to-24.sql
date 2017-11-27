@@ -206,6 +206,12 @@ CREATE INDEX tree_synonyms_index
 ALTER TABLE tree
   ADD CONSTRAINT draft_not_current CHECK (current_tree_version_id <> default_draft_tree_version_id);
 
+-- add default grants for the web user
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_version TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_version_element TO ${webUserName};
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_element TO ${webUserName};
+
 -- import old tree data into the new structure
 
 -- get current classification-root and follow the prev links back to find versions back to jan 2016
