@@ -53,6 +53,7 @@ CREATE TABLE tree (
   id                            INT8 DEFAULT nextval('nsl_global_seq') NOT NULL,
   lock_version                  INT8 DEFAULT 0                         NOT NULL,
   accepted_tree                 BOOLEAN DEFAULT FALSE                  NOT NULL,
+  config                        JSONB,
   current_tree_version_id       INT8,
   default_draft_tree_version_id INT8,
   description_html              TEXT DEFAULT 'Edit me'                 NOT NULL,
@@ -351,7 +352,7 @@ $$;
 
 -- ************ build new tree data *******************
 
-INSERT INTO tree (group_name, name) VALUES ('treebuilder', 'APC');
+INSERT INTO tree (group_name, name, config) VALUES ('treebuilder', 'APC', '{"distribution_key": "APC Dist.", "comment_key": "APC Comment"}' :: JSONB);
 
 -- create versions
 INSERT INTO tree_version

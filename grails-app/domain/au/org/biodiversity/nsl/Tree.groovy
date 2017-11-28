@@ -1,5 +1,7 @@
 package au.org.biodiversity.nsl
 
+import net.kaleidos.hibernate.usertype.JsonbMapType
+
 class Tree {
 
     String name
@@ -11,6 +13,7 @@ class Tree {
     Boolean acceptedTree = false
     String descriptionHtml
     String linkToHomePage
+    Map config //jsonb configuration object
 
     static hasMany = [treeVersions: TreeVersion]
 
@@ -25,6 +28,8 @@ class Tree {
         descriptionHtml sqlType: 'Text', defaultValue: "'Edit me'"
         acceptedTree defaultvalue: "false"
         linkToHomePage sqlType: 'Text'
+        config type: JsonbMapType
+
     }
 
     static constraints = {
