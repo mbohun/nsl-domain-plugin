@@ -352,7 +352,21 @@ $$;
 
 -- ************ build new tree data *******************
 
-INSERT INTO tree (group_name, name, config) VALUES ('treebuilder', 'APC', '{"distribution_key": "APC Dist.", "comment_key": "APC Comment"}' :: JSONB);
+INSERT INTO tree (group_name, name, config, description_html)
+VALUES ('treebuilder',
+        'APC',
+        '{"distribution_key": "APC Dist.", "comment_key": "APC Comment"}' :: JSONB,
+  '<p>The Australian Plant Census (APC) is a nationally-accepted taxonomy for the Australian flora. APC covers all ' ||
+  'published scientific plant names used in an Australian context in the taxonomic literature, but excludes taxa known ' ||
+  'only from cultivation in Australia. The taxonomy and nomenclature adopted for the APC are endorsed by the Council of ' ||
+  'Heads of Australasian Herbaria (CHAH). </p><p>Information available from APC includes:</p><ul class="discs"> ' ||
+  '<li>Accepted scientific name and author abbreviation(s);</li> <li>Reference to the taxonomic and nomenclatural ' ||
+  'concept adopted for APC;</li>  <li>Synonym(s) and misapplications;</li> <li>State distribution;</li><li>Relevant ' ||
+  'comments and notes</li></ul><p>APC is currently maintained within the Centre for Australian National Biodiversity ' ||
+  'Research with staff, resources and financial support from the Australian National Herbarium, Australian National ' ||
+  'Botanic Gardens and the Australian Biological Resources Study. The CANBR, ANBG and ABRS collaborate to further the ' ||
+  'updating and delivery of APNI and APC.</p>'
+);
 
 -- create versions
 INSERT INTO tree_version
