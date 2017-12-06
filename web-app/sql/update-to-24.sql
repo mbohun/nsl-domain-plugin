@@ -2,6 +2,7 @@
 DROP INDEX IF EXISTS tree_simple_name_index;
 DROP INDEX IF EXISTS tree_name_path_index;
 DROP INDEX IF EXISTS tree_tree_path_index;
+DROP INDEX IF EXISTS instance_path_index;
 DROP INDEX IF EXISTS tree_synonyms_index;
 DROP INDEX IF EXISTS tree_version_element_element_index;
 DROP INDEX IF EXISTS tree_version_element_version_index;
@@ -194,6 +195,7 @@ CREATE INDEX tree_version_element_taxon_link_index
 
 CREATE INDEX tree_element_instance_index
   ON tree_element (instance_id);
+
 CREATE INDEX instance_path_index
   ON tree_element (instance_path);
 
@@ -270,11 +272,15 @@ WITH RECURSIVE treewalk (tree_id, node_id, excluded, declared_bt, instance_id, n
     n.simple_name :: TEXT                                            AS simple_name,
     coalesce(n.name_element,
              '?')                                                    AS name_path,
-    CASE WHEN (node.type_uri_id_part <> 'ApcConcept')
+    CASE
+    WHEN (node.type_uri_id_part = 'ApcConcept')
       THEN
-        'x' || node.instance_id :: TEXT
+        node.instance_id :: TEXT
+    WHEN (node.type_uri_id_part = 'DeclaredBt')
+      THEN
+        'b' || node.instance_id :: TEXT
     ELSE
-      node.instance_id :: TEXT
+      'x' || node.instance_id :: TEXT
     END                                                              AS instance_path,
     ''                                                               AS parent_instance_path,
     FALSE                                                            AS parent_excluded,
@@ -307,11 +313,15 @@ WITH RECURSIVE treewalk (tree_id, node_id, excluded, declared_bt, instance_id, n
     n.simple_name :: TEXT                                   AS simple_name,
     treewalk.name_path || '/' || COALESCE(n.name_element,
                                           '?')              AS name_path,
-    CASE WHEN (node.type_uri_id_part <> 'ApcConcept')
+    CASE
+    WHEN (node.type_uri_id_part = 'ApcConcept')
       THEN
-        treewalk.instance_path || '/x' || node.instance_id :: TEXT
+        treewalk.instance_path || '/' || node.instance_id :: TEXT
+    WHEN (node.type_uri_id_part = 'DeclaredBt')
+      THEN
+        treewalk.instance_path || '/b' || node.instance_id :: TEXT
     ELSE
-      treewalk.instance_path || '/' || node.instance_id :: TEXT
+      treewalk.instance_path || '/x' || node.instance_id :: TEXT
     END                                                     AS instance_path,
     treewalk.instance_path                                  AS parent_instance_path,
     treewalk.excluded                                       AS parent_excluded,
@@ -598,7 +608,7 @@ INSERT INTO tree_element
      n.simple_name                                                                             AS simple_name,
      coalesce(n.name_element, '?')                                                             AS name_element,
      ipath.instance_path                                                                       AS tree_path,
-     regexp_replace(ipath.instance_path, 'x', '', 'g')                                         AS instance_path,
+     regexp_replace(ipath.instance_path, '[xb]', '', 'g')                                      AS instance_path,
      ipath.name_path                                                                           AS name_path,
      ipath.depth                                                                               AS depth,
      'APNI'                                                                                    AS source_shard,
