@@ -27,6 +27,6 @@ class TreeVersionElement {
     }
 
     String toString() {
-        "TreeVersionElement $treeElement.simpleName v: $treeVersion.id e:$treeElement.id ($elementLink) t: $taxonId"
+        "TreeVersionElement ${treeElement?.simpleName} v: ${treeVersion?.id} e:${treeElement?.id} ($elementLink) t: $taxonId"
     }
 }
