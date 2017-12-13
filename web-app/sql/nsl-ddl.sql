@@ -50,10 +50,10 @@ ALTER TABLE IF EXISTS instance_note
   DROP CONSTRAINT IF EXISTS FK_f6s94njexmutjxjv8t5dy1ugt;
 
 ALTER TABLE IF EXISTS instance_resources
-  DROP CONSTRAINT IF EXISTS FK_49ic33s4xgbdoa4p5j107rtpf;
+  DROP CONSTRAINT IF EXISTS FK_8mal9hru5u3ypaosfoju8ulpd;
 
 ALTER TABLE IF EXISTS instance_resources
-  DROP CONSTRAINT IF EXISTS FK_8mal9hru5u3ypaosfoju8ulpd;
+  DROP CONSTRAINT IF EXISTS FK_49ic33s4xgbdoa4p5j107rtpf;
 
 ALTER TABLE IF EXISTS name
   DROP CONSTRAINT IF EXISTS FK_airfjupm6ohehj1lj82yqkwdx;
@@ -242,6 +242,9 @@ ALTER TABLE IF EXISTS tree_version
   DROP CONSTRAINT IF EXISTS FK_4q3huja5dv8t9xyvt5rg83a35;
 
 ALTER TABLE IF EXISTS tree_version_element
+  DROP CONSTRAINT IF EXISTS FK_8nnhwv8ldi9ppol6tg4uwn4qv;
+
+ALTER TABLE IF EXISTS tree_version_element
   DROP CONSTRAINT IF EXISTS FK_ufme7yt6bqyf3uxvuvouowhh;
 
 ALTER TABLE IF EXISTS tree_version_element
@@ -339,7 +342,9 @@ DROP SEQUENCE hibernate_sequence;
 CREATE SEQUENCE hibernate_sequence;
 
 DROP SEQUENCE nsl_global_seq;
-CREATE SEQUENCE nsl_global_seq MINVALUE 1000 MAXVALUE 10000000;
+CREATE SEQUENCE nsl_global_seq
+  MINVALUE 1000
+  MAXVALUE 10000000;
 
 CREATE TABLE author (
   id               INT8 DEFAULT nextval('nsl_global_seq') NOT NULL,
@@ -495,8 +500,8 @@ CREATE TABLE instance_note_key (
 );
 
 CREATE TABLE instance_resources (
-  resource_id INT8 NOT NULL,
   instance_id INT8 NOT NULL,
+  resource_id INT8 NOT NULL,
   PRIMARY KEY (instance_id, resource_id)
 );
 
@@ -861,7 +866,6 @@ CREATE TABLE tree_element (
   source_shard        TEXT                                   NOT NULL,
   synonyms            JSONB,
   synonyms_html       TEXT                                   NOT NULL,
-  tree_path           TEXT                                   NOT NULL,
   updated_at          TIMESTAMP WITH TIME ZONE               NOT NULL,
   updated_by          VARCHAR(255)                           NOT NULL,
   PRIMARY KEY (id)
@@ -961,9 +965,11 @@ CREATE TABLE tree_version (
 
 CREATE TABLE tree_version_element (
   element_link    TEXT NOT NULL,
+  parent_id       TEXT,
   taxon_id        INT8 NOT NULL,
   taxon_link      TEXT NOT NULL,
   tree_element_id INT8 NOT NULL,
+  tree_path       TEXT NOT NULL,
   tree_version_id INT8 NOT NULL,
   PRIMARY KEY (element_link)
 );
@@ -1228,9 +1234,6 @@ CREATE INDEX tree_name_path_index
 CREATE INDEX tree_simple_name_index
   ON tree_element (simple_name);
 
-CREATE INDEX tree_path_index
-  ON tree_element (tree_path);
-
 CREATE INDEX tree_link_subnode
   ON tree_link (subnode_id);
 
@@ -1300,6 +1303,9 @@ CREATE INDEX by_root_id
 CREATE INDEX tree_version_element_link_index
   ON tree_version_element (element_link);
 
+CREATE INDEX tree_version_element_parent_index
+  ON tree_version_element (parent_id);
+
 CREATE INDEX tree_version_element_taxon_id_index
   ON tree_version_element (taxon_id);
 
@@ -1308,6 +1314,9 @@ CREATE INDEX tree_version_element_taxon_link_index
 
 CREATE INDEX tree_version_element_element_index
   ON tree_version_element (tree_element_id);
+
+CREATE INDEX tree_path_index
+  ON tree_version_element (tree_path);
 
 CREATE INDEX tree_version_element_version_index
   ON tree_version_element (tree_version_id);
@@ -1401,14 +1410,14 @@ FOREIGN KEY (namespace_id)
 REFERENCES namespace;
 
 ALTER TABLE IF EXISTS instance_resources
-  ADD CONSTRAINT FK_49ic33s4xgbdoa4p5j107rtpf
-FOREIGN KEY (instance_id)
-REFERENCES instance;
-
-ALTER TABLE IF EXISTS instance_resources
   ADD CONSTRAINT FK_8mal9hru5u3ypaosfoju8ulpd
 FOREIGN KEY (resource_id)
 REFERENCES resource;
+
+ALTER TABLE IF EXISTS instance_resources
+  ADD CONSTRAINT FK_49ic33s4xgbdoa4p5j107rtpf
+FOREIGN KEY (instance_id)
+REFERENCES instance;
 
 ALTER TABLE IF EXISTS name
   ADD CONSTRAINT FK_airfjupm6ohehj1lj82yqkwdx
@@ -1719,6 +1728,11 @@ ALTER TABLE IF EXISTS tree_version
   ADD CONSTRAINT FK_4q3huja5dv8t9xyvt5rg83a35
 FOREIGN KEY (tree_id)
 REFERENCES tree;
+
+ALTER TABLE IF EXISTS tree_version_element
+  ADD CONSTRAINT FK_8nnhwv8ldi9ppol6tg4uwn4qv
+FOREIGN KEY (parent_id)
+REFERENCES tree_version_element;
 
 ALTER TABLE IF EXISTS tree_version_element
   ADD CONSTRAINT FK_ufme7yt6bqyf3uxvuvouowhh
@@ -2101,7 +2115,7 @@ ALTER TABLE tree_link
 ALTER TABLE tree_node
   ADD CONSTRAINT current_name_only_once
 EXCLUDE (tree_arrangement_id WITH =, name_id WITH = )
-WHERE (name_id IS NOT NULL AND replaced_at_id IS NULL);
+  WHERE (name_id IS NOT NULL AND replaced_at_id IS NULL);
 
 -- fixing the column ordering in these indexes. Big effects on performance.
 
@@ -5178,8 +5192,9 @@ $name_note$ LANGUAGE plpgsql;
 
 
 CREATE TRIGGER name_update
-AFTER INSERT OR UPDATE OR DELETE ON name
-FOR EACH ROW
+  AFTER INSERT OR UPDATE OR DELETE
+  ON name
+  FOR EACH ROW
 EXECUTE PROCEDURE name_notification();
 
 -- Author change trigger
@@ -5221,8 +5236,9 @@ $author_note$ LANGUAGE plpgsql;
 
 
 CREATE TRIGGER author_update
-AFTER INSERT OR UPDATE OR DELETE ON author
-FOR EACH ROW
+  AFTER INSERT OR UPDATE OR DELETE
+  ON author
+  FOR EACH ROW
 EXECUTE PROCEDURE author_notification();
 
 -- Reference change trigger
@@ -5263,8 +5279,9 @@ $ref_note$ LANGUAGE plpgsql;
 
 
 CREATE TRIGGER reference_update
-AFTER INSERT OR UPDATE OR DELETE ON reference
-FOR EACH ROW
+  AFTER INSERT OR UPDATE OR DELETE
+  ON reference
+  FOR EACH ROW
 EXECUTE PROCEDURE reference_notification();
 
 -- z-grants.sql

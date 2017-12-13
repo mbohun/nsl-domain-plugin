@@ -36,6 +36,9 @@ ALTER TABLE IF EXISTS tree_version_element
 ALTER TABLE IF EXISTS tree_version_element
   DROP CONSTRAINT IF EXISTS FK_80khvm60q13xwqgpy43twlnoe;
 
+ALTER TABLE IF EXISTS tree_version_element
+  DROP CONSTRAINT IF EXISTS FK_8nnhwv8ldi9ppol6tg4uwn4qv;
+
 DROP TABLE IF EXISTS distribution;
 CREATE TABLE distribution (
   id                        INT8 DEFAULT nextval('nsl_global_seq') NOT NULL,
@@ -103,7 +106,6 @@ CREATE TABLE tree_element (
   source_shard        TEXT                                   NOT NULL,
   synonyms            JSONB,
   synonyms_html       TEXT                                   NOT NULL,
-  tree_path           TEXT                                   NOT NULL,
   updated_at          TIMESTAMP WITH TIME ZONE               NOT NULL,
   updated_by          VARCHAR(255)                           NOT NULL,
   PRIMARY KEY (id)
@@ -112,9 +114,11 @@ CREATE TABLE tree_element (
 DROP TABLE IF EXISTS tree_version_element;
 CREATE TABLE tree_version_element (
   element_link    TEXT NOT NULL,
+  parent_id       TEXT,
   taxon_id        INT8 NOT NULL,
   taxon_link      TEXT NOT NULL,
   tree_element_id INT8 NOT NULL,
+  tree_path       TEXT NOT NULL,
   tree_version_id INT8 NOT NULL,
   PRIMARY KEY (element_link)
 );
@@ -169,8 +173,16 @@ ALTER TABLE IF EXISTS tree_version_element
 FOREIGN KEY (tree_version_id)
 REFERENCES tree_version;
 
+ALTER TABLE IF EXISTS tree_version_element
+  ADD CONSTRAINT FK_8nnhwv8ldi9ppol6tg4uwn4qv
+FOREIGN KEY (parent_id)
+REFERENCES tree_version_element;
+
 CREATE INDEX tree_version_element_link_index
   ON tree_version_element (element_link);
+
+CREATE INDEX tree_version_element_parent_index
+  ON tree_version_element (parent_id);
 
 CREATE INDEX tree_simple_name_index
   ON tree_element (simple_name);
@@ -179,7 +191,7 @@ CREATE INDEX tree_name_path_index
   ON tree_element (name_path);
 
 CREATE INDEX tree_path_index
-  ON tree_element (tree_path);
+  ON tree_version_element (tree_path);
 
 CREATE INDEX tree_version_element_element_index
   ON tree_version_element (tree_element_id);
@@ -365,17 +377,29 @@ $$;
 INSERT INTO tree (group_name, name, config, description_html)
 VALUES ('treebuilder',
         'APC',
-        '{"distribution_key": "APC Dist.", "comment_key": "APC Comment"}' :: JSONB,
-  '<p>The Australian Plant Census (APC) is a nationally-accepted taxonomy for the Australian flora. APC covers all ' ||
-  'published scientific plant names used in an Australian context in the taxonomic literature, but excludes taxa known ' ||
-  'only from cultivation in Australia. The taxonomy and nomenclature adopted for the APC are endorsed by the Council of ' ||
-  'Heads of Australasian Herbaria (CHAH). </p><p>Information available from APC includes:</p><ul class="discs"> ' ||
-  '<li>Accepted scientific name and author abbreviation(s);</li> <li>Reference to the taxonomic and nomenclatural ' ||
-  'concept adopted for APC;</li>  <li>Synonym(s) and misapplications;</li> <li>State distribution;</li><li>Relevant ' ||
-  'comments and notes</li></ul><p>APC is currently maintained within the Centre for Australian National Biodiversity ' ||
-  'Research with staff, resources and financial support from the Australian National Herbarium, Australian National ' ||
-  'Botanic Gardens and the Australian Biological Resources Study. The CANBR, ANBG and ABRS collaborate to further the ' ||
-  'updating and delivery of APNI and APC.</p>'
+        '{
+          "distribution_key": "APC Dist.",
+          "comment_key": "APC Comment"
+        }' :: JSONB,
+        '<p>The Australian Plant Census (APC) is a nationally-accepted taxonomy for the Australian flora. APC covers all '
+        ||
+        'published scientific plant names used in an Australian context in the taxonomic literature, but excludes taxa known '
+        ||
+        'only from cultivation in Australia. The taxonomy and nomenclature adopted for the APC are endorsed by the Council of '
+        ||
+        'Heads of Australasian Herbaria (CHAH). </p><p>Information available from APC includes:</p><ul class="discs"> '
+        ||
+        '<li>Accepted scientific name and author abbreviation(s);</li> <li>Reference to the taxonomic and nomenclatural '
+        ||
+        'concept adopted for APC;</li>  <li>Synonym(s) and misapplications;</li> <li>State distribution;</li><li>Relevant '
+        ||
+        'comments and notes</li></ul><p>APC is currently maintained within the Centre for Australian National Biodiversity '
+        ||
+        'Research with staff, resources and financial support from the Australian National Herbarium, Australian National '
+        ||
+        'Botanic Gardens and the Australian Biological Resources Study. The CANBR, ANBG and ABRS collaborate to further the '
+        ||
+        'updating and delivery of APNI and APC.</p>'
 );
 
 -- create versions
@@ -563,6 +587,11 @@ WHERE i.id = instance_id
       AND host.preferred = TRUE;
 $$;
 
+-- adding tree_path to tree_element as this is the quicer way to create tree_path then set it on tree_version_element
+-- this is also a quicker conversion from the old structure of tree_path on tree_element.
+ALTER TABLE tree_element
+  ADD COLUMN tree_path TEXT;
+
 INSERT INTO tree_element
 (id,
  lock_version,
@@ -641,14 +670,24 @@ WHERE tree_element.id IN (SELECT ipath.id
 
 -- link tree_elements to versions
 
-INSERT INTO tree_version_element (element_link, taxon_link, tree_version_id, tree_element_id, taxon_id)
+INSERT INTO tree_version_element (element_link, parent_id, taxon_link, tree_version_id, tree_element_id, taxon_id, tree_path)
   SELECT
-    'http://' || host.host_name || '/tree/' || v.id || '/' || ipath.id,
-    'http://' || host.host_name || '/node/apni/' || (ipath.ver_node_map ->> (text(v.id))),
-    v.id,
-    ipath.id,
-    (ipath.ver_node_map ->> (text(v.id))) :: BIGINT
-  FROM instance_paths ipath, tree_version v, mapper.host host
+    'http://' || host.host_name || '/tree/' || v.id || '/' || ipath.id                    AS element_link,
+    CASE WHEN parent_ipath.id IS NOT NULL
+      THEN
+        'http://' || host.host_name || '/tree/' || v.id || '/' || parent_ipath.id
+    ELSE NULL
+    END                                                                                   AS parent_id,
+    'http://' || host.host_name || '/node/apni/' || (ipath.ver_node_map ->> (text(v.id))) AS taxon_link,
+    v.id                                                                                  AS tree_version_id,
+    ipath.id                                                                              AS tree_element_id,
+    (ipath.ver_node_map ->> (text(v.id))) :: BIGINT                                       AS taxon_id,
+    'not_set'                                                                             AS tree_path
+  FROM instance_paths ipath
+    LEFT OUTER JOIN instance_paths parent_ipath
+      ON ipath.parent_instance_path = parent_ipath.instance_path
+    ,
+    tree_version v, mapper.host host
   WHERE host.preferred = TRUE
         AND ipath.versions @> to_jsonb(v.id)
         AND exists(SELECT 1
@@ -675,6 +714,15 @@ UPDATE tree_element element
 SET tree_path = walk.tree_path
 FROM walk
 WHERE element.id = walk.element_id;
+
+UPDATE tree_version_element
+SET tree_path = e.tree_path FROM tree_element e
+WHERE e.id = tree_element_id;
+
+ALTER TABLE tree_element
+  DROP COLUMN tree_path;
+
+-- todo drop tree_element parent_id
 
 VACUUM ANALYSE;
 
