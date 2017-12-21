@@ -96,7 +96,6 @@ CREATE TABLE tree_element (
   name_id             INT8                                   NOT NULL,
   name_link           TEXT                                   NOT NULL,
   name_path           TEXT                                   NOT NULL,
-  parent_element_id   INT8,
   previous_element_id INT8,
   profile             JSONB,
   rank                VARCHAR(50)                            NOT NULL,
@@ -137,11 +136,6 @@ ALTER TABLE IF EXISTS tree
   ADD CONSTRAINT FK_48skgw51tamg6ud4qa8oh0ycm
 FOREIGN KEY (default_draft_tree_version_id)
 REFERENCES tree_version;
-
-ALTER TABLE IF EXISTS tree_element
-  ADD CONSTRAINT FK_eoywd7l5fhjpjgn461r6ni2ak
-FOREIGN KEY (parent_element_id)
-REFERENCES tree_element;
 
 ALTER TABLE IF EXISTS tree_element
   ADD CONSTRAINT FK_5sv181ivf7oybb6hud16ptmo5
@@ -213,6 +207,9 @@ CREATE INDEX instance_path_index
 
 CREATE INDEX tree_element_name_index
   ON tree_element (name_id);
+
+CREATE INDEX tree_element_previous_index
+  ON tree_element (previous_element_id);
 
 CREATE INDEX tree_synonyms_index
   ON tree_element USING GIN (synonyms);
@@ -592,6 +589,9 @@ $$;
 ALTER TABLE tree_element
   ADD COLUMN tree_path TEXT;
 
+ALTER TABLE tree_element
+  ADD COLUMN parent_element_id INT8;
+
 INSERT INTO tree_element
 (id,
  lock_version,
@@ -656,6 +656,9 @@ INSERT INTO tree_element
 
 -- remove declared BTs by making the children point to the next parent up.
 
+CREATE INDEX tree_element_parent_index
+  ON tree_element (parent_element_id);
+
 UPDATE tree_element child_el
 SET parent_element_id = par_el.parent_element_id
 FROM instance_paths ipath
@@ -670,12 +673,16 @@ WHERE tree_element.id IN (SELECT ipath.id
 
 -- link tree_elements to versions
 
+ALTER TABLE IF EXISTS tree_version_element
+  DROP CONSTRAINT IF EXISTS FK_8nnhwv8ldi9ppol6tg4uwn4qv;
+
+-- 19min
 INSERT INTO tree_version_element (element_link, parent_id, taxon_link, tree_version_id, tree_element_id, taxon_id, tree_path)
   SELECT
     'http://' || host.host_name || '/tree/' || v.id || '/' || ipath.id                    AS element_link,
-    CASE WHEN parent_ipath.id IS NOT NULL
+    CASE WHEN te.parent_element_id IS NOT NULL
       THEN
-        'http://' || host.host_name || '/tree/' || v.id || '/' || parent_ipath.id
+        'http://' || host.host_name || '/tree/' || v.id || '/' || te.parent_element_id
     ELSE NULL
     END                                                                                   AS parent_id,
     'http://' || host.host_name || '/node/apni/' || (ipath.ver_node_map ->> (text(v.id))) AS taxon_link,
@@ -684,15 +691,11 @@ INSERT INTO tree_version_element (element_link, parent_id, taxon_link, tree_vers
     (ipath.ver_node_map ->> (text(v.id))) :: BIGINT                                       AS taxon_id,
     'not_set'                                                                             AS tree_path
   FROM instance_paths ipath
-    LEFT OUTER JOIN instance_paths parent_ipath
-      ON ipath.parent_instance_path = parent_ipath.instance_path
+    JOIN tree_element te ON te.id = ipath.id
     ,
     tree_version v, mapper.host host
   WHERE host.preferred = TRUE
-        AND ipath.versions @> to_jsonb(v.id)
-        AND exists(SELECT 1
-                   FROM tree_element e
-                   WHERE e.id = ipath.id);
+        AND ipath.versions @> to_jsonb(v.id);
 
 -- set the tree_path to tree elements instead of instance path
 
@@ -715,14 +718,23 @@ SET tree_path = walk.tree_path
 FROM walk
 WHERE element.id = walk.element_id;
 
+-- 16min
 UPDATE tree_version_element
 SET tree_path = e.tree_path FROM tree_element e
 WHERE e.id = tree_element_id;
 
+DROP INDEX tree_element_parent_index;
+
 ALTER TABLE tree_element
   DROP COLUMN tree_path;
 
--- todo drop tree_element parent_id
+ALTER TABLE tree_element
+  DROP COLUMN parent_element_id;
+
+ALTER TABLE IF EXISTS tree_version_element
+  ADD CONSTRAINT FK_8nnhwv8ldi9ppol6tg4uwn4qv
+FOREIGN KEY (parent_id)
+REFERENCES tree_version_element;
 
 VACUUM ANALYSE;
 

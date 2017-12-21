@@ -7,7 +7,6 @@ import java.sql.Timestamp
 class TreeElement {
 
     TreeElement previousElement
-    TreeElement parentElement
 
     Long instanceId          //unconstrained FK to the instance - depends on the shard
     Long nameId              //unconstrained FK to the name - depends on the shard
@@ -43,6 +42,7 @@ class TreeElement {
 
         nameId index: "tree_element_name_index"
         instanceId index: "tree_element_instance_index"
+        previousElement index: "tree_element_previous_index"
         updatedAt sqlType: 'timestamp with time zone'
         displayHtml sqlType: 'Text'
         synonymsHtml sqlType: 'Text'
@@ -62,7 +62,6 @@ class TreeElement {
 
     static constraints = {
         previousElement nullable: true
-        parentElement nullable: true
         sourceElementLink nullable: true
         rank maxSize: 50
         nameElement maxSize: 255

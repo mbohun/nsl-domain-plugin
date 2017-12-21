@@ -173,9 +173,6 @@ ALTER TABLE IF EXISTS tree_arrangement
   DROP CONSTRAINT IF EXISTS FK_fvfq13j3dqv994o9vg54yj5kk;
 
 ALTER TABLE IF EXISTS tree_element
-  DROP CONSTRAINT IF EXISTS FK_eoywd7l5fhjpjgn461r6ni2ak;
-
-ALTER TABLE IF EXISTS tree_element
   DROP CONSTRAINT IF EXISTS FK_5sv181ivf7oybb6hud16ptmo5;
 
 ALTER TABLE IF EXISTS tree_event
@@ -856,7 +853,6 @@ CREATE TABLE tree_element (
   name_id             INT8                                   NOT NULL,
   name_link           TEXT                                   NOT NULL,
   name_path           TEXT                                   NOT NULL,
-  parent_element_id   INT8,
   previous_element_id INT8,
   profile             JSONB,
   rank                VARCHAR(50)                            NOT NULL,
@@ -1230,6 +1226,9 @@ CREATE INDEX tree_element_name_index
 
 CREATE INDEX tree_name_path_index
   ON tree_element (name_path);
+
+CREATE INDEX tree_element_previous_index
+  ON tree_element (previous_element_id);
 
 CREATE INDEX tree_simple_name_index
   ON tree_element (simple_name);
@@ -1615,11 +1614,6 @@ FOREIGN KEY (node_id)
 REFERENCES tree_node;
 
 ALTER TABLE IF EXISTS tree_element
-  ADD CONSTRAINT FK_eoywd7l5fhjpjgn461r6ni2ak
-FOREIGN KEY (parent_element_id)
-REFERENCES tree_element;
-
-ALTER TABLE IF EXISTS tree_element
   ADD CONSTRAINT FK_5sv181ivf7oybb6hud16ptmo5
 FOREIGN KEY (previous_element_id)
 REFERENCES tree_element;
@@ -1842,7 +1836,7 @@ DECLARE
   log_diffs      BOOLEAN;
   h_old          HSTORE;
   h_new          HSTORE;
-  excluded_cols  TEXT [] = ARRAY [] :: TEXT [];
+  excluded_cols  TEXT [] = ARRAY [] : :TEXT [];
 BEGIN
   IF TG_WHEN <> 'AFTER'
   THEN
@@ -1851,10 +1845,10 @@ BEGIN
 
   audit_row = ROW (
               nextval('audit.logged_actions_event_id_seq'), -- event_id
-                                                            TG_TABLE_SCHEMA :: TEXT, -- schema_name
-                                                            TG_TABLE_NAME :: TEXT, -- table_name
+                                                            TG_TABLE_SCHEMA : :TEXT, -- schema_name
+                                                            TG_TABLE_NAME : :TEXT, -- table_name
                                                             TG_RELID, -- relation OID for much quicker searches
-                                                            session_user :: TEXT, -- session_user_name
+                                                            session_user : :TEXT, -- session_user_name
                                                             current_timestamp, -- action_tstamp_tx
                                                             statement_timestamp(), -- action_tstamp_stm
                                                             clock_timestamp(), -- action_tstamp_clk
@@ -1868,14 +1862,14 @@ BEGIN
               'f'                                           -- statement_only
   );
 
-  IF NOT TG_ARGV [0] :: BOOLEAN IS DISTINCT FROM 'f' :: BOOLEAN
+  IF NOT TG_ARGV [0] : :BOOLEAN IS DISTINCT FROM 'f' : :BOOLEAN
   THEN
     audit_row.client_query = NULL;
   END IF;
 
   IF TG_ARGV [1] IS NOT NULL
   THEN
-    excluded_cols = TG_ARGV [1] :: TEXT [];
+    excluded_cols = TG_ARGV [1] : :TEXT [];
   END IF;
 
   IF (TG_OP = 'UPDATE' AND TG_LEVEL = 'ROW')
@@ -1992,7 +1986,7 @@ $body$;
 -- Pg doesn't allow variadic calls with 0 params, so provide a wrapper
 CREATE OR REPLACE FUNCTION audit.audit_table(target_table REGCLASS, audit_rows BOOLEAN, audit_query_text BOOLEAN)
   RETURNS VOID AS $body$
-SELECT audit.audit_table($1, $2, $3, ARRAY [] :: TEXT []);
+SELECT audit.audit_table($1, $2, $3, ARRAY [] : :TEXT []);
 $body$ LANGUAGE SQL;
 
 -- And provide a convenience call wrapper for the simplest case
@@ -2525,12 +2519,12 @@ WHERE id <> 0;
 COMMIT;
 
 -- boatree-stored-procedures.sql
-CREATE OR REPLACE FUNCTION is_instance_in_tree(pinstance instance.id%TYPE, ptree tree_arrangement.id%TYPE)
+CREATE OR REPLACE FUNCTION is_instance_in_tree(pinstance instance.ID%TYPE, ptree tree_arrangement.ID%TYPE)
   RETURNS BOOLEAN AS $$
 DECLARE
   -- declarations
   ct      INTEGER;
-  base_id tree_arrangement.id%TYPE;
+  base_id tree_arrangement.ID%TYPE;
 BEGIN
   -- OK. Is this instance directly in the tree as a current node?
 
@@ -2591,13 +2585,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION find_name_in_tree(pname name.id%TYPE, ptree tree_arrangement.id%TYPE)
-  RETURNS tree_link.id%TYPE AS $$
+CREATE OR REPLACE FUNCTION find_name_in_tree(pname name.ID%TYPE, ptree tree_arrangement.ID%TYPE)
+  RETURNS tree_link.ID%TYPE AS $$
 DECLARE
   -- declarations
   ct      INTEGER;
-  base_id tree_arrangement.id%TYPE;
-  link_id tree_link.id%TYPE;
+  base_id tree_arrangement.ID%TYPE;
+  link_id tree_link.ID%TYPE;
 BEGIN
   -- if this is a simple tree, then we can just look for the tree link directly.
   -- if it is a tree based on another tree, then we must do a treewalk
