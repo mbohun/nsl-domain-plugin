@@ -16,13 +16,9 @@ class TreeElement {
     String synonymsHtml
     String simpleName
     String nameElement
-    String instancePath
-    String namePath
     String rank
-    Integer depth = 0
     String sourceShard      //where the taxon comes from
     Map synonyms
-    Map rankPath
     Map profile
 
     String sourceElementLink //Link to the source tree element for composed trees
@@ -47,17 +43,13 @@ class TreeElement {
         displayHtml sqlType: 'Text'
         synonymsHtml sqlType: 'Text'
         simpleName sqlType: 'Text', index: "tree_simple_name_index"
-        instancePath sqlType: 'Text', index: "instance_path_index"
-        namePath sqlType: 'Text', index: "tree_name_path_index"
         sourceShard sqlType: 'Text'
         nameLink sqlType: 'Text'
         instanceLink sqlType: 'Text'
         sourceElementLink sqlType: 'Text'
         synonyms type: JsonbMapType
-        rankPath type: JsonbMapType
         profile type: JsonbMapType
         excluded defaultValue: false
-        depth defaultValue: 0
     }
 
     static constraints = {

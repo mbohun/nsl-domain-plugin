@@ -8,6 +8,8 @@ class TreeVersionElement {
     Long taxonId
 
     String treePath
+    String namePath
+    Integer depth = 0
     String elementLink
     String taxonLink
 
@@ -25,6 +27,8 @@ class TreeVersionElement {
         treeVersion index: 'tree_version_element_version_index'
         taxonId index: 'tree_version_element_taxon_id_index'
         treePath sqlType: 'Text', index: "tree_path_index"
+        namePath sqlType: 'Text', index: "tree_name_path_index"
+        depth defaultValue: 0
     }
 
     static constraints = {

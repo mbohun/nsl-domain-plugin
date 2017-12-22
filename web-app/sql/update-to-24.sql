@@ -86,20 +86,16 @@ DROP TABLE IF EXISTS tree_element;
 CREATE TABLE tree_element (
   id                  INT8 DEFAULT nextval('nsl_global_seq') NOT NULL,
   lock_version        INT8 DEFAULT 0                         NOT NULL,
-  depth               INT4                                   NOT NULL,
   display_html        TEXT                                   NOT NULL,
   excluded            BOOLEAN DEFAULT FALSE                  NOT NULL,
   instance_id         INT8                                   NOT NULL,
   instance_link       TEXT                                   NOT NULL,
-  instance_path       TEXT                                   NOT NULL,
   name_element        VARCHAR(255)                           NOT NULL,
   name_id             INT8                                   NOT NULL,
   name_link           TEXT                                   NOT NULL,
-  name_path           TEXT                                   NOT NULL,
   previous_element_id INT8,
   profile             JSONB,
   rank                VARCHAR(50)                            NOT NULL,
-  rank_path           JSONB,
   simple_name         TEXT                                   NOT NULL,
   source_element_link TEXT,
   source_shard        TEXT                                   NOT NULL,
@@ -113,6 +109,8 @@ CREATE TABLE tree_element (
 DROP TABLE IF EXISTS tree_version_element;
 CREATE TABLE tree_version_element (
   element_link    TEXT NOT NULL,
+  depth           INT4 NOT NULL,
+  name_path       TEXT NOT NULL,
   parent_id       TEXT,
   taxon_id        INT8 NOT NULL,
   taxon_link      TEXT NOT NULL,
@@ -181,9 +179,6 @@ CREATE INDEX tree_version_element_parent_index
 CREATE INDEX tree_simple_name_index
   ON tree_element (simple_name);
 
-CREATE INDEX tree_name_path_index
-  ON tree_element (name_path);
-
 CREATE INDEX tree_path_index
   ON tree_version_element (tree_path);
 
@@ -199,11 +194,11 @@ CREATE INDEX tree_version_element_taxon_id_index
 CREATE INDEX tree_version_element_taxon_link_index
   ON tree_version_element (taxon_link);
 
+CREATE INDEX tree_name_path_index
+  ON tree_version_element (name_path);
+
 CREATE INDEX tree_element_instance_index
   ON tree_element (instance_id);
-
-CREATE INDEX instance_path_index
-  ON tree_element (instance_path);
 
 CREATE INDEX tree_element_name_index
   ON tree_element (name_id);
@@ -587,9 +582,6 @@ $$;
 -- adding tree_path to tree_element as this is the quicer way to create tree_path then set it on tree_version_element
 -- this is also a quicker conversion from the old structure of tree_path on tree_element.
 ALTER TABLE tree_element
-  ADD COLUMN tree_path TEXT;
-
-ALTER TABLE tree_element
   ADD COLUMN parent_element_id INT8;
 
 INSERT INTO tree_element
@@ -610,10 +602,6 @@ INSERT INTO tree_element
  rank_path,
  simple_name,
  name_element,
- tree_path,
- instance_path,
- name_path,
- depth,
  source_shard,
  updated_at,
  updated_by
@@ -636,10 +624,6 @@ INSERT INTO tree_element
      ipath.rank_path                                                                           AS rank_path,
      n.simple_name                                                                             AS simple_name,
      coalesce(n.name_element, '?')                                                             AS name_element,
-     ipath.instance_path                                                                       AS tree_path,
-     regexp_replace(ipath.instance_path, '[xb]', '', 'g')                                      AS instance_path,
-     ipath.name_path                                                                           AS name_path,
-     ipath.depth                                                                               AS depth,
      'APNI'                                                                                    AS source_shard,
      now()                                                                                     AS updated_at,
      'import'                                                                                  AS updated_by
@@ -677,7 +661,7 @@ ALTER TABLE IF EXISTS tree_version_element
   DROP CONSTRAINT IF EXISTS FK_8nnhwv8ldi9ppol6tg4uwn4qv;
 
 -- 19min
-INSERT INTO tree_version_element (element_link, parent_id, taxon_link, tree_version_id, tree_element_id, taxon_id, tree_path)
+INSERT INTO tree_version_element (element_link, parent_id, taxon_link, tree_version_id, tree_element_id, taxon_id, tree_path, name_path, depth)
   SELECT
     'http://' || host.host_name || '/tree/' || v.id || '/' || ipath.id                    AS element_link,
     CASE WHEN te.parent_element_id IS NOT NULL
@@ -689,7 +673,9 @@ INSERT INTO tree_version_element (element_link, parent_id, taxon_link, tree_vers
     v.id                                                                                  AS tree_version_id,
     ipath.id                                                                              AS tree_element_id,
     (ipath.ver_node_map ->> (text(v.id))) :: BIGINT                                       AS taxon_id,
-    'not_set'                                                                             AS tree_path
+    'not_set'                                                                             AS tree_path,
+    ipath.name_path                                                                       AS name_path,
+    ipath.depth                                                                           AS septh
   FROM instance_paths ipath
     JOIN tree_element te ON te.id = ipath.id
     ,
@@ -713,20 +699,12 @@ WITH RECURSIVE walk (element_id, tree_path) AS (
   WHERE e.parent_element_id = walk.element_id
 
 )
-UPDATE tree_element element
+UPDATE tree_version_element element
 SET tree_path = walk.tree_path
 FROM walk
-WHERE element.id = walk.element_id;
-
--- 16min
-UPDATE tree_version_element
-SET tree_path = e.tree_path FROM tree_element e
-WHERE e.id = tree_element_id;
+WHERE element.tree_element_id = walk.element_id;
 
 DROP INDEX tree_element_parent_index;
-
-ALTER TABLE tree_element
-  DROP COLUMN tree_path;
 
 ALTER TABLE tree_element
   DROP COLUMN parent_element_id;
@@ -744,14 +722,40 @@ VACUUM ANALYSE;
 UPDATE name n
 SET name_path = '', family_id = NULL;
 
+DROP FUNCTION IF EXISTS find_family_name_id( TEXT );
+CREATE FUNCTION find_family_name_id(target_element_link TEXT)
+  RETURNS BIGINT
+LANGUAGE SQL AS
+$$
+WITH RECURSIVE walk (name_id, rank, parent_id) AS (
+  SELECT
+    te.name_id,
+    te.rank,
+    tve.parent_id
+  FROM tree_version_element tve
+    JOIN tree_element te ON tve.tree_element_id = te.id
+  WHERE element_link = target_element_link
+  UNION ALL
+  SELECT
+    te.name_id,
+    te.rank,
+    tve.parent_id
+  FROM walk, tree_version_element tve
+    JOIN tree_element te ON tve.tree_element_id = te.id
+  WHERE element_link = walk.parent_id
+)
+SELECT name_id
+FROM walk
+WHERE rank = 'Familia';
+$$;
+
 UPDATE name name
-SET family_id = fam.id,
-  name_path   = element.name_path
+SET family_id = find_family_name_id(tvte.element_link),
+  name_path   = tvte.name_path
 FROM
   tree_element element
   JOIN tree_version_element tvte ON element.id = tvte.tree_element_id
   JOIN tree ON tvte.tree_version_id = tree.current_tree_version_id AND tree.name = 'APC'
-  LEFT OUTER JOIN name fam ON fam.id = (element.rank_path -> 'Familia' ->> 'id') :: BIGINT
   ,
   Instance i,
   Instance s,

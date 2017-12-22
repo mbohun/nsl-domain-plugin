@@ -50,10 +50,10 @@ ALTER TABLE IF EXISTS instance_note
   DROP CONSTRAINT IF EXISTS FK_f6s94njexmutjxjv8t5dy1ugt;
 
 ALTER TABLE IF EXISTS instance_resources
-  DROP CONSTRAINT IF EXISTS FK_8mal9hru5u3ypaosfoju8ulpd;
+  DROP CONSTRAINT IF EXISTS FK_49ic33s4xgbdoa4p5j107rtpf;
 
 ALTER TABLE IF EXISTS instance_resources
-  DROP CONSTRAINT IF EXISTS FK_49ic33s4xgbdoa4p5j107rtpf;
+  DROP CONSTRAINT IF EXISTS FK_8mal9hru5u3ypaosfoju8ulpd;
 
 ALTER TABLE IF EXISTS name
   DROP CONSTRAINT IF EXISTS FK_airfjupm6ohehj1lj82yqkwdx;
@@ -497,8 +497,8 @@ CREATE TABLE instance_note_key (
 );
 
 CREATE TABLE instance_resources (
-  instance_id INT8 NOT NULL,
   resource_id INT8 NOT NULL,
+  instance_id INT8 NOT NULL,
   PRIMARY KEY (instance_id, resource_id)
 );
 
@@ -843,20 +843,16 @@ CREATE TABLE tree_arrangement (
 CREATE TABLE tree_element (
   id                  INT8 DEFAULT nextval('nsl_global_seq') NOT NULL,
   lock_version        INT8 DEFAULT 0                         NOT NULL,
-  depth               INT4                                   NOT NULL,
   display_html        TEXT                                   NOT NULL,
   excluded            BOOLEAN DEFAULT FALSE                  NOT NULL,
   instance_id         INT8                                   NOT NULL,
   instance_link       TEXT                                   NOT NULL,
-  instance_path       TEXT                                   NOT NULL,
   name_element        VARCHAR(255)                           NOT NULL,
   name_id             INT8                                   NOT NULL,
   name_link           TEXT                                   NOT NULL,
-  name_path           TEXT                                   NOT NULL,
   previous_element_id INT8,
   profile             JSONB,
   rank                VARCHAR(50)                            NOT NULL,
-  rank_path           JSONB,
   simple_name         TEXT                                   NOT NULL,
   source_element_link TEXT,
   source_shard        TEXT                                   NOT NULL,
@@ -961,6 +957,8 @@ CREATE TABLE tree_version (
 
 CREATE TABLE tree_version_element (
   element_link    TEXT NOT NULL,
+  depth           INT4 NOT NULL,
+  name_path       TEXT NOT NULL,
   parent_id       TEXT,
   taxon_id        INT8 NOT NULL,
   taxon_link      TEXT NOT NULL,
@@ -1218,14 +1216,8 @@ CREATE INDEX tree_arrangement_node
 CREATE INDEX tree_element_instance_index
   ON tree_element (instance_id);
 
-CREATE INDEX instance_path_index
-  ON tree_element (instance_path);
-
 CREATE INDEX tree_element_name_index
   ON tree_element (name_id);
-
-CREATE INDEX tree_name_path_index
-  ON tree_element (name_path);
 
 CREATE INDEX tree_element_previous_index
   ON tree_element (previous_element_id);
@@ -1301,6 +1293,9 @@ CREATE INDEX by_root_id
 
 CREATE INDEX tree_version_element_link_index
   ON tree_version_element (element_link);
+
+CREATE INDEX tree_name_path_index
+  ON tree_version_element (name_path);
 
 CREATE INDEX tree_version_element_parent_index
   ON tree_version_element (parent_id);
@@ -1409,14 +1404,14 @@ FOREIGN KEY (namespace_id)
 REFERENCES namespace;
 
 ALTER TABLE IF EXISTS instance_resources
-  ADD CONSTRAINT FK_8mal9hru5u3ypaosfoju8ulpd
-FOREIGN KEY (resource_id)
-REFERENCES resource;
-
-ALTER TABLE IF EXISTS instance_resources
   ADD CONSTRAINT FK_49ic33s4xgbdoa4p5j107rtpf
 FOREIGN KEY (instance_id)
 REFERENCES instance;
+
+ALTER TABLE IF EXISTS instance_resources
+  ADD CONSTRAINT FK_8mal9hru5u3ypaosfoju8ulpd
+FOREIGN KEY (resource_id)
+REFERENCES resource;
 
 ALTER TABLE IF EXISTS name
   ADD CONSTRAINT FK_airfjupm6ohehj1lj82yqkwdx
