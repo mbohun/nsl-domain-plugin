@@ -259,11 +259,11 @@ DROP FUNCTION IF EXISTS tree_element_data_from_start_node( BIGINT );
 CREATE FUNCTION tree_element_data_from_start_node(root_node BIGINT)
   RETURNS TABLE(tree_id     BIGINT, node_id BIGINT, excluded BOOLEAN, declared_bt BOOLEAN, instance_id BIGINT, name_id BIGINT,
                 simple_name TEXT, name_path TEXT, instance_path TEXT, parent_instance_path TEXT, parent_excluded BOOLEAN,
-                rank_path   JSONB, depth INT4)
+                depth INT4)
 LANGUAGE SQL
 AS $$
 WITH RECURSIVE treewalk (tree_id, node_id, excluded, declared_bt, instance_id, name_id, simple_name, name_path, instance_path,
-    parent_instance_path, parent_excluded, rank_path, depth) AS (
+    parent_instance_path, parent_excluded, depth) AS (
   SELECT
     tree.id                                                          AS tree_id,
     node.id                                                          AS node_id,
@@ -288,9 +288,6 @@ WITH RECURSIVE treewalk (tree_id, node_id, excluded, declared_bt, instance_id, n
     END                                                              AS instance_path,
     ''                                                               AS parent_instance_path,
     FALSE                                                            AS parent_excluded,
-    jsonb_build_object(rank.name, jsonb_build_object('name', n.name_element, 'id', n.id, 'name_link',
-                                                     'http://' || host.host_name || '/name/apni/' ||
-                                                     n.id)) :: JSONB AS rank_path,
     1                                                                AS depth
   FROM tree_link link
     JOIN tree_node node ON link.subnode_id = node.id
@@ -329,10 +326,6 @@ WITH RECURSIVE treewalk (tree_id, node_id, excluded, declared_bt, instance_id, n
     END                                                     AS instance_path,
     treewalk.instance_path                                  AS parent_instance_path,
     treewalk.excluded                                       AS parent_excluded,
-    treewalk.rank_path ||
-    jsonb_build_object(rank.name, jsonb_build_object('name', n.name_element, 'id', n.id, 'name_link',
-                                                     'http://' || host.host_name || '/name/apni/' ||
-                                                     n.id)) AS rank_path,
     treewalk.depth + 1                                      AS depth
   FROM treewalk
     JOIN tree_link link ON link.supernode_id = treewalk.node_id
@@ -359,7 +352,6 @@ SELECT
   instance_path,
   parent_instance_path,
   parent_excluded,
-  rank_path,
   depth
 FROM treewalk
 $$;
@@ -444,7 +436,6 @@ CREATE TABLE instance_paths (
     instance_path,
     parent_instance_path,
     name_path,
-    rank_path,
     instance_id,
     name_id,
     excluded,
@@ -460,7 +451,6 @@ CREATE TABLE instance_paths (
     instance_path,
     parent_instance_path,
     name_path,
-    rank_path,
     instance_id,
     name_id,
     excluded,
@@ -478,7 +468,7 @@ CREATE TABLE instance_paths (
         AND el_data.instance_id IS NOT NULL
         AND host.preferred = TRUE
   GROUP BY instance_path, excluded,
-    declared_bt, parent_instance_path, name_path, rank_path, instance_id, name_id,
+    declared_bt, parent_instance_path, name_path, instance_id, name_id,
     depth;
 
 CREATE INDEX instance_path_index
