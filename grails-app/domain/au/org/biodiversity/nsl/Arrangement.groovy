@@ -15,6 +15,7 @@
 */
 package au.org.biodiversity.nsl
 
+@Deprecated
 class Arrangement {
     Namespace namespace
     ArrangementType arrangementType

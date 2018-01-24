@@ -15,6 +15,7 @@
 */
 package au.org.biodiversity.nsl
 
+@Deprecated
 class Link implements Comparable<Link> {
     /* note what this is saying about the data model -
      * a "node" *is* the node object and

@@ -5,6 +5,7 @@ package au.org.biodiversity.nsl
  * The main purpose of this class is to generate picklists.
  * Created by pmurray on 17/11/16.
  */
+@Deprecated
 class ValueNodeUri {
     Arrangement root
     UriNs linkUriNsPart

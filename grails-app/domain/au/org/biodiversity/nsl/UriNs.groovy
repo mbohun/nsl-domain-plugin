@@ -15,6 +15,7 @@
 */
 package au.org.biodiversity.nsl
 
+//TODO do we still need this?
 class UriNs {
     String uri
     String label

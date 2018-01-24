@@ -1,3 +1,4 @@
+-- TODO remove - deprecated in new tree
 DROP VIEW IF EXISTS public.accepted_name_vw;
 CREATE VIEW public.accepted_name_vw AS
   SELECT
@@ -35,6 +36,7 @@ CREATE VIEW public.accepted_name_vw AS
         AND tree_node.checked_in_at_id IS NOT NULL
         AND instance.id = tree_node.instance_id;
 
+-- TODO remove - deprecated in new tree
 DROP VIEW IF EXISTS public.accepted_synonym_vw;
 CREATE VIEW public.accepted_synonym_vw AS
   SELECT

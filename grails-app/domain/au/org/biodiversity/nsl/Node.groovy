@@ -15,6 +15,7 @@
 */
 package au.org.biodiversity.nsl
 
+@Deprecated
 class Node {
     /* if we were using hibernate subclasses, this value would be a discriminator */
     NodeInternalType internalType
