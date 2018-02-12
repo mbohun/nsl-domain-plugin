@@ -10,6 +10,8 @@ class TreeVersion {
     String draftName
 
     String logEntry
+    String createdBy
+    Timestamp createdAt
     String publishedBy
     Timestamp publishedAt
 
@@ -24,6 +26,7 @@ class TreeVersion {
 
         published defaultvalue: "false"
         draftName sqlType: 'Text'
+        createdAt sqlType: 'timestamp with time zone'
         publishedAt sqlType: 'timestamp with time zone'
         logEntry sqlType: 'Text'
 

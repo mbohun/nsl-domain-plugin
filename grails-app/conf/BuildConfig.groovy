@@ -51,12 +51,14 @@ grails.project.dependency.resolution = {
         mavenRepo(id: "anbg", url: "http://appsdev1-ibis.it.csiro.au:8085/repository/maven-central/")
         mavenRepo(id: "anbg", url: "http://appsdev1-ibis.it.csiro.au:8085/repository/grails-plugins/")
         grailsHome()
+        mavenCentral()
+
     }
 
     dependencies {
         // specify dependencies here under either 'build', 'compile', 'runtime', 'test' or 'provided' scopes eg.
         // runtime 'mysql:mysql-connector-java:5.1.27'
-        runtime 'org.postgresql:postgresql:9.3-1101-jdbc41'
+        runtime 'org.postgresql:postgresql:42.2.1.jre7'
 
     }
 

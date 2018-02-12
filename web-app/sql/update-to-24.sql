@@ -72,6 +72,8 @@ DROP TABLE IF EXISTS tree_version;
 CREATE TABLE tree_version (
   id                  INT8 DEFAULT nextval('nsl_global_seq') NOT NULL,
   lock_version        INT8 DEFAULT 0                         NOT NULL,
+  created_at          TIMESTAMP WITH TIME ZONE               NOT NULL,
+  created_by          VARCHAR(255)                           NOT NULL,
   draft_name          TEXT                                   NOT NULL,
   log_entry           TEXT,
   previous_version_id INT8,
@@ -81,7 +83,6 @@ CREATE TABLE tree_version (
   tree_id             INT8                                   NOT NULL,
   PRIMARY KEY (id)
 );
-
 DROP TABLE IF EXISTS tree_element;
 CREATE TABLE tree_element (
   id                  INT8 DEFAULT nextval('nsl_global_seq') NOT NULL,
@@ -108,15 +109,17 @@ CREATE TABLE tree_element (
 
 DROP TABLE IF EXISTS tree_version_element;
 CREATE TABLE tree_version_element (
-  element_link    TEXT NOT NULL,
-  depth           INT4 NOT NULL,
-  name_path       TEXT NOT NULL,
+  element_link    TEXT                     NOT NULL,
+  depth           INT4                     NOT NULL,
+  name_path       TEXT                     NOT NULL,
   parent_id       TEXT,
-  taxon_id        INT8 NOT NULL,
-  taxon_link      TEXT NOT NULL,
-  tree_element_id INT8 NOT NULL,
-  tree_path       TEXT NOT NULL,
-  tree_version_id INT8 NOT NULL,
+  taxon_id        INT8                     NOT NULL,
+  taxon_link      TEXT                     NOT NULL,
+  tree_element_id INT8                     NOT NULL,
+  tree_path       TEXT                     NOT NULL,
+  tree_version_id INT8                     NOT NULL,
+  updated_at      TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_by      VARCHAR(255)             NOT NULL,
   PRIMARY KEY (element_link)
 );
 
@@ -259,23 +262,23 @@ DROP FUNCTION IF EXISTS tree_element_data_from_start_node( BIGINT );
 CREATE FUNCTION tree_element_data_from_start_node(root_node BIGINT)
   RETURNS TABLE(tree_id     BIGINT, node_id BIGINT, excluded BOOLEAN, declared_bt BOOLEAN, instance_id BIGINT, name_id BIGINT,
                 simple_name TEXT, name_path TEXT, instance_path TEXT, parent_instance_path TEXT, parent_excluded BOOLEAN,
-                depth INT4)
+                depth       INT4)
 LANGUAGE SQL
 AS $$
 WITH RECURSIVE treewalk (tree_id, node_id, excluded, declared_bt, instance_id, name_id, simple_name, name_path, instance_path,
     parent_instance_path, parent_excluded, depth) AS (
   SELECT
-    tree.id                                                          AS tree_id,
-    node.id                                                          AS node_id,
+    tree.id                   AS tree_id,
+    node.id                   AS node_id,
     (node.type_uri_id_part <>
-     'ApcConcept') :: BOOLEAN                                        AS excluded,
+     'ApcConcept') :: BOOLEAN AS excluded,
     (node.type_uri_id_part =
-     'DeclaredBt') :: BOOLEAN                                        AS declared_bt,
-    node.instance_id                                                 AS instance_id,
-    node.name_id                                                     AS name_id,
-    n.simple_name :: TEXT                                            AS simple_name,
+     'DeclaredBt') :: BOOLEAN AS declared_bt,
+    node.instance_id          AS instance_id,
+    node.name_id              AS name_id,
+    n.simple_name :: TEXT     AS simple_name,
     coalesce(n.name_element,
-             '?')                                                    AS name_path,
+             '?')             AS name_path,
     CASE
     WHEN (node.type_uri_id_part = 'ApcConcept')
       THEN
@@ -285,10 +288,10 @@ WITH RECURSIVE treewalk (tree_id, node_id, excluded, declared_bt, instance_id, n
         'b' || node.instance_id :: TEXT
     ELSE
       'x' || node.instance_id :: TEXT
-    END                                                              AS instance_path,
-    ''                                                               AS parent_instance_path,
-    FALSE                                                            AS parent_excluded,
-    1                                                                AS depth
+    END                       AS instance_path,
+    ''                        AS parent_instance_path,
+    FALSE                     AS parent_excluded,
+    1                         AS depth
   FROM tree_link link
     JOIN tree_node node ON link.subnode_id = node.id
     JOIN tree_arrangement tree ON node.tree_arrangement_id = tree.id
@@ -303,17 +306,17 @@ WITH RECURSIVE treewalk (tree_id, node_id, excluded, declared_bt, instance_id, n
         AND host.preferred = TRUE
   UNION ALL
   SELECT
-    treewalk.tree_id                                        AS tree_id,
-    node.id                                                 AS node_id,
+    treewalk.tree_id                           AS tree_id,
+    node.id                                    AS node_id,
     (node.type_uri_id_part <>
-     'ApcConcept') :: BOOLEAN                               AS excluded,
+     'ApcConcept') :: BOOLEAN                  AS excluded,
     (node.type_uri_id_part =
-     'DeclaredBt') :: BOOLEAN                               AS declared_bt,
-    node.instance_id                                        AS instance_id,
-    node.name_id                                            AS name_id,
-    n.simple_name :: TEXT                                   AS simple_name,
+     'DeclaredBt') :: BOOLEAN                  AS declared_bt,
+    node.instance_id                           AS instance_id,
+    node.name_id                               AS name_id,
+    n.simple_name :: TEXT                      AS simple_name,
     treewalk.name_path || '/' || COALESCE(n.name_element,
-                                          '?')              AS name_path,
+                                          '?') AS name_path,
     CASE
     WHEN (node.type_uri_id_part = 'ApcConcept')
       THEN
@@ -323,10 +326,10 @@ WITH RECURSIVE treewalk (tree_id, node_id, excluded, declared_bt, instance_id, n
         treewalk.instance_path || '/b' || node.instance_id :: TEXT
     ELSE
       treewalk.instance_path || '/x' || node.instance_id :: TEXT
-    END                                                     AS instance_path,
-    treewalk.instance_path                                  AS parent_instance_path,
-    treewalk.excluded                                       AS parent_excluded,
-    treewalk.depth + 1                                      AS depth
+    END                                        AS instance_path,
+    treewalk.instance_path                     AS parent_instance_path,
+    treewalk.excluded                          AS parent_excluded,
+    treewalk.depth + 1                         AS depth
   FROM treewalk
     JOIN tree_link link ON link.supernode_id = treewalk.node_id
     JOIN tree_node node ON link.subnode_id = node.id
@@ -394,6 +397,8 @@ INSERT INTO tree_version
  log_entry,
  previous_version_id,
  published,
+ created_at,
+ created_by,
  published_at,
  published_by,
  tree_id)
@@ -404,6 +409,8 @@ INSERT INTO tree_version
      'import'                                          AS log_entry,
      NULL                                              AS previous_version_id,
      TRUE                                              AS published,
+     (year || '-' || month || '-' || day) :: TIMESTAMP AS created_at,
+     'import'                                          AS created_by,
      (year || '-' || month || '-' || day) :: TIMESTAMP AS published_at,
      'import'                                          AS published_by,
      a.id                                              AS tree_id
@@ -649,7 +656,8 @@ ALTER TABLE IF EXISTS tree_version_element
   DROP CONSTRAINT IF EXISTS FK_8nnhwv8ldi9ppol6tg4uwn4qv;
 
 -- 19min
-INSERT INTO tree_version_element (element_link, parent_id, taxon_link, tree_version_id, tree_element_id, taxon_id, tree_path, name_path, depth)
+INSERT INTO tree_version_element (element_link, parent_id, taxon_link, tree_version_id, tree_element_id, taxon_id,
+                                  tree_path, name_path, depth, updated_at, updated_by)
   SELECT
     'http://' || host.host_name || '/tree/' || v.id || '/' || ipath.id                    AS element_link,
     CASE WHEN te.parent_element_id IS NOT NULL
@@ -663,7 +671,9 @@ INSERT INTO tree_version_element (element_link, parent_id, taxon_link, tree_vers
     (ipath.ver_node_map ->> (text(v.id))) :: BIGINT                                       AS taxon_id,
     'not_set'                                                                             AS tree_path,
     ipath.name_path                                                                       AS name_path,
-    ipath.depth                                                                           AS septh
+    ipath.depth                                                                           AS depth,
+    v.created_at                                                                          AS updated_at,
+    v.created_by                                                                          AS updated_by
   FROM instance_paths ipath
     JOIN tree_element te ON te.id = ipath.id
     ,
@@ -779,7 +789,8 @@ BEGIN
     END IF;
   END LOOP;
 END;
-$$ LANGUAGE plpgsql;
+$$
+LANGUAGE plpgsql;
 
 SELECT join_non_apc_names_back_to_apc_names();
 
@@ -815,7 +826,8 @@ BEGIN
     END IF;
   END LOOP;
 END;
-$$ LANGUAGE plpgsql;
+$$
+LANGUAGE plpgsql;
 
 SELECT link_back_missing_family_names();
 

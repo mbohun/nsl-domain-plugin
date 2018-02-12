@@ -50,10 +50,10 @@ ALTER TABLE IF EXISTS instance_note
   DROP CONSTRAINT IF EXISTS FK_f6s94njexmutjxjv8t5dy1ugt;
 
 ALTER TABLE IF EXISTS instance_resources
-  DROP CONSTRAINT IF EXISTS FK_49ic33s4xgbdoa4p5j107rtpf;
+  DROP CONSTRAINT IF EXISTS FK_8mal9hru5u3ypaosfoju8ulpd;
 
 ALTER TABLE IF EXISTS instance_resources
-  DROP CONSTRAINT IF EXISTS FK_8mal9hru5u3ypaosfoju8ulpd;
+  DROP CONSTRAINT IF EXISTS FK_49ic33s4xgbdoa4p5j107rtpf;
 
 ALTER TABLE IF EXISTS name
   DROP CONSTRAINT IF EXISTS FK_airfjupm6ohehj1lj82yqkwdx;
@@ -497,8 +497,8 @@ CREATE TABLE instance_note_key (
 );
 
 CREATE TABLE instance_resources (
-  resource_id INT8 NOT NULL,
   instance_id INT8 NOT NULL,
+  resource_id INT8 NOT NULL,
   PRIMARY KEY (instance_id, resource_id)
 );
 
@@ -945,6 +945,8 @@ CREATE TABLE tree_value_uri (
 CREATE TABLE tree_version (
   id                  INT8 DEFAULT nextval('nsl_global_seq') NOT NULL,
   lock_version        INT8 DEFAULT 0                         NOT NULL,
+  created_at          TIMESTAMP WITH TIME ZONE               NOT NULL,
+  created_by          VARCHAR(255)                           NOT NULL,
   draft_name          TEXT                                   NOT NULL,
   log_entry           TEXT,
   previous_version_id INT8,
@@ -956,15 +958,17 @@ CREATE TABLE tree_version (
 );
 
 CREATE TABLE tree_version_element (
-  element_link    TEXT NOT NULL,
-  depth           INT4 NOT NULL,
-  name_path       TEXT NOT NULL,
+  element_link    TEXT                     NOT NULL,
+  depth           INT4                     NOT NULL,
+  name_path       TEXT                     NOT NULL,
   parent_id       TEXT,
-  taxon_id        INT8 NOT NULL,
-  taxon_link      TEXT NOT NULL,
-  tree_element_id INT8 NOT NULL,
-  tree_path       TEXT NOT NULL,
-  tree_version_id INT8 NOT NULL,
+  taxon_id        INT8                     NOT NULL,
+  taxon_link      TEXT                     NOT NULL,
+  tree_element_id INT8                     NOT NULL,
+  tree_path       TEXT                     NOT NULL,
+  tree_version_id INT8                     NOT NULL,
+  updated_at      TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_by      VARCHAR(255)             NOT NULL,
   PRIMARY KEY (element_link)
 );
 
@@ -1404,14 +1408,14 @@ FOREIGN KEY (namespace_id)
 REFERENCES namespace;
 
 ALTER TABLE IF EXISTS instance_resources
-  ADD CONSTRAINT FK_49ic33s4xgbdoa4p5j107rtpf
-FOREIGN KEY (instance_id)
-REFERENCES instance;
-
-ALTER TABLE IF EXISTS instance_resources
   ADD CONSTRAINT FK_8mal9hru5u3ypaosfoju8ulpd
 FOREIGN KEY (resource_id)
 REFERENCES resource;
+
+ALTER TABLE IF EXISTS instance_resources
+  ADD CONSTRAINT FK_49ic33s4xgbdoa4p5j107rtpf
+FOREIGN KEY (instance_id)
+REFERENCES instance;
 
 ALTER TABLE IF EXISTS name
   ADD CONSTRAINT FK_airfjupm6ohehj1lj82yqkwdx
@@ -1982,7 +1986,8 @@ $body$;
 CREATE OR REPLACE FUNCTION audit.audit_table(target_table REGCLASS, audit_rows BOOLEAN, audit_query_text BOOLEAN)
   RETURNS VOID AS $body$
 SELECT audit.audit_table($1, $2, $3, ARRAY [] : :TEXT []);
-$body$ LANGUAGE SQL;
+$body$
+LANGUAGE SQL;
 
 -- And provide a convenience call wrapper for the simplest case
 -- of row-level logging with no excluded cols and query logging enabled.
@@ -1990,7 +1995,8 @@ $body$ LANGUAGE SQL;
 CREATE OR REPLACE FUNCTION audit.audit_table(target_table REGCLASS)
   RETURNS VOID AS $$
 SELECT audit.audit_table($1, BOOLEAN 't', BOOLEAN 't');
-$$ LANGUAGE 'sql';
+$$
+LANGUAGE 'sql';
 
 COMMENT ON FUNCTION audit.audit_table(REGCLASS) IS $body$
 Add auditing support to the given table. Row-level changes will be logged with full client query text. No cols are ignored.
@@ -2514,7 +2520,7 @@ WHERE id <> 0;
 COMMIT;
 
 -- boatree-stored-procedures.sql
-CREATE OR REPLACE FUNCTION is_instance_in_tree(pinstance instance.ID%TYPE, ptree tree_arrangement.ID%TYPE)
+CREATE OR REPLACE FUNCTION is_instance_in_tree(pinstance instance.id%TYPE, ptree tree_arrangement.id%TYPE)
   RETURNS BOOLEAN AS $$
 DECLARE
   -- declarations
@@ -2578,10 +2584,11 @@ BEGIN
 
   RETURN ct <> 0;
 END;
-$$ LANGUAGE plpgsql;
+$$
+LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION find_name_in_tree(pname name.ID%TYPE, ptree tree_arrangement.ID%TYPE)
-  RETURNS tree_link.ID%TYPE AS $$
+CREATE OR REPLACE FUNCTION find_name_in_tree(pname name.id%TYPE, ptree tree_arrangement.id%TYPE)
+  RETURNS tree_link.id%TYPE AS $$
 DECLARE
   -- declarations
   ct      INTEGER;
@@ -2662,7 +2669,8 @@ BEGIN
         USING ERRCODE = 'unique_violation';
   END;
 END;
-$$ LANGUAGE plpgsql;
+$$
+LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION current_workspace_taxonomic_nodes(workspace_id BIGINT)
   RETURNS TABLE(node_id BIGINT, instance_id BIGINT, name_id BIGINT) AS $$
@@ -2694,7 +2702,8 @@ SELECT
   instance_id,
   name_id
 FROM treewalk
-$$ LANGUAGE SQL;
+$$
+LANGUAGE SQL;
 
 CREATE OR REPLACE FUNCTION draft_nodes_below_this_node(node_id BIGINT)
   RETURNS TABLE(node_id BIGINT) AS $$
@@ -2709,7 +2718,8 @@ WITH RECURSIVE treewalk AS (
 )
 SELECT node_id
 FROM treewalk
-$$ LANGUAGE SQL;
+$$
+LANGUAGE SQL;
 
 -- other-setup.sql
 --other setup
@@ -2725,7 +2735,10 @@ CREATE OR REPLACE FUNCTION f_unaccent(TEXT)
   RETURNS TEXT AS
 $func$
 SELECT unaccent('unaccent', $1)
-$func$ LANGUAGE SQL IMMUTABLE SET search_path = public, pg_temp;
+$func$
+LANGUAGE SQL
+IMMUTABLE
+SET search_path = public, pg_temp;
 
 CREATE INDEX name_lower_f_unaccent_full_name_like
   ON name (lower(f_unaccent(full_name)) varchar_pattern_ops);
@@ -4804,6 +4817,7 @@ INSERT INTO public.shard_config (id, name, value)
 VALUES (nextval('hibernate_sequence'), 'classification tree key', 'APC');
 
 -- search-views.sql
+-- TODO remove - deprecated in new tree
 DROP VIEW IF EXISTS public.accepted_name_vw;
 CREATE VIEW public.accepted_name_vw AS
   SELECT
@@ -4841,6 +4855,7 @@ CREATE VIEW public.accepted_name_vw AS
         AND tree_node.checked_in_at_id IS NOT NULL
         AND instance.id = tree_node.instance_id;
 
+-- TODO remove - deprecated in new tree
 DROP VIEW IF EXISTS public.accepted_synonym_vw;
 CREATE VIEW public.accepted_synonym_vw AS
   SELECT
@@ -5177,7 +5192,8 @@ BEGIN
   END IF;
   RETURN NULL;
 END;
-$name_note$ LANGUAGE plpgsql;
+$name_note$
+LANGUAGE plpgsql;
 
 
 CREATE TRIGGER name_update
@@ -5221,7 +5237,8 @@ BEGIN
   END IF;
   RETURN NULL;
 END;
-$author_note$ LANGUAGE plpgsql;
+$author_note$
+LANGUAGE plpgsql;
 
 
 CREATE TRIGGER author_update
@@ -5264,7 +5281,8 @@ BEGIN
   END IF;
   RETURN NULL;
 END;
-$ref_note$ LANGUAGE plpgsql;
+$ref_note$
+LANGUAGE plpgsql;
 
 
 CREATE TRIGGER reference_update
