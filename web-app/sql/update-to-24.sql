@@ -512,7 +512,7 @@ FROM Instance i,
 WHERE syn_inst.cited_by_id = i.id
       AND i.id = instance_id
       AND synonym.id = syn_inst.name_id
-ORDER BY it.nomenclatural DESC, it.taxonomic DESC, it.misapplied DESC, cites_ref.year ASC;
+ORDER BY it.nomenclatural DESC, it.taxonomic DESC, it.misapplied DESC, synonym.simple_name, cites_ref.year ASC;
 $$;
 
 DROP FUNCTION IF EXISTS synonyms_as_html( BIGINT );
