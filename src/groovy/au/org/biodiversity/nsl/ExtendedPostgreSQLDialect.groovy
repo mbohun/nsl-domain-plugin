@@ -1,9 +1,6 @@
 package au.org.biodiversity.nsl
 
-import net.kaleidos.hibernate.usertype.ArrayType
-import net.kaleidos.hibernate.usertype.HstoreMapType
-import net.kaleidos.hibernate.usertype.JsonMapType
-import net.kaleidos.hibernate.usertype.JsonbMapType
+import net.kaleidos.hibernate.usertype.*
 import org.hibernate.dialect.PostgreSQL9Dialect
 import org.hibernate.dialect.function.SQLFunctionTemplate
 import org.hibernate.type.StandardBasicTypes
@@ -31,5 +28,7 @@ class ExtendedPostgreSQLDialect extends PostgreSQL9Dialect {
         registerColumnType(ArrayType.UUID_ARRAY, '_uuid')
         registerColumnType(HstoreMapType.SQLTYPE, 'hstore')
         registerColumnType(JsonMapType.SQLTYPE, 'json')
-        registerColumnType(JsonbMapType.SQLTYPE, 'jsonb')}
+        registerColumnType(JsonbMapType.SQLTYPE, 'jsonb')
+        registerColumnType(JsonListType.SQLTYPE, 'json')
+        registerColumnType(JsonbListType.SQLTYPE, 'jsonb')}
 }

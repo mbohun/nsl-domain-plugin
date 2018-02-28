@@ -1,5 +1,6 @@
 package au.org.biodiversity.nsl
 
+import net.kaleidos.hibernate.usertype.JsonbListType
 import net.kaleidos.hibernate.usertype.JsonbMapType
 
 import java.sql.Timestamp
@@ -48,7 +49,7 @@ class TreeElement {
         instanceLink sqlType: 'Text'
         sourceElementLink sqlType: 'Text'
         //noinspection GroovyAssignabilityCheck
-        synonyms type: JsonbMapType     //This type works for list TODO make a specific type
+        synonyms type: JsonbListType
         profile type: JsonbMapType
         excluded defaultValue: false
     }
@@ -56,6 +57,8 @@ class TreeElement {
     static constraints = {
         previousElement nullable: true
         sourceElementLink nullable: true
+        //noinspection GroovyAssignabilityCheck
+        synonyms nullable: true
         rank maxSize: 50
         nameElement maxSize: 255
     }
