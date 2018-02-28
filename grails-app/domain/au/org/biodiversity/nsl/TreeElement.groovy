@@ -18,7 +18,7 @@ class TreeElement {
     String nameElement
     String rank
     String sourceShard      //where the taxon comes from
-    Map synonyms
+    List<Map> synonyms
     Map profile
 
     String sourceElementLink //Link to the source tree element for composed trees
@@ -47,7 +47,8 @@ class TreeElement {
         nameLink sqlType: 'Text'
         instanceLink sqlType: 'Text'
         sourceElementLink sqlType: 'Text'
-        synonyms type: JsonbMapType
+        //noinspection GroovyAssignabilityCheck
+        synonyms type: JsonbMapType     //This type works for list TODO make a specific type
         profile type: JsonbMapType
         excluded defaultValue: false
     }
