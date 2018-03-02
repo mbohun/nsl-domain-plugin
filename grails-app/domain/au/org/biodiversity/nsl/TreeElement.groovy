@@ -1,6 +1,6 @@
 package au.org.biodiversity.nsl
 
-import net.kaleidos.hibernate.usertype.JsonbListType
+
 import net.kaleidos.hibernate.usertype.JsonbMapType
 
 import java.sql.Timestamp
@@ -19,7 +19,7 @@ class TreeElement {
     String nameElement
     String rank
     String sourceShard      //where the taxon comes from
-    List<Map> synonyms
+    Map synonyms
     Map profile
 
     String sourceElementLink //Link to the source tree element for composed trees
@@ -48,8 +48,7 @@ class TreeElement {
         nameLink sqlType: 'Text'
         instanceLink sqlType: 'Text'
         sourceElementLink sqlType: 'Text'
-        //noinspection GroovyAssignabilityCheck
-        synonyms type: JsonbListType
+        synonyms type: JsonbMapType
         profile type: JsonbMapType
         excluded defaultValue: false
     }

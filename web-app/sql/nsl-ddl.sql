@@ -50,10 +50,10 @@ ALTER TABLE IF EXISTS instance_note
   DROP CONSTRAINT IF EXISTS FK_f6s94njexmutjxjv8t5dy1ugt;
 
 ALTER TABLE IF EXISTS instance_resources
-  DROP CONSTRAINT IF EXISTS FK_8mal9hru5u3ypaosfoju8ulpd;
+  DROP CONSTRAINT IF EXISTS FK_49ic33s4xgbdoa4p5j107rtpf;
 
 ALTER TABLE IF EXISTS instance_resources
-  DROP CONSTRAINT IF EXISTS FK_49ic33s4xgbdoa4p5j107rtpf;
+  DROP CONSTRAINT IF EXISTS FK_8mal9hru5u3ypaosfoju8ulpd;
 
 ALTER TABLE IF EXISTS name
   DROP CONSTRAINT IF EXISTS FK_airfjupm6ohehj1lj82yqkwdx;
@@ -497,8 +497,8 @@ CREATE TABLE instance_note_key (
 );
 
 CREATE TABLE instance_resources (
-  instance_id INT8 NOT NULL,
   resource_id INT8 NOT NULL,
+  instance_id INT8 NOT NULL,
   PRIMARY KEY (instance_id, resource_id)
 );
 
@@ -1408,14 +1408,14 @@ FOREIGN KEY (namespace_id)
 REFERENCES namespace;
 
 ALTER TABLE IF EXISTS instance_resources
-  ADD CONSTRAINT FK_8mal9hru5u3ypaosfoju8ulpd
-FOREIGN KEY (resource_id)
-REFERENCES resource;
-
-ALTER TABLE IF EXISTS instance_resources
   ADD CONSTRAINT FK_49ic33s4xgbdoa4p5j107rtpf
 FOREIGN KEY (instance_id)
 REFERENCES instance;
+
+ALTER TABLE IF EXISTS instance_resources
+  ADD CONSTRAINT FK_8mal9hru5u3ypaosfoju8ulpd
+FOREIGN KEY (resource_id)
+REFERENCES resource;
 
 ALTER TABLE IF EXISTS name
   ADD CONSTRAINT FK_airfjupm6ohehj1lj82yqkwdx

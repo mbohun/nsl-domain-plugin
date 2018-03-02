@@ -29,6 +29,5 @@ class ExtendedPostgreSQLDialect extends PostgreSQL9Dialect {
         registerColumnType(HstoreMapType.SQLTYPE, 'hstore')
         registerColumnType(JsonMapType.SQLTYPE, 'json')
         registerColumnType(JsonbMapType.SQLTYPE, 'jsonb')
-        registerColumnType(JsonListType.SQLTYPE, 'json')
-        registerColumnType(JsonbListType.SQLTYPE, 'jsonb')}
+    }
 }
