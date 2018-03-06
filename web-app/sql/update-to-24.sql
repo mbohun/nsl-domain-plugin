@@ -552,19 +552,19 @@ CREATE FUNCTION synonyms_as_jsonb(instance_id BIGINT)
   RETURNS JSONB
 LANGUAGE SQL
 AS $$
-SELECT jsonb_build_object( 'list', jsonb_agg(jsonb_build_object(
-                                                 'instance_id', syn_inst.id,
-                                                 'simple_name', synonym.simple_name,
-                                                 'type', it.name,
-                                                 'name_id', synonym.id :: BIGINT,
-                                                 'name_link', 'http://' || host.host_name || '/name/apni/' || synonym.id,
-                                                 'full_name_html', synonym.full_name_html,
-                                                 'nom', it.nomenclatural,
-                                                 'tax', it.taxonomic,
-                                                 'mis', it.misapplied,
-                                                 'cites', cites_ref.citation_html,
-                                                 'year', cites_ref.year
-                                             )))
+SELECT jsonb_build_object( 'list', coalesce(jsonb_agg(jsonb_build_object(
+                                                          'instance_id', syn_inst.id,
+                                                          'simple_name', synonym.simple_name,
+                                                          'type', it.name,
+                                                          'name_id', synonym.id :: BIGINT,
+                                                          'name_link', 'http://' || host.host_name || '/name/apni/' || synonym.id,
+                                                          'full_name_html', synonym.full_name_html,
+                                                          'nom', it.nomenclatural,
+                                                          'tax', it.taxonomic,
+                                                          'mis', it.misapplied,
+                                                          'cites', cites_ref.citation_html,
+                                                          'year', cites_ref.year
+                                                      )), '[]' :: jsonb ))
 FROM Instance i,
   Instance syn_inst
   JOIN instance_type it ON syn_inst.instance_type_id = it.id
