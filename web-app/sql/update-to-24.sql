@@ -552,19 +552,32 @@ CREATE FUNCTION synonyms_as_jsonb(instance_id BIGINT)
   RETURNS JSONB
 LANGUAGE SQL
 AS $$
-SELECT jsonb_build_object( 'list', coalesce(jsonb_agg(jsonb_build_object(
-                                                          'instance_id', syn_inst.id,
-                                                          'simple_name', synonym.simple_name,
-                                                          'type', it.name,
-                                                          'name_id', synonym.id :: BIGINT,
-                                                          'name_link', 'http://' || host.host_name || '/name/apni/' || synonym.id,
-                                                          'full_name_html', synonym.full_name_html,
-                                                          'nom', it.nomenclatural,
-                                                          'tax', it.taxonomic,
-                                                          'mis', it.misapplied,
-                                                          'cites', cites_ref.citation_html,
-                                                          'year', cites_ref.year
-                                                      )), '[]' :: jsonb ))
+SELECT jsonb_build_object('list',
+                          coalesce(
+                              jsonb_agg(jsonb_build_object(
+                                            'instance_id', syn_inst.id,
+                                            'instance_link',
+                                            'http://' || host.host_name || '/instance/apni/' ||
+                                            syn_inst.id,
+                                            'concept_link',
+                                            'http://' || host.host_name || '/instance/apni/' ||
+                                            cites_inst.id,
+                                            'simple_name', synonym.simple_name,
+                                            'type', it.name,
+                                            'name_id', synonym.id :: BIGINT,
+                                            'name_link',
+                                            'http://' || host.host_name || '/name/apni/' || synonym.id,
+                                            'full_name_html', synonym.full_name_html,
+                                            'nom', it.nomenclatural,
+                                            'tax', it.taxonomic,
+                                            'mis', it.misapplied,
+                                            'cites', cites_ref.citation_html,
+                                            'cites_link',
+                                            'http://' || host.host_name || '/reference/apni/' ||
+                                            cites_ref.id,
+                                            'year', cites_ref.year
+                                        )), '[]' :: JSONB)
+)
 FROM Instance i,
   Instance syn_inst
   JOIN instance_type it ON syn_inst.instance_type_id = it.id
@@ -578,6 +591,7 @@ WHERE i.id = instance_id
       AND synonym.id = syn_inst.name_id
       AND host.preferred = TRUE;
 $$;
+
 
 -- adding tree_path to tree_element as this is the quicer way to create tree_path then set it on tree_version_element
 -- this is also a quicker conversion from the old structure of tree_path on tree_element.
