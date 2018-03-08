@@ -361,7 +361,7 @@ $$;
 
 -- ************ build new tree data *******************
 
-INSERT INTO tree (group_name, name, config, description_html)
+INSERT INTO tree (group_name, name, config, description_html, accepted_tree)
 VALUES ('treebuilder',
         'APC',
         '{
@@ -386,7 +386,8 @@ VALUES ('treebuilder',
         ||
         'Botanic Gardens and the Australian Biological Resources Study. The CANBR, ANBG and ABRS collaborate to further the '
         ||
-        'updating and delivery of APNI and APC.</p>'
+        'updating and delivery of APNI and APC.</p>',
+        TRUE
 );
 
 -- create versions
@@ -591,7 +592,6 @@ WHERE i.id = instance_id
       AND synonym.id = syn_inst.name_id
       AND host.preferred = TRUE;
 $$;
-
 
 -- adding tree_path to tree_element as this is the quicer way to create tree_path then set it on tree_version_element
 -- this is also a quicker conversion from the old structure of tree_path on tree_element.
