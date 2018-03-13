@@ -877,7 +877,7 @@ DROP TABLE IF EXISTS name_tree_path;
 
 -- version
 UPDATE db_version
-SET version = 24
+SET version = 25
 WHERE id = 1;
 
 -- Only do this if the mapper schema exists --
