@@ -15,7 +15,7 @@
 */
 class NslDomainPluginGrailsPlugin {
     // the plugin version
-    def version = "1.7-SNAPSHOT"
+    def version = "1.7"
     def groupId = 'au.org.biodiversity.grails.plugins'
 
     // the version or versions of Grails the plugin is designed for
