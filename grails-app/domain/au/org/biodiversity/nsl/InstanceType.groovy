@@ -74,4 +74,18 @@ class InstanceType {
         rdfId maxSize: 50, nullable: true
         descriptionHtml nullable: true
     }
+
+    boolean equals(o) {
+        if (this.is(o)) return true
+        if (getClass() != o.class) return false
+
+        InstanceType instanceType = (InstanceType) o
+
+        return (id == instanceType.id)
+    }
+
+    int hashCode() {
+        return (id != null ? id.hashCode() : 0)
+    }
+
 }

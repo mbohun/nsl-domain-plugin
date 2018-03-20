@@ -51,4 +51,18 @@ class NameStatus {
         rdfId maxSize: 50, nullable: true
         descriptionHtml nullable: true
     }
+
+    boolean equals(o) {
+        if (this.is(o)) return true
+        if (getClass() != o.class) return false
+
+        NameStatus nameStatus = (NameStatus) o
+
+        return (id == nameStatus.id)
+    }
+
+    int hashCode() {
+        return (id != null ? id.hashCode() : 0)
+    }
+
 }

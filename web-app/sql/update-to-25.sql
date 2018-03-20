@@ -875,6 +875,8 @@ DROP MATERIALIZED VIEW IF EXISTS name_view;
 
 DROP TABLE IF EXISTS name_tree_path;
 
+DROP TABLE IF EXISTS name_part;
+
 -- version
 UPDATE db_version
 SET version = 25

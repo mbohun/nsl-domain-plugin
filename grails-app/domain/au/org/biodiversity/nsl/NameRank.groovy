@@ -60,4 +60,18 @@ class NameRank {
         rdfId maxSize: 50, nullable: true
         descriptionHtml nullable: true
     }
+
+    boolean equals(o) {
+        if (this.is(o)) return true
+        if (getClass() != o.class) return false
+
+        NameRank nameRank = (NameRank) o
+
+        return (id == nameRank.id)
+    }
+
+    int hashCode() {
+        return (id != null ? id.hashCode() : 0)
+    }
+
 }

@@ -59,4 +59,18 @@ class NameType {
         rdfId maxSize: 50, nullable: true
         descriptionHtml nullable: true
     }
+
+    boolean equals(o) {
+        if (this.is(o)) return true
+        if (getClass() != o.class) return false
+
+        NameType nameType = (NameType) o
+
+        return (id == nameType.id)
+    }
+
+    int hashCode() {
+        return (id != null ? id.hashCode() : 0)
+    }
+
 }
