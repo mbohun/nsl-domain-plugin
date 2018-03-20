@@ -1,3 +1,11 @@
+DROP VIEW IF EXISTS public.workspace_value_namespace_vw;
+DROP VIEW IF EXISTS public.workspace_instance_value_vw;
+DROP VIEW IF EXISTS public.workspace_value_vw;
+DROP VIEW IF EXISTS public.accepted_synonym_vw;
+DROP VIEW IF EXISTS public.accepted_name_vw;
+DROP MATERIALIZED VIEW IF EXISTS public.name_view;
+DROP MATERIALIZED VIEW IF EXISTS public.taxon_view;
+
 -- new tree structure
 DROP INDEX IF EXISTS tree_simple_name_index;
 DROP INDEX IF EXISTS tree_name_path_index;
@@ -876,6 +884,8 @@ DROP MATERIALIZED VIEW IF EXISTS name_view;
 DROP TABLE IF EXISTS name_tree_path;
 
 DROP TABLE IF EXISTS name_part;
+
+
 
 -- version
 UPDATE db_version
