@@ -44,4 +44,16 @@ class TreeVersionElement {
     String toString() {
         "TreeVersionElement ${treeElement?.simpleName} v: ${treeVersion?.id} e:${treeElement?.id} ($elementLink) t: $taxonId"
     }
+
+    String fullElementLink() {
+        "${hostPart()}$elementLink"
+    }
+
+    String fullTaxonLink() {
+        "${hostPart()}$taxonLink"
+    }
+
+    String hostPart() {
+        treeVersion.hostPart()
+    }
 }

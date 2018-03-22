@@ -70,6 +70,7 @@ CREATE TABLE tree (
   default_draft_tree_version_id INT8,
   description_html              TEXT DEFAULT 'Edit me'                 NOT NULL,
   group_name                    TEXT                                   NOT NULL,
+  host_name                     TEXT                                   NOT NULL,
   link_to_home_page             TEXT,
   name                          TEXT                                   NOT NULL,
   reference_id                  INT8,
@@ -369,7 +370,7 @@ $$;
 
 -- ************ build new tree data *******************
 
-INSERT INTO tree (group_name, name, config, description_html, accepted_tree)
+INSERT INTO tree (group_name, name, config, description_html, accepted_tree, host_name)
 VALUES ('treebuilder',
         'APC',
         '{
@@ -395,7 +396,10 @@ VALUES ('treebuilder',
         'Botanic Gardens and the Australian Biological Resources Study. The CANBR, ANBG and ABRS collaborate to further the '
         ||
         'updating and delivery of APNI and APC.</p>',
-        TRUE
+        TRUE,
+        (SELECT host_name
+         FROM mapper.host h
+         WHERE h.preferred = TRUE)
 );
 
 -- create versions
@@ -564,26 +568,24 @@ AS $$
 SELECT jsonb_build_object('list',
                           coalesce(
                               jsonb_agg(jsonb_build_object(
+                                            'host', host.host_name,
                                             'instance_id', syn_inst.id,
                                             'instance_link',
-                                            'http://' || host.host_name || '/instance/apni/' ||
-                                            syn_inst.id,
+                                            '/instance/apni/' || syn_inst.id,
                                             'concept_link',
-                                            'http://' || host.host_name || '/instance/apni/' ||
-                                            cites_inst.id,
+                                            '/instance/apni/' || cites_inst.id,
                                             'simple_name', synonym.simple_name,
                                             'type', it.name,
                                             'name_id', synonym.id :: BIGINT,
                                             'name_link',
-                                            'http://' || host.host_name || '/name/apni/' || synonym.id,
+                                            '/name/apni/' || synonym.id,
                                             'full_name_html', synonym.full_name_html,
                                             'nom', it.nomenclatural,
                                             'tax', it.taxonomic,
                                             'mis', it.misapplied,
                                             'cites', cites_ref.citation_html,
                                             'cites_link',
-                                            'http://' || host.host_name || '/reference/apni/' ||
-                                            cites_ref.id,
+                                            '/reference/apni/' || cites_ref.id,
                                             'year', cites_ref.year
                                         )), '[]' :: JSONB)
 )
@@ -684,21 +686,21 @@ ALTER TABLE IF EXISTS tree_version_element
 INSERT INTO tree_version_element (element_link, parent_id, taxon_link, tree_version_id, tree_element_id, taxon_id,
                                   tree_path, name_path, depth, updated_at, updated_by)
   SELECT
-    'http://' || host.host_name || '/tree/' || v.id || '/' || ipath.id                    AS element_link,
+    '/tree/' || v.id || '/' || ipath.id                    AS element_link,
     CASE WHEN te.parent_element_id IS NOT NULL
       THEN
-        'http://' || host.host_name || '/tree/' || v.id || '/' || te.parent_element_id
+        '/tree/' || v.id || '/' || te.parent_element_id
     ELSE NULL
-    END                                                                                   AS parent_id,
-    'http://' || host.host_name || '/node/apni/' || (ipath.ver_node_map ->> (text(v.id))) AS taxon_link,
-    v.id                                                                                  AS tree_version_id,
-    ipath.id                                                                              AS tree_element_id,
-    (ipath.ver_node_map ->> (text(v.id))) :: BIGINT                                       AS taxon_id,
-    'not_set'                                                                             AS tree_path,
-    ipath.name_path                                                                       AS name_path,
-    ipath.depth                                                                           AS depth,
-    v.created_at                                                                          AS updated_at,
-    v.created_by                                                                          AS updated_by
+    END                                                    AS parent_id,
+    '/node/apni/' || (ipath.ver_node_map ->> (text(v.id))) AS taxon_link,
+    v.id                                                   AS tree_version_id,
+    ipath.id                                               AS tree_element_id,
+    (ipath.ver_node_map ->> (text(v.id))) :: BIGINT        AS taxon_id,
+    'not_set'                                              AS tree_path,
+    ipath.name_path                                        AS name_path,
+    ipath.depth                                            AS depth,
+    v.created_at                                           AS updated_at,
+    v.created_by                                           AS updated_by
   FROM instance_paths ipath
     JOIN tree_element te ON te.id = ipath.id
     ,
@@ -884,8 +886,6 @@ DROP MATERIALIZED VIEW IF EXISTS name_view;
 DROP TABLE IF EXISTS name_tree_path;
 
 DROP TABLE IF EXISTS name_part;
-
-
 
 -- version
 UPDATE db_version

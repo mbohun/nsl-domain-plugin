@@ -11,6 +11,7 @@ class Tree {
     Long referenceId  // an unconstrained FK to Reference for in-reference trees only.
 
     Boolean acceptedTree = false
+    String hostName //host uri for tree version element id objects
     String descriptionHtml
     String linkToHomePage
     Map config //jsonb configuration object
@@ -29,6 +30,7 @@ class Tree {
         acceptedTree defaultvalue: "false"
         linkToHomePage sqlType: 'Text'
         config type: JsonbMapType
+        hostName sqlType: 'Text'
 
     }
 

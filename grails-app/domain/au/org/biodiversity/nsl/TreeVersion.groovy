@@ -39,4 +39,8 @@ class TreeVersion {
         publishedAt nullable: true
         previousVersion nullable: true
     }
+
+    String hostPart() {
+        "http://$tree.hostName"
+    }
 }
