@@ -41,6 +41,6 @@ class TreeVersion {
     }
 
     String hostPart() {
-        "http://$tree.hostName"
+        tree.hostName
     }
 }
