@@ -397,7 +397,7 @@ VALUES ('treebuilder',
         ||
         'updating and delivery of APNI and APC.</p>',
         TRUE,
-        (SELECT host_name
+        (SELECT 'https://' || host_name
          FROM mapper.host h
          WHERE h.preferred = TRUE)
 );
