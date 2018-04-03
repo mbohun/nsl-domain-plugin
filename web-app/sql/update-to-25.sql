@@ -513,6 +513,8 @@ SELECT CASE
               cites_ref.citation_html
               ||
               '</citation></mis>'
+       WHEN it.synonym
+         THEN '<syn>' || synonym.full_name_html || ' <type>' || it.name || '</type></syn>'
        ELSE ''
        END
 FROM Instance i,
