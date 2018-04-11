@@ -776,9 +776,53 @@ FROM walk
 WHERE rank = 'Familia';
 $$;
 
+DROP FUNCTION IF EXISTS name_name_path( BIGINT );
+CREATE FUNCTION name_name_path(target_name_id BIGINT)
+  RETURNS TABLE (name_path TEXT, family_id BIGINT)
+LANGUAGE SQL AS
+$$
+with pathElements (id, path_element, rank_name) as (
+  WITH RECURSIVE walk (id, parent_id, path_element, pos, rank_name) AS (
+    SELECT
+      n.id,
+      n.parent_id,
+      n.name_element,
+      1,
+      rank.name
+    FROM name n join name_rank rank on n.name_rank_id = rank.id
+    WHERE n.id = target_name_id
+    UNION ALL
+    SELECT
+      n.id,
+      n.parent_id,
+      n.name_element,
+      walk.pos + 1,
+      rank.name
+    FROM walk, name n join name_rank rank on n.name_rank_id = rank.id
+    WHERE n.id = walk.parent_id
+  )
+  SELECT id, path_element, rank_name
+  FROM walk
+  order by walk.pos desc)
+select string_agg(path_element, '/'), (select id from pathElements p2 where p2.rank_name = 'Familia' limit 1) from pathElements;
+$$;
+
+drop table if exists tmp_path_fam;
+select id, blah.name_path, blah.family_id into tmp_path_fam
+from name n, name_name_path(n.id) blah ;
+
+alter table tmp_path_fam add foreign key (id) references name (id);
+
+-- first set all the name paths to the name parent path and the family to the family in that path
+update name set name_path = blah.name_path, family_id = blah.family_id
+from tmp_path_fam blah
+where blah.id = name.id;
+drop table if exists tmp_path_fam;
+
+-- now set the family to the accepted taxon family for all names and synonyms on APC
+-- don't change the name_path because that is the name_name_path
 UPDATE name name
-SET family_id = find_family_name_id(tvte.element_link),
-  name_path   = tvte.name_path
+SET family_id = find_family_name_id(tvte.element_link)
 FROM
   tree_element element
   JOIN tree_version_element tvte ON element.id = tvte.tree_element_id
@@ -791,76 +835,78 @@ WHERE name.id = s.name_id
       AND (s.cited_by_id = i.id OR s.id = i.id) AND i.id = element.instance_id
       AND synonym.id = i.name_id;
 
+-- *** NOTE this has been removed because it is better to use the existing data in the form of the name parent than to
+-- ***      synthesize the data as per below.
 -- 88888 repeatedly do this until all names have been joined to an APC parent (6 times as of writing)
-DROP FUNCTION IF EXISTS join_non_apc_names_back_to_apc_names();
-CREATE FUNCTION join_non_apc_names_back_to_apc_names()
-  RETURNS VOID AS $$
-DECLARE
-BEGIN
-  LOOP
-    UPDATE name n
-    SET name_path = parent.name_path || '/' || coalesce(n.name_element, '?'),
-      family_id   = parent.family_id
-    FROM (SELECT DISTINCT (name_id)
-          FROM instance) AS apni_names,
-      name_type,
-      name parent
-    WHERE n.id = name_id
-          AND name_type.id = n.name_type_id
-          AND name_type.scientific
-          AND n.name_path = ''
-          AND n.parent_id IS NOT NULL
-          AND parent.id = n.parent_id
-          AND parent.name_path <> '';
-    IF NOT FOUND
-    THEN
-      RETURN;
-    END IF;
-  END LOOP;
-END;
-$$
-LANGUAGE plpgsql;
-
-SELECT join_non_apc_names_back_to_apc_names();
-
-DROP FUNCTION join_non_apc_names_back_to_apc_names();
+-- DROP FUNCTION IF EXISTS join_non_apc_names_back_to_apc_names();
+-- CREATE FUNCTION join_non_apc_names_back_to_apc_names()
+--   RETURNS VOID AS $$
+-- DECLARE
+-- BEGIN
+--   LOOP
+--     UPDATE name n
+--     SET name_path = parent.name_path || '/' || coalesce(n.name_element, '?'),
+--       family_id   = parent.family_id
+--     FROM (SELECT DISTINCT (name_id)
+--           FROM instance) AS apni_names,
+--       name_type,
+--       name parent
+--     WHERE n.id = name_id
+--           AND name_type.id = n.name_type_id
+--           AND name_type.scientific
+--           AND n.name_path = ''
+--           AND n.parent_id IS NOT NULL
+--           AND parent.id = n.parent_id
+--           AND parent.name_path <> '';
+--     IF NOT FOUND
+--     THEN
+--       RETURN;
+--     END IF;
+--   END LOOP;
+-- END;
+-- $$
+-- LANGUAGE plpgsql;
+--
+-- SELECT join_non_apc_names_back_to_apc_names();
+--
+-- DROP FUNCTION join_non_apc_names_back_to_apc_names();
 
 -- set any family that hasn't got the family set to itself
-UPDATE name n
-SET family_id = n.id
-FROM name_rank rank
-WHERE n.name_rank_id = rank.id
-      AND rank.name = 'Familia'
-      AND family_id IS NULL;
+-- UPDATE name n
+-- SET family_id = n.id
+-- FROM name_rank rank
+-- WHERE n.name_rank_id = rank.id
+--       AND rank.name = 'Familia'
+--       AND family_id IS NULL;
 
 -- Repeatedly look at parent name to see if it has a family set and use that until we update none
 -- this uses names that don't have instances because some names with instances have name parents that do not have instances
 -- after this there are about 56 names (ranked family and below) with instances that don't have a family. see NSL-2440
--- TODO THIS IS PROBABLY WRONG and there has been discussion around how to do this better.
-DROP FUNCTION IF EXISTS link_back_missing_family_names();
-CREATE FUNCTION link_back_missing_family_names()
-  RETURNS VOID AS $$
-DECLARE
-BEGIN
-  LOOP
-    UPDATE name n
-    SET family_id = parent.family_id
-    FROM name parent
-    WHERE n.parent_id = parent.id
-          AND n.family_id IS NULL
-          AND parent.family_id IS NOT NULL;
-    IF NOT FOUND
-    THEN
-      RETURN;
-    END IF;
-  END LOOP;
-END;
-$$
-LANGUAGE plpgsql;
-
-SELECT link_back_missing_family_names();
-
-DROP FUNCTION link_back_missing_family_names();
+-- THIS IS PROBABLY WRONG and there has been discussion around how to do this better.
+-- DROP FUNCTION IF EXISTS link_back_missing_family_names();
+-- CREATE FUNCTION link_back_missing_family_names()
+--   RETURNS VOID AS $$
+-- DECLARE
+-- BEGIN
+--   LOOP
+--     UPDATE name n
+--     SET family_id = parent.family_id
+--     FROM name parent
+--     WHERE n.parent_id = parent.id
+--           AND n.family_id IS NULL
+--           AND parent.family_id IS NOT NULL;
+--     IF NOT FOUND
+--     THEN
+--       RETURN;
+--     END IF;
+--   END LOOP;
+-- END;
+-- $$
+-- LANGUAGE plpgsql;
+--
+-- SELECT link_back_missing_family_names();
+--
+-- DROP FUNCTION link_back_missing_family_names();
 
 -- remove all the notifications caused by the trigger on name changes
 DELETE FROM notification;
