@@ -51,10 +51,10 @@
         drop constraint if exists FK_f6s94njexmutjxjv8t5dy1ugt;
 
     alter table if exists instance_resources 
-        drop constraint if exists FK_8mal9hru5u3ypaosfoju8ulpd;
+        drop constraint if exists FK_49ic33s4xgbdoa4p5j107rtpf;
 
     alter table if exists instance_resources 
-        drop constraint if exists FK_49ic33s4xgbdoa4p5j107rtpf;
+        drop constraint if exists FK_8mal9hru5u3ypaosfoju8ulpd;
 
     alter table if exists name 
         drop constraint if exists FK_airfjupm6ohehj1lj82yqkwdx;
@@ -488,8 +488,8 @@
     );
 
     create table instance_resources (
-        instance_id int8 not null,
         resource_id int8 not null,
+        instance_id int8 not null,
         primary key (instance_id, resource_id)
     );
 
@@ -1303,14 +1303,14 @@
         references namespace;
 
     alter table if exists instance_resources 
-        add constraint FK_8mal9hru5u3ypaosfoju8ulpd 
-        foreign key (resource_id) 
-        references resource;
-
-    alter table if exists instance_resources 
         add constraint FK_49ic33s4xgbdoa4p5j107rtpf 
         foreign key (instance_id) 
         references instance;
+
+    alter table if exists instance_resources 
+        add constraint FK_8mal9hru5u3ypaosfoju8ulpd 
+        foreign key (resource_id) 
+        references resource;
 
     alter table if exists name 
         add constraint FK_airfjupm6ohehj1lj82yqkwdx 
@@ -3484,6 +3484,48 @@ CREATE TRIGGER reference_update
 AFTER INSERT OR UPDATE OR DELETE ON reference
 FOR EACH ROW
 EXECUTE PROCEDURE reference_notification();
+
+-- Instance change trigger
+CREATE OR REPLACE FUNCTION instance_notification()
+  RETURNS TRIGGER AS $ref_note$
+BEGIN
+  IF (TG_OP = 'DELETE')
+  THEN
+    INSERT INTO notification (id, version, message, object_id)
+      SELECT
+        nextval('hibernate_sequence'),
+        0,
+        'instance deleted',
+        OLD.id;
+    RETURN OLD;
+  ELSIF (TG_OP = 'UPDATE')
+    THEN
+      INSERT INTO notification (id, version, message, object_id)
+        SELECT
+          nextval('hibernate_sequence'),
+          0,
+          'instance updated',
+          NEW.id;
+      RETURN NEW;
+  ELSIF (TG_OP = 'INSERT')
+    THEN
+      INSERT INTO notification (id, version, message, object_id)
+        SELECT
+          nextval('hibernate_sequence'),
+          0,
+          'instance created',
+          NEW.id;
+      RETURN NEW;
+  END IF;
+  RETURN NULL;
+END;
+$ref_note$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER instance_update
+  AFTER INSERT OR UPDATE OR DELETE ON instance
+  FOR EACH ROW
+EXECUTE PROCEDURE instance_notification();
 
 -- z-grants.sql
 -- grant to the web user as required

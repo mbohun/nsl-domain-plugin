@@ -231,6 +231,48 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON tree_version TO ${webUserName};
 GRANT SELECT, INSERT, UPDATE, DELETE ON tree_version_element TO ${webUserName};
 GRANT SELECT, INSERT, UPDATE, DELETE ON tree_element TO ${webUserName};
 
+-- add Instance change trigger
+CREATE OR REPLACE FUNCTION instance_notification()
+  RETURNS TRIGGER AS $ref_note$
+BEGIN
+  IF (TG_OP = 'DELETE')
+  THEN
+    INSERT INTO notification (id, version, message, object_id)
+      SELECT
+        nextval('hibernate_sequence'),
+        0,
+        'instance deleted',
+        OLD.id;
+    RETURN OLD;
+  ELSIF (TG_OP = 'UPDATE')
+    THEN
+      INSERT INTO notification (id, version, message, object_id)
+        SELECT
+          nextval('hibernate_sequence'),
+          0,
+          'instance updated',
+          NEW.id;
+      RETURN NEW;
+  ELSIF (TG_OP = 'INSERT')
+    THEN
+      INSERT INTO notification (id, version, message, object_id)
+        SELECT
+          nextval('hibernate_sequence'),
+          0,
+          'instance created',
+          NEW.id;
+      RETURN NEW;
+  END IF;
+  RETURN NULL;
+END;
+$ref_note$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER instance_update
+  AFTER INSERT OR UPDATE OR DELETE ON instance
+  FOR EACH ROW
+EXECUTE PROCEDURE instance_notification();
+
 -- import old tree data into the new structure
 
 -- get current classification-root and follow the prev links back to find versions back to jan 2016

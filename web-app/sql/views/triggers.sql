@@ -127,3 +127,45 @@ CREATE TRIGGER reference_update
 AFTER INSERT OR UPDATE OR DELETE ON reference
 FOR EACH ROW
 EXECUTE PROCEDURE reference_notification();
+
+-- Instance change trigger
+CREATE OR REPLACE FUNCTION instance_notification()
+  RETURNS TRIGGER AS $ref_note$
+BEGIN
+  IF (TG_OP = 'DELETE')
+  THEN
+    INSERT INTO notification (id, version, message, object_id)
+      SELECT
+        nextval('hibernate_sequence'),
+        0,
+        'instance deleted',
+        OLD.id;
+    RETURN OLD;
+  ELSIF (TG_OP = 'UPDATE')
+    THEN
+      INSERT INTO notification (id, version, message, object_id)
+        SELECT
+          nextval('hibernate_sequence'),
+          0,
+          'instance updated',
+          NEW.id;
+      RETURN NEW;
+  ELSIF (TG_OP = 'INSERT')
+    THEN
+      INSERT INTO notification (id, version, message, object_id)
+        SELECT
+          nextval('hibernate_sequence'),
+          0,
+          'instance created',
+          NEW.id;
+      RETURN NEW;
+  END IF;
+  RETURN NULL;
+END;
+$ref_note$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER instance_update
+  AFTER INSERT OR UPDATE OR DELETE ON instance
+  FOR EACH ROW
+EXECUTE PROCEDURE instance_notification();
