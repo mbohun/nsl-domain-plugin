@@ -219,7 +219,8 @@ CREATE INDEX tree_element_previous_index
   ON tree_element (previous_element_id);
 
 CREATE INDEX tree_synonyms_index
-  ON tree_element USING GIN (synonyms);
+  ON tree_element
+  USING GIN (synonyms);
 
 -- new tree make sure the draft is not also the current version.
 ALTER TABLE tree
@@ -265,11 +266,13 @@ BEGIN
   END IF;
   RETURN NULL;
 END;
-$ref_note$ LANGUAGE plpgsql;
+$ref_note$
+LANGUAGE plpgsql;
 
 
 CREATE TRIGGER instance_update
-  AFTER INSERT OR UPDATE OR DELETE ON instance
+  AFTER INSERT OR UPDATE OR DELETE
+  ON instance
   FOR EACH ROW
 EXECUTE PROCEDURE instance_notification();
 
@@ -604,15 +607,15 @@ FROM instance i
 WHERE i.id = source_instance_id AND host.preferred = TRUE;
 $$;
 
-DROP FUNCTION IF EXISTS synonyms_as_jsonb( BIGINT );
-CREATE FUNCTION synonyms_as_jsonb(instance_id BIGINT)
+DROP FUNCTION IF EXISTS synonyms_as_jsonb( BIGINT, TEXT );
+CREATE FUNCTION synonyms_as_jsonb(instance_id BIGINT, host TEXT)
   RETURNS JSONB
 LANGUAGE SQL
 AS $$
 SELECT jsonb_build_object('list',
                           coalesce(
                               jsonb_agg(jsonb_build_object(
-                                            'host', host.host_name,
+                                            'host', host,
                                             'instance_id', syn_inst.id,
                                             'instance_link',
                                             '/instance/apni/' || syn_inst.id,
@@ -639,12 +642,10 @@ FROM Instance i,
   JOIN instance cites_inst ON syn_inst.cites_id = cites_inst.id
   JOIN reference cites_ref ON cites_inst.reference_id = cites_ref.id
   ,
-  name synonym,
-  mapper.host host
+  name synonym
 WHERE i.id = instance_id
       AND syn_inst.cited_by_id = i.id
-      AND synonym.id = syn_inst.name_id
-      AND host.preferred = TRUE;
+      AND synonym.id = syn_inst.name_id;
 $$;
 
 -- adding tree_path to tree_element as this is the quicer way to create tree_path then set it on tree_version_element
@@ -686,7 +687,7 @@ INSERT INTO tree_element
      coalesce(parent_ipath.id, NULL)                                                           AS parentelementid,
      NULL                                                                                      AS previouselementid,
      profile_as_jsonb(ipath.instance_id)                                                       AS profile,
-     synonyms_as_jsonb(ipath.instance_id)                                                      AS synonyms,
+     synonyms_as_jsonb(ipath.instance_id, host.host_name)                                      AS synonyms,
      rank.name                                                                                 AS rank,
      n.simple_name                                                                             AS simple_name,
      coalesce(n.name_element, '?')                                                             AS name_element,
@@ -820,7 +821,7 @@ $$;
 
 DROP FUNCTION IF EXISTS name_name_path( BIGINT );
 CREATE FUNCTION name_name_path(target_name_id BIGINT)
-  RETURNS TABLE (name_path TEXT, family_id BIGINT)
+  RETURNS TABLE(name_path TEXT, family_id BIGINT)
 LANGUAGE SQL AS
 $$
 with pathElements (id, path_element, rank_name) as (
@@ -831,7 +832,8 @@ with pathElements (id, path_element, rank_name) as (
       n.name_element,
       1,
       rank.name
-    FROM name n join name_rank rank on n.name_rank_id = rank.id
+    FROM name n
+      join name_rank rank on n.name_rank_id = rank.id
     WHERE n.id = target_name_id
     UNION ALL
     SELECT
@@ -840,23 +842,39 @@ with pathElements (id, path_element, rank_name) as (
       n.name_element,
       walk.pos + 1,
       rank.name
-    FROM walk, name n join name_rank rank on n.name_rank_id = rank.id
+    FROM walk, name n
+      join name_rank rank on n.name_rank_id = rank.id
     WHERE n.id = walk.parent_id
   )
-  SELECT id, path_element, rank_name
+  SELECT
+    id,
+    path_element,
+    rank_name
   FROM walk
   order by walk.pos desc)
-select string_agg(path_element, '/'), (select id from pathElements p2 where p2.rank_name = 'Familia' limit 1) from pathElements;
+select
+  string_agg(path_element, '/'),
+  (select id
+   from pathElements p2
+   where p2.rank_name = 'Familia'
+   limit 1)
+from pathElements;
 $$;
 
 drop table if exists tmp_path_fam;
-select id, blah.name_path, blah.family_id into tmp_path_fam
-from name n, name_name_path(n.id) blah ;
+select
+  id,
+  blah.name_path,
+  blah.family_id
+into tmp_path_fam
+from name n, name_name_path(n.id) blah;
 
-alter table tmp_path_fam add foreign key (id) references name (id);
+alter table tmp_path_fam
+  add foreign key (id) references name (id);
 
 -- first set all the name paths to the name parent path and the family to the family in that path
-update name set name_path = blah.name_path, family_id = blah.family_id
+update name
+set name_path = blah.name_path, family_id = blah.family_id
 from tmp_path_fam blah
 where blah.id = name.id;
 drop table if exists tmp_path_fam;
