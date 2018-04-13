@@ -234,7 +234,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON tree_element TO ${webUserName};
 
 -- add Instance change trigger
 CREATE OR REPLACE FUNCTION instance_notification()
-  RETURNS TRIGGER AS $ref_note$
+  RETURNS TRIGGER AS $$
 BEGIN
   IF (TG_OP = 'DELETE')
   THEN
@@ -266,7 +266,7 @@ BEGIN
   END IF;
   RETURN NULL;
 END;
-$ref_note$
+$$
 LANGUAGE plpgsql;
 
 
