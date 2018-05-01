@@ -51,10 +51,10 @@
         drop constraint if exists FK_f6s94njexmutjxjv8t5dy1ugt;
 
     alter table if exists instance_resources 
-        drop constraint if exists FK_8mal9hru5u3ypaosfoju8ulpd;
+        drop constraint if exists FK_49ic33s4xgbdoa4p5j107rtpf;
 
     alter table if exists instance_resources 
-        drop constraint if exists FK_49ic33s4xgbdoa4p5j107rtpf;
+        drop constraint if exists FK_8mal9hru5u3ypaosfoju8ulpd;
 
     alter table if exists name 
         drop constraint if exists FK_airfjupm6ohehj1lj82yqkwdx;
@@ -252,6 +252,8 @@
 
     drop table if exists distribution cascade;
 
+    drop table if exists event_record cascade;
+
     drop table if exists help_topic cascade;
 
     drop table if exists id_mapper cascade;
@@ -407,6 +409,19 @@
         primary key (id)
     );
 
+    create table event_record (
+        id int8 not null,
+        version int8 not null,
+        created_at timestamp with time zone not null,
+        created_by varchar(50) not null,
+        data jsonb,
+        dealt_with boolean default false not null,
+        type text not null,
+        updated_at timestamp with time zone not null,
+        updated_by varchar(50) not null,
+        primary key (id)
+    );
+
     create table help_topic (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
@@ -488,8 +503,8 @@
     );
 
     create table instance_resources (
-        instance_id int8 not null,
         resource_id int8 not null,
+        instance_id int8 not null,
         primary key (instance_id, resource_id)
     );
 
@@ -1002,6 +1017,14 @@
 
     create index Comment_reference_Index on comment (reference_id);
 
+    create index event_record_created_index on event_record (created_at);
+
+    create index event_record_index on event_record (created_at, dealt_with, type);
+
+    create index event_record_dealt_index on event_record (dealt_with);
+
+    create index event_record_type_index on event_record (type);
+
     alter table if exists id_mapper 
         add constraint unique_from_id  unique (to_id, from_id);
 
@@ -1303,14 +1326,14 @@
         references namespace;
 
     alter table if exists instance_resources 
-        add constraint FK_8mal9hru5u3ypaosfoju8ulpd 
-        foreign key (resource_id) 
-        references resource;
-
-    alter table if exists instance_resources 
         add constraint FK_49ic33s4xgbdoa4p5j107rtpf 
         foreign key (instance_id) 
         references instance;
+
+    alter table if exists instance_resources 
+        add constraint FK_8mal9hru5u3ypaosfoju8ulpd 
+        foreign key (resource_id) 
+        references resource;
 
     alter table if exists name 
         add constraint FK_airfjupm6ohehj1lj82yqkwdx 

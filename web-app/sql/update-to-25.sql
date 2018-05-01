@@ -132,6 +132,20 @@ CREATE TABLE tree_version_element (
   PRIMARY KEY (element_link)
 );
 
+DROP TABLE IF EXISTS event_record;
+create table event_record (
+  id         int8                     not null,
+  version    int8                     not null,
+  created_at timestamp with time zone not null,
+  created_by varchar(50)              not null,
+  data       jsonb,
+  dealt_with boolean default false    not null,
+  type       text                     not null,
+  updated_at timestamp with time zone not null,
+  updated_by varchar(50)              not null,
+  primary key (id)
+);
+
 ALTER TABLE name
   ADD COLUMN family_id INT8;
 ALTER TABLE name
@@ -221,6 +235,18 @@ CREATE INDEX tree_element_previous_index
 CREATE INDEX tree_synonyms_index
   ON tree_element
   USING GIN (synonyms);
+
+create index event_record_created_index
+  on event_record (created_at);
+
+create index event_record_index
+  on event_record (created_at, dealt_with, type);
+
+create index event_record_dealt_index
+  on event_record (dealt_with);
+
+create index event_record_type_index
+  on event_record (type);
 
 -- new tree make sure the draft is not also the current version.
 ALTER TABLE tree
