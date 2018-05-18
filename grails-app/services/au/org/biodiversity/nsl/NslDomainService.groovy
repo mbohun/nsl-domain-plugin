@@ -58,7 +58,8 @@ class NslDomainService {
         for (Integer versionNumber in ((dbVersion + 1)..currentVersion)) {
             log.info "updating to version $versionNumber"
             File updateFile = getUpdateFile(versionNumber)
-            if(updateFile?.exists()) {
+            params.putAll(getParamsFile(versionNumber))
+            if (updateFile?.exists()) {
                 String sqlSource = updateFile.text.replaceAll('\\$\\$', 'DollarDelimit')
                                              .replaceAll('\\$do\\$', 'DollarDoDelimit')
                 def engine = new SimpleTemplateEngine()
@@ -67,7 +68,7 @@ class NslDomainService {
                                     .replaceAll('DollarDoDelimit', '\\$do\\$')
                 log.debug sqlSource
                 sql.execute(sqlSource) { isResultSet, result ->
-                    if(isResultSet) log.debug result
+                    if (isResultSet) log.debug result
                 }
             }
         }
@@ -75,6 +76,16 @@ class NslDomainService {
         sessionFactory_nsl.getCurrentSession().clear()
         log.info "Update complete"
         return checkUpToDate()
+    }
+
+    Map getParamsFile(Integer versionNumber) {
+        File updatesDir = new File(grailsApplication.config.updates.dir.toString())
+        File file = new File(updatesDir, "update-to-${versionNumber}-params.groovy")
+        if (file?.exists()) {
+            def script = new GroovyShell().parse(file)
+            return script.run() as Map
+        }
+        return [:]
     }
 
     File getUpdateFile(Integer versionNumber) {

@@ -379,11 +379,8 @@ WITH RECURSIVE treewalk (tree_id, node_id, excluded, declared_bt, instance_id, n
     JOIN name_rank rank ON n.name_rank_id = rank.id
     JOIN instance inst ON node.instance_id = inst.id
     JOIN reference ref ON inst.reference_id = ref.id
-    ,
-    mapper.host host
   WHERE link.supernode_id = root_node
         AND node.internal_type = 'T'
-        AND host.preferred = TRUE
   UNION ALL
   SELECT
     treewalk.tree_id                           AS tree_id,
@@ -417,11 +414,8 @@ WITH RECURSIVE treewalk (tree_id, node_id, excluded, declared_bt, instance_id, n
     JOIN name_rank rank ON n.name_rank_id = rank.id
     JOIN instance inst ON node.instance_id = inst.id
     JOIN reference REF ON inst.reference_id = REF.id
-    ,
-    mapper.host host
   WHERE node.internal_type = 'T'
         AND node.tree_arrangement_id = treewalk.tree_id
-        AND host.preferred = TRUE
 )
 SELECT
   tree_id,
@@ -468,9 +462,7 @@ VALUES ('treebuilder',
         ||
         'updating and delivery of APNI and APC.</p>',
         TRUE,
-        (SELECT 'https://' || host_name
-         FROM mapper.host h
-         WHERE h.preferred = TRUE)
+        '${scheme}//${mapperPreferredHost}'
 );
 
 -- create versions
@@ -553,11 +545,9 @@ CREATE TABLE instance_paths (
     jsonb_object_agg(text(v.id), node_id)
   FROM daily_top_nodes('APC', '2016-01-01') AS dtn,
     tree_version v,
-        tree_element_data_from_start_node(dtn.latest_node_id) AS el_data,
-    mapper.host host
+        tree_element_data_from_start_node(dtn.latest_node_id) AS el_data
   WHERE v.published_at = (dtn.year || '-' || dtn.month || '-' || dtn.day) :: TIMESTAMP
         AND el_data.instance_id IS NOT NULL
-        AND host.preferred = TRUE
   GROUP BY instance_path, excluded,
     declared_bt, parent_instance_path, name_path, instance_id, name_id,
     depth;
@@ -623,14 +613,12 @@ SELECT jsonb_object_agg(key.name, jsonb_build_object(
     'created_by', note.created_by,
     'updated_at', note.updated_at,
     'updated_by', note.updated_by,
-    'source_link', 'http://' || host.host_name || '/instanceNote/apni/' || note.id
+    'source_link', '${scheme}//${mapperPreferredHost}' || '/instanceNote/apni/' || note.id
 ))
 FROM instance i
   JOIN instance_note note ON i.id = note.instance_id
   JOIN instance_note_key key ON note.instance_note_key_id = key.id
-  ,
-  mapper.host host
-WHERE i.id = source_instance_id AND host.preferred = TRUE;
+WHERE i.id = source_instance_id;
 $$;
 
 DROP FUNCTION IF EXISTS synonyms_as_jsonb( BIGINT, TEXT );
@@ -707,13 +695,13 @@ INSERT INTO tree_element
      '<data>' || n.full_name_html || '<citation>' || ref.citation_html || '</citation></data>' AS display_html,
      coalesce(synonyms_as_html(ipath.instance_id), '<synonyms></synonyms>')                    AS synonyms_html,
      ipath.instance_id :: BIGINT                                                               AS instance_id,
-     'http://' || host.host_name || '/instance/apni/' || ipath.instance_id                     AS instance_link,
+     '${scheme}//${mapperPreferredHost}' || '/instance/apni/' || ipath.instance_id                 AS instance_link,
      ipath.name_id :: BIGINT                                                                   AS name_id,
-     'http://' || host.host_name || '/name/apni/' || ipath.name_id                             AS name_link,
+     '${scheme}//${mapperPreferredHost}' || '/name/apni/' || ipath.name_id                         AS name_link,
      coalesce(parent_ipath.id, NULL)                                                           AS parentelementid,
      NULL                                                                                      AS previouselementid,
      profile_as_jsonb(ipath.instance_id)                                                       AS profile,
-     synonyms_as_jsonb(ipath.instance_id, host.host_name)                                      AS synonyms,
+     synonyms_as_jsonb(ipath.instance_id, '${mapperPreferredHost}')                            AS synonyms,
      rank.name                                                                                 AS rank,
      n.simple_name                                                                             AS simple_name,
      coalesce(n.name_element, '?')                                                             AS name_element,
@@ -726,10 +714,7 @@ INSERT INTO tree_element
      JOIN instance i ON ipath.instance_id = i.id
      JOIN reference ref ON i.reference_id = ref.id
      LEFT OUTER JOIN instance_paths parent_ipath
-       ON ipath.parent_instance_path = parent_ipath.instance_path
-     ,
-     mapper.host host
-   WHERE host.preferred = TRUE);
+       ON ipath.parent_instance_path = parent_ipath.instance_path);
 
 -- remove declared BTs by making the children point to the next parent up.
 
@@ -775,9 +760,8 @@ INSERT INTO tree_version_element (element_link, parent_id, taxon_link, tree_vers
   FROM instance_paths ipath
     JOIN tree_element te ON te.id = ipath.id
     ,
-    tree_version v, mapper.host host
-  WHERE host.preferred = TRUE
-        AND ipath.versions @> to_jsonb(v.id);
+    tree_version v
+  WHERE ipath.versions @> to_jsonb(v.id);
 
 -- set the tree_path to tree elements instead of instance path
 
@@ -1153,3 +1137,5 @@ BEGIN
   END IF;
 END
 $do$;
+
+VACUUM ANALYSE;
