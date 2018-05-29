@@ -82,8 +82,8 @@ class NslDomainService {
         File updatesDir = new File(grailsApplication.config.updates.dir.toString())
         File file = new File(updatesDir, "update-to-${versionNumber}-params.groovy")
         if (file?.exists()) {
-            def script = new GroovyShell().parse(file)
-            return script.run() as Map
+            Map params = new GroovyShell().evaluate(file.text, 'Updater.groovy') as Map
+            return params
         }
         return [:]
     }
