@@ -1,3 +1,4 @@
+vacuum analyse;
 DROP VIEW IF EXISTS public.workspace_value_namespace_vw;
 DROP VIEW IF EXISTS public.workspace_instance_value_vw;
 DROP VIEW IF EXISTS public.workspace_value_vw;
@@ -303,6 +304,7 @@ CREATE TRIGGER instance_update
 EXECUTE PROCEDURE instance_notification();
 
 -- import old tree data into the new structure
+vacuum analyse;
 
 -- get current classification-root and follow the prev links back to find versions back to jan 2016
 DROP FUNCTION IF EXISTS daily_top_nodes( TEXT, TIMESTAMP );
@@ -695,9 +697,9 @@ INSERT INTO tree_element
      '<data>' || n.full_name_html || '<citation>' || ref.citation_html || '</citation></data>' AS display_html,
      coalesce(synonyms_as_html(ipath.instance_id), '<synonyms></synonyms>')                    AS synonyms_html,
      ipath.instance_id :: BIGINT                                                               AS instance_id,
-     '${scheme}//${mapperPreferredHost}' || '/instance/apni/' || ipath.instance_id                 AS instance_link,
+     '${scheme}//${mapperPreferredHost}' || '/instance/apni/' || ipath.instance_id             AS instance_link,
      ipath.name_id :: BIGINT                                                                   AS name_id,
-     '${scheme}//${mapperPreferredHost}' || '/name/apni/' || ipath.name_id                         AS name_link,
+     '${scheme}//${mapperPreferredHost}' || '/name/apni/' || ipath.name_id                     AS name_link,
      coalesce(parent_ipath.id, NULL)                                                           AS parentelementid,
      NULL                                                                                      AS previouselementid,
      profile_as_jsonb(ipath.instance_id)                                                       AS profile,
@@ -937,6 +939,7 @@ UPDATE db_version
 SET version = 25
 WHERE id = 1;
 
+vacuum analyse;
 -- Only do this if the mapper schema exists --
 DO
 $do$
