@@ -74,10 +74,14 @@ class NslDomainService {
     }
 
     def runPostUpgradeScript(String fileName) {
+        log.info "Running post upgrade script $fileName"
         File updatesDir = new File(grailsApplication.config.updates.dir.toString())
         File file = new File(updatesDir, fileName)
         if (file?.exists()) {
             new GroovyShell().run(file)
+        } else {
+            log.error "Specified post upgrade script $fileName not found."
+            throw Exception("Specified post upgrade script $fileName not found.")
         }
     }
 
