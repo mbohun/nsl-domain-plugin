@@ -60,16 +60,8 @@ class NslDomainService {
             File updateFile = getUpdateFile(versionNumber)
             params.putAll(getParamsFile(versionNumber))
             if (updateFile?.exists()) {
-                String sqlSource = updateFile.text.replaceAll('\\$\\$', 'DollarDelimit')
-                                             .replaceAll('\\$do\\$', 'DollarDoDelimit')
-                def engine = new SimpleTemplateEngine()
-                def template = engine.createTemplate(sqlSource).make(params)
-                sqlSource = template.toString().replaceAll('DollarDelimit', '\\$\\$')
-                                    .replaceAll('DollarDoDelimit', '\\$do\\$')
-                log.debug sqlSource
-                sql.execute(sqlSource) { isResultSet, result ->
-                    if (isResultSet) log.debug result
-                }
+                String sqlSource = replaceParams(updateFile, params)
+                runSqlBits(splitSql(sqlSource), sql)
             }
         }
         sessionFactory_nsl.getCurrentSession().flush()
@@ -78,11 +70,40 @@ class NslDomainService {
         return checkUpToDate()
     }
 
+    @SuppressWarnings("GrMethodMayBeStatic")
+    private runSqlBits(String[] bits, Sql sql) {
+        if(bits.size() > 0) {
+            for (String bit in bits){
+                log.info "Update: ${bit.find(/.*/)}"
+                String src = bit.replaceFirst(/.*/, '')
+                log.debug src
+                sql.execute(src) { isResultSet, result ->
+                    if (isResultSet) log.debug result
+                }
+            }
+        }
+    }
+
+    private static splitSql(String source) {
+        return ('-- Start\n' + source).split(/\n--/)
+    }
+
+    private static replaceParams(File file, Map params){
+        String sqlSource = file.text.replaceAll('\\$\\$', 'DollarDelimit')
+                                     .replaceAll('\\$do\\$', 'DollarDoDelimit')
+        def engine = new SimpleTemplateEngine()
+        def template = engine.createTemplate(sqlSource).make(params)
+        sqlSource = template.toString().replaceAll('DollarDelimit', '\\$\\$')
+                            .replaceAll('DollarDoDelimit', '\\$do\\$')
+        return sqlSource
+    }
+
+
     Map getParamsFile(Integer versionNumber) {
         File updatesDir = new File(grailsApplication.config.updates.dir.toString())
-        File file = new File(updatesDir, "update-to-${versionNumber}-params.groovy")
+        File file = new File(updatesDir, "UpdateTo${versionNumber}Params.groovy")
         if (file?.exists()) {
-            Map params = new GroovyShell().evaluate(file.text, 'Updater.groovy') as Map
+            Map params = new GroovyShell().evaluate(file.text, file.name) as Map
             return params
         }
         return [:]

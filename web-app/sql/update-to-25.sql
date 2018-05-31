@@ -561,6 +561,7 @@ CREATE INDEX parent_instance_path_index
 CREATE UNIQUE INDEX unique_instance_path_index
   ON instance_paths (instance_path, excluded);
 
+-- create function synonym_as_html
 DROP FUNCTION IF EXISTS synonym_as_html( BIGINT );
 CREATE FUNCTION synonym_as_html(instance_id BIGINT)
   RETURNS TABLE(html TEXT)
@@ -593,6 +594,7 @@ WHERE syn_inst.cited_by_id = i.id
 ORDER BY it.nomenclatural DESC, it.taxonomic DESC, it.misapplied DESC, synonym.simple_name, cites_ref.year ASC;
 $$;
 
+-- create function synonyms_as_html
 DROP FUNCTION IF EXISTS synonyms_as_html( BIGINT );
 CREATE FUNCTION synonyms_as_html(instance_id BIGINT)
   RETURNS TEXT
@@ -602,8 +604,7 @@ SELECT '<synonyms>' || string_agg(html, '') || '</synonyms>'
 FROM synonym_as_html(instance_id) AS html;
 $$;
 
-SELECT coalesce(synonyms_as_html(738442), '<synonyms></synonyms>');
-
+-- create function profile_as_jsonb
 DROP FUNCTION IF EXISTS profile_as_jsonb( BIGINT );
 CREATE FUNCTION profile_as_jsonb(source_instance_id BIGINT)
   RETURNS JSONB
@@ -623,6 +624,7 @@ FROM instance i
 WHERE i.id = source_instance_id;
 $$;
 
+-- create function synonyms_as_jsonb
 DROP FUNCTION IF EXISTS synonyms_as_jsonb( BIGINT, TEXT );
 CREATE FUNCTION synonyms_as_jsonb(instance_id BIGINT, host TEXT)
   RETURNS JSONB
@@ -664,7 +666,7 @@ WHERE i.id = instance_id
       AND synonym.id = syn_inst.name_id;
 $$;
 
--- adding tree_path to tree_element as this is the quicer way to create tree_path then set it on tree_version_element
+-- adding tree_path to tree_element as this is the quikcer way to create tree_path then set it on tree_version_element
 -- this is also a quicker conversion from the old structure of tree_path on tree_element.
 ALTER TABLE tree_element
   ADD COLUMN parent_element_id INT8;
@@ -740,7 +742,7 @@ WHERE tree_element.id IN (SELECT ipath.id
 ALTER TABLE IF EXISTS tree_version_element
   DROP CONSTRAINT IF EXISTS FK_8nnhwv8ldi9ppol6tg4uwn4qv;
 
--- 19min
+-- 19min create tree_version_elements
 INSERT INTO tree_version_element (element_link, parent_id, taxon_link, tree_version_id, tree_element_id, taxon_id,
                                   tree_path, name_path, depth, updated_at, updated_by)
   SELECT
@@ -786,6 +788,7 @@ SET tree_path = walk.tree_path
 FROM walk
 WHERE element.tree_element_id = walk.element_id;
 
+-- clean up
 DROP INDEX tree_element_parent_index;
 
 ALTER TABLE tree_element
