@@ -64,10 +64,21 @@ class NslDomainService {
                 runSqlBits(splitSql(sqlSource), sql)
             }
         }
+        if(params.postUpgradeScript) {
+            runPostUpgradeScript(params.postUpgradeScript)
+        }
         sessionFactory_nsl.getCurrentSession().flush()
         sessionFactory_nsl.getCurrentSession().clear()
         log.info "Update complete"
         return checkUpToDate()
+    }
+
+    def runPostUpgradeScript(String fileName) {
+        File updatesDir = new File(grailsApplication.config.updates.dir.toString())
+        File file = new File(updatesDir, fileName)
+        if (file?.exists()) {
+            new GroovyShell().run(file)
+        }
     }
 
     @SuppressWarnings("GrMethodMayBeStatic")
