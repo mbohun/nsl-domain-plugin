@@ -526,7 +526,6 @@ CREATE TABLE instance_paths (
     excluded,
     declared_bt,
     depth,
-    versions_str,
     nodes,
     versions,
     ver_node_map
@@ -541,7 +540,6 @@ CREATE TABLE instance_paths (
     excluded,
     declared_bt,
     depth,
-    string_agg(v.id :: TEXT, ','),
     jsonb_agg(DISTINCT (node_id)),
     jsonb_agg(v.id),
     jsonb_object_agg(text(v.id), node_id)
@@ -616,7 +614,7 @@ SELECT jsonb_object_agg(key.name, jsonb_build_object(
     'created_by', note.created_by,
     'updated_at', note.updated_at,
     'updated_by', note.updated_by,
-    'source_link', '${scheme}//${mapperPreferredHost}' || '/instanceNote/apni/' || note.id
+    'source_link', '${scheme}//${mapperPreferredHost}' || '/instanceNote/${nameSpace}/' || note.id
 ))
 FROM instance i
   JOIN instance_note note ON i.id = note.instance_id
@@ -636,21 +634,21 @@ SELECT jsonb_build_object('list',
                                             'host', host,
                                             'instance_id', syn_inst.id,
                                             'instance_link',
-                                            '/instance/apni/' || syn_inst.id,
+                                            '/instance/${nameSpace}/' || syn_inst.id,
                                             'concept_link',
-                                            '/instance/apni/' || cites_inst.id,
+                                            '/instance/${nameSpace}/' || cites_inst.id,
                                             'simple_name', synonym.simple_name,
                                             'type', it.name,
                                             'name_id', synonym.id :: BIGINT,
                                             'name_link',
-                                            '/name/apni/' || synonym.id,
+                                            '/name/${nameSpace}/' || synonym.id,
                                             'full_name_html', synonym.full_name_html,
                                             'nom', it.nomenclatural,
                                             'tax', it.taxonomic,
                                             'mis', it.misapplied,
                                             'cites', cites_ref.citation_html,
                                             'cites_link',
-                                            '/reference/apni/' || cites_ref.id,
+                                            '/reference/${nameSpace}/' || cites_ref.id,
                                             'year', cites_ref.year
                                         )), '[]' :: JSONB)
 )
@@ -699,9 +697,9 @@ INSERT INTO tree_element
      '<data>' || n.full_name_html || '<citation>' || ref.citation_html || '</citation></data>' AS display_html,
      coalesce(synonyms_as_html(ipath.instance_id), '<synonyms></synonyms>')                    AS synonyms_html,
      ipath.instance_id :: BIGINT                                                               AS instance_id,
-     '${scheme}//${mapperPreferredHost}' || '/instance/apni/' || ipath.instance_id             AS instance_link,
+     '${scheme}//${mapperPreferredHost}' || '/instance/${nameSpace}/' || ipath.instance_id             AS instance_link,
      ipath.name_id :: BIGINT                                                                   AS name_id,
-     '${scheme}//${mapperPreferredHost}' || '/name/apni/' || ipath.name_id                     AS name_link,
+     '${scheme}//${mapperPreferredHost}' || '/name/${nameSpace}/' || ipath.name_id                     AS name_link,
      coalesce(parent_ipath.id, NULL)                                                           AS parentelementid,
      NULL                                                                                      AS previouselementid,
      profile_as_jsonb(ipath.instance_id)                                                       AS profile,
@@ -752,7 +750,7 @@ INSERT INTO tree_version_element (element_link, parent_id, taxon_link, tree_vers
         '/tree/' || v.id || '/' || te.parent_element_id
     ELSE NULL
     END                                                    AS parent_id,
-    '/node/apni/' || (ipath.ver_node_map ->> (text(v.id))) AS taxon_link,
+    '/node/${nameSpace}/' || (ipath.ver_node_map ->> (text(v.id))) AS taxon_link,
     v.id                                                   AS tree_version_id,
     ipath.id                                               AS tree_element_id,
     (ipath.ver_node_map ->> (text(v.id))) :: BIGINT        AS taxon_id,
