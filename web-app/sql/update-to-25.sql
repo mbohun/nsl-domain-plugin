@@ -439,10 +439,10 @@ $$;
 
 INSERT INTO tree (group_name, name, config, description_html, accepted_tree, host_name)
 VALUES ('treebuilder',
-        'APC',
+        '${classificationTreeName}',
         '{
-          "distribution_key": "APC Dist.",
-          "comment_key": "APC Comment"
+          "distribution_key": "${classificationTreeName} Dist.",
+          "comment_key": "${classificationTreeName} Comment"
         }' :: JSONB,
         '<p>The Australian Plant Census (APC) is a nationally-accepted taxonomy for the Australian flora. APC covers all '
         ||
@@ -492,8 +492,8 @@ INSERT INTO tree_version
      (year || '-' || month || '-' || day) :: TIMESTAMP AS published_at,
      'import'                                          AS published_by,
      a.id                                              AS tree_id
-   FROM daily_top_nodes('APC', '2016-01-01'), tree a
-   WHERE a.name = 'APC');
+   FROM daily_top_nodes('${classificationTreeName}', '2016-01-01'), tree a
+   WHERE a.name = '${classificationTreeName}');
 
 UPDATE tree_version
 SET previous_version_id = id - 1
@@ -504,7 +504,7 @@ UPDATE tree t
 SET current_tree_version_id = (SELECT max(id)
                                FROM tree_version v
                                WHERE v.tree_id = t.id)
-WHERE name = 'APC';
+WHERE name = '${classificationTreeName}';
 
 VACUUM ANALYSE;
 
@@ -543,7 +543,7 @@ CREATE TABLE instance_paths (
     jsonb_agg(DISTINCT (node_id)),
     jsonb_agg(v.id),
     jsonb_object_agg(text(v.id), node_id)
-  FROM daily_top_nodes('APC', '2016-01-01') AS dtn,
+  FROM daily_top_nodes('${classificationTreeName}', '2016-01-01') AS dtn,
     tree_version v,
         tree_element_data_from_start_node(dtn.latest_node_id) AS el_data
   WHERE v.published_at = (dtn.year || '-' || dtn.month || '-' || dtn.day) :: TIMESTAMP
@@ -801,7 +801,7 @@ VACUUM ANALYSE;
 
 -- *************** end tree creation ***************
 
--- set all the existing name paths and family from APC tree
+-- set all the existing name paths and family from ${classificationTreeName} tree
 UPDATE name n
 SET name_path = '', family_id = NULL;
 
@@ -892,14 +892,14 @@ from tmp_path_fam blah
 where blah.id = name.id;
 drop table if exists tmp_path_fam;
 
--- now set the family to the accepted taxon family for all names and synonyms on APC
+-- now set the family to the accepted taxon family for all names and synonyms on ${classificationTreeName}
 -- don't change the name_path because that is the name_name_path
 UPDATE name name
 SET family_id = find_family_name_id(tvte.element_link)
 FROM
   tree_element element
   JOIN tree_version_element tvte ON element.id = tvte.tree_element_id
-  JOIN tree ON tvte.tree_version_id = tree.current_tree_version_id AND tree.name = 'APC'
+  JOIN tree ON tvte.tree_version_id = tree.current_tree_version_id AND tree.name = '${classificationTreeName}'
   ,
   Instance i,
   Instance s,
