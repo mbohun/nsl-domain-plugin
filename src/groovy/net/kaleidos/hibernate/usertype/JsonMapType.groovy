@@ -80,7 +80,7 @@ class JsonMapType implements UserType {
 
     @Override
     Serializable disassemble(Object value) throws HibernateException {
-        gson.toJson(value, userType)
+        gson.toJson(value, userType).getBytes('UTF-8')
     }
 
     @Override
