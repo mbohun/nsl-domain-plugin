@@ -67,8 +67,6 @@ ORDER BY it.nomenclatural DESC, it.taxonomic DESC, it.misapplied DESC, synonym.s
   cites_inst.id ASC, synonym.id ASC;
 $$;
 
-select synonym_current_as_html(51248337);
-
 drop function if exists current_synonyms_as_html(bigint);
 
 create function current_synonyms_as_html(elementid bigint)
