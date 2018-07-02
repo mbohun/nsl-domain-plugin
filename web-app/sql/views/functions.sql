@@ -1,8 +1,8 @@
-DROP FUNCTION IF EXISTS synonym_as_html( BIGINT );
-CREATE FUNCTION synonym_as_html(instance_id BIGINT)
-  RETURNS TABLE(html TEXT)
-LANGUAGE SQL
-AS $$
+drop function if exists synonym_as_html( bigint );
+create function synonym_as_html(instanceid bigint)
+  returns TABLE(html text)
+language sql
+as $$
 SELECT CASE
        WHEN it.nomenclatural
          THEN '<nom>' || synonym.full_name_html || ' <type>' || it.name || '</type></nom>'
@@ -25,9 +25,10 @@ FROM Instance i,
   ,
   NAME synonym
 WHERE syn_inst.cited_by_id = i.id
-      AND i.id = instance_id
+      AND i.id = instanceid
       AND synonym.id = syn_inst.name_id
-ORDER BY it.nomenclatural DESC, it.taxonomic DESC, it.misapplied DESC, synonym.simple_name, cites_ref.year ASC;
+ORDER BY it.nomenclatural DESC, it.taxonomic DESC, it.misapplied DESC, synonym.simple_name, cites_ref.year ASC,
+  cites_inst.id ASC, synonym.id ASC;
 $$;
 
 DROP FUNCTION IF EXISTS synonyms_as_html( BIGINT );
@@ -39,7 +40,7 @@ SELECT '<synonyms>' || string_agg(html, '') || '</synonyms>'
 FROM synonym_as_html(instance_id) AS html;
 $$;
 
-DROP FUNCTION IF EXISTS synonyms_as_jsonb( BIGINT, TEXT);
+DROP FUNCTION IF EXISTS synonyms_as_jsonb( BIGINT, TEXT );
 CREATE FUNCTION synonyms_as_jsonb(instance_id BIGINT, host TEXT)
   RETURNS JSONB
 LANGUAGE SQL
