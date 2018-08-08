@@ -1,6 +1,4 @@
-
 -- functions to get ordered output as needed by the APNI format
-
 -- get basionym information for a name
 
 drop function if exists apni_basionym(bigint);
@@ -90,9 +88,9 @@ where i.cited_by_id = instanceid
 order by (it.sort_order < 20) desc, it.nomenclatural desc, it.taxonomic desc, basionym_sort, tax_nov desc, n.sort_name,
          it.pro_parte, it.misapplied desc, it.doubtful, r.year, cites.page, cites.id;
 $$;
-​
+
 -- apni ordered synonymy as a text output
-​
+
 drop function if exists apni_ordered_synonymy_text(bigint);
 create function apni_ordered_synonymy_text(instanceid bigint)
   returns text
@@ -219,15 +217,6 @@ FROM apni_ordered_synonymy(instanceid)
        join instance_type it on instance_type_id = it.id
 $$;
 
-DROP FUNCTION IF EXISTS synonyms_as_html( BIGINT );
-CREATE FUNCTION synonyms_as_html(instance_id BIGINT)
-  RETURNS TEXT
-LANGUAGE SQL
-AS $$
-SELECT '<synonyms>' || string_agg(html, '') || '</synonyms>'
-FROM synonym_as_html(instance_id) AS html;
-$$;
-
 -- build JSONB representation of synonyms inside a shard
 DROP FUNCTION IF EXISTS synonyms_as_jsonb( BIGINT, TEXT );
 CREATE FUNCTION synonyms_as_jsonb(instance_id BIGINT, host TEXT)
@@ -269,3 +258,64 @@ WHERE i.id = instance_id
   AND syn_inst.cited_by_id = i.id
   AND synonym.id = syn_inst.name_id;
 $$;
+
+-- re-write the synonymy html based on the synonymy at the time
+
+drop function if exists synonym_current_as_html(bigint);
+
+create function synonym_current_as_html(elementid bigint)
+  returns TABLE(html text)
+language sql
+as $$
+SELECT CASE
+         WHEN it.nomenclatural
+                 THEN '<nom>' || full_name_html || ' <type>' || it.name || '</type></nom>'
+         WHEN it.taxonomic
+                 THEN '<tax>' || full_name_html || ' <type>' || it.name || '</type></tax>'
+         WHEN it.misapplied
+                 THEN '<mis>' || full_name_html || ' <type>' || it.name || '</type> by <citation>' ||
+                      citation_html
+                        ||
+                      '</citation></mis>'
+         WHEN it.synonym
+                 THEN '<syn>' || full_name_html || ' <type>' || it.name || '</type></syn>'
+         ELSE ''
+           END
+from tree_element te,
+     apni_ordered_synonymy(te.instance_id) ord_syn
+       join instance_type it on ord_syn.instance_type_id = it.id
+where te.id = elementid
+    and ord_syn.instance_id in (select ((tax_syn1 ->> 'instance_id') :: numeric :: bigint)
+                      FROM jsonb_array_elements(te.synonyms -> 'list') AS tax_syn1);
+$$;
+
+drop function if exists current_synonyms_as_html(bigint);
+
+create function current_synonyms_as_html(elementid bigint)
+  returns text
+language sql
+as $$
+SELECT '<synonyms>' || string_agg(html, '') || '</synonyms>'
+FROM synonym_current_as_html(elementid) AS html;
+$$;
+
+update tree_element te
+set synonyms_html = coalesce(current_synonyms_as_html(te.id), '<synonyms></synonyms>')
+from tree_version_element tve join tree on tve.tree_version_id = tree.current_tree_version_id
+where tve.tree_element_id = te.id
+;
+
+update tree_element te
+set synonyms_html = coalesce(current_synonyms_as_html(te.id), '<synonyms></synonyms>')
+from tree_version_element tve join tree on tve.tree_version_id = tree.default_draft_tree_version_id
+where tve.tree_element_id = te.id
+;
+
+drop function if exists synonym_current_as_html(bigint);
+drop function if exists current_synonyms_as_html(bigint);
+
+-- version
+UPDATE db_version
+SET version = 27
+WHERE id = 1;
+
