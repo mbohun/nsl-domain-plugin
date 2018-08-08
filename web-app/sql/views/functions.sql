@@ -90,9 +90,9 @@ where i.cited_by_id = instanceid
 order by (it.sort_order < 20) desc, it.nomenclatural desc, it.taxonomic desc, basionym_sort, tax_nov desc, n.sort_name,
          it.pro_parte, it.misapplied desc, it.doubtful, r.year, cites.page, cites.id;
 $$;
-​
+
 -- apni ordered synonymy as a text output
-​
+
 drop function if exists apni_ordered_synonymy_text(bigint);
 create function apni_ordered_synonymy_text(instanceid bigint)
   returns text
@@ -110,9 +110,9 @@ select string_agg('  ' ||
                      else '' end), E'\n')
 from apni_ordered_synonymy(instanceid) syn;
 $$;
-​
+
 -- if this is a relationship instance what are we a synonym of
-​
+
 drop function if exists apni_synonym(bigint);
 create function apni_synonym(instanceid bigint)
   returns TABLE(instance_id    bigint,
@@ -149,7 +149,7 @@ from instance i
 where i.id = instanceid
   and it.relationship;
 $$;
-​
+
 -- if this is a relationship instance what are we a synonym of as text
 
 drop function if exists apni_synonym_text(bigint);
@@ -170,9 +170,9 @@ select string_agg('  ' ||
                      else '' end), E'\n')
 from apni_synonym(instanceid) syn;
 $$;
-​
+
 -- apni ordered references for a name
-​
+
 drop function if exists apni_ordered_refrences(bigint);
 create function apni_ordered_refrences(nameid bigint)
   returns TABLE(instance_id   bigint,
