@@ -51,10 +51,10 @@
         drop constraint if exists FK_f6s94njexmutjxjv8t5dy1ugt;
 
     alter table if exists instance_resources 
-        drop constraint if exists FK_49ic33s4xgbdoa4p5j107rtpf;
+        drop constraint if exists FK_8mal9hru5u3ypaosfoju8ulpd;
 
     alter table if exists instance_resources 
-        drop constraint if exists FK_8mal9hru5u3ypaosfoju8ulpd;
+        drop constraint if exists FK_49ic33s4xgbdoa4p5j107rtpf;
 
     alter table if exists name 
         drop constraint if exists FK_airfjupm6ohehj1lj82yqkwdx;
@@ -503,8 +503,8 @@
     );
 
     create table instance_resources (
-        resource_id int8 not null,
         instance_id int8 not null,
+        resource_id int8 not null,
         primary key (instance_id, resource_id)
     );
 
@@ -1326,14 +1326,14 @@
         references namespace;
 
     alter table if exists instance_resources 
-        add constraint FK_49ic33s4xgbdoa4p5j107rtpf 
-        foreign key (instance_id) 
-        references instance;
-
-    alter table if exists instance_resources 
         add constraint FK_8mal9hru5u3ypaosfoju8ulpd 
         foreign key (resource_id) 
         references resource;
+
+    alter table if exists instance_resources 
+        add constraint FK_49ic33s4xgbdoa4p5j107rtpf 
+        foreign key (instance_id) 
+        references instance;
 
     alter table if exists name 
         add constraint FK_airfjupm6ohehj1lj82yqkwdx 
@@ -2527,225 +2527,37 @@ FROM treewalk
 $$ LANGUAGE SQL;
 
 -- functions.sql
-
--- functions to get ordered output as needed by the APNI format
-
--- get basionym information for a name
-
-drop function if exists apni_basionym(bigint);
-create function apni_basionym(nameid bigint)
-  returns table(instance_id   bigint,
-                instance_type text,
-                full_name     text,
-                name_status   text,
-                sort_name     text)
-language sql
-as $$
-select bas_inst.id, bas_it.name, basionym.full_name, bas_status.name, basionym.sort_name
-from instance primary_inst
-       left join instance bas_inst on bas_inst.cited_by_id = primary_inst.id
-       join name basionym on bas_inst.name_id = basionym.id
-       join name_status bas_status on bas_status.id = basionym.name_status_id
-       join instance_type bas_it
-         on bas_inst.instance_type_id = bas_it.id and bas_it.nomenclatural and bas_it.name = 'basionym'
-       join instance_type primary_it on primary_inst.instance_type_id = primary_it.id and primary_it.primary_instance
-where primary_inst.name_id = nameid;
-$$;
-
--- get the basionym sort name for a name or null
-
-drop function if exists apni_basionym_sort_name(bigint);
-create function apni_basionym_sort_name(nameid bigint)
-  returns text
-language sql
-as $$
-select basionym.sort_name
-from name subject
-       join instance primary_inst on primary_inst.name_id = subject.id
-       join instance_type primary_it on primary_inst.instance_type_id = primary_it.id and primary_it.primary_instance
-       join instance bas_inst on bas_inst.cited_by_id = primary_inst.id
-       join instance_type it on bas_inst.instance_type_id = it.id and it.nomenclatural and it.name = 'basionym'
-       join name basionym on bas_inst.name_id = basionym.id
-where subject.id = nameid
-  and subject.base_author_id is not null
-$$;
-
--- get the synonyms of this instance in apni output (flora) order
-
-drop function if exists apni_ordered_synonymy(bigint);
-
-create function apni_ordered_synonymy(instanceid bigint)
-  returns TABLE(instance_id      bigint,
-                instance_type    text,
-                instance_type_id bigint,
-                name_id          bigint,
-                full_name        text,
-                full_name_html   text,
-                name_status      text,
-                citation         text,
-                citation_html    text,
-                year             int,
-                page             text,
-                sort_name        text,
-                misapplied       boolean,
-                tax_nov          boolean,
-                basionym_sort         text)
-language sql
-as $$
-select i.id,
-       it.has_label             as instance_type,
-       it.id                    as instance_type_id,
-       n.id                     as name_id,
-       n.full_name,
-       n.full_name_html,
-       ns.name                  as name_status,
-       r.citation,
-       r.citation_html,
-       r.year,
-       cites.page,
-       n.sort_name,
-       it.misapplied,
-       n.base_author_id is null as tax_nov,
-       case
-         when n.base_author_id is not null then apni_basionym_sort_name(n.id)
-         else n.sort_name end   as basionym_sort
-from instance i
-       join instance_type it on i.instance_type_id = it.id
-       join name n on i.name_id = n.id
-       left outer join name_status ns on n.name_status_id = ns.id
-       join instance cites on i.cites_id = cites.id
-       join reference r on cites.reference_id = r.id
-where i.cited_by_id = instanceid
-order by (it.sort_order < 20) desc, it.nomenclatural desc, it.taxonomic desc, basionym_sort, tax_nov desc, n.sort_name,
-         it.pro_parte, it.misapplied desc, it.doubtful, r.year, cites.page, cites.id;
-$$;
-
--- apni ordered synonymy as a text output
-
-drop function if exists apni_ordered_synonymy_text(bigint);
-create function apni_ordered_synonymy_text(instanceid bigint)
-  returns text
-language sql
-as $$
-select string_agg('  ' ||
-                  syn.instance_type ||
-                  ': ' ||
-                  syn.full_name ||
-                  (case
-                     when syn.name_status = 'legitimate' then ''
-                     else ' ' || syn.name_status end) ||
-                  (case
-                     when syn.misapplied then syn.citation
-                     else '' end), E'\n')
-from apni_ordered_synonymy(instanceid) syn;
-$$;
-
--- if this is a relationship instance what are we a synonym of
-
-drop function if exists apni_synonym(bigint);
-create function apni_synonym(instanceid bigint)
-  returns TABLE(instance_id    bigint,
-                instance_type  text,
-                name_id        bigint,
-                full_name      text,
-                full_name_html text,
-                name_status    text,
-                citation       text,
-                citation_html  text,
-                year           int,
-                page           text,
-                misapplied     boolean,
-                sort_name      text)
-language sql
-as $$
-select i.id,
-       it.of_label as instance_type,
-       n.id        as name_id,
-       n.full_name,
-       n.full_name_html,
-       ns.name,
-       r.citation,
-       r.citation_html,
-       r.year,
-       i.page,
-       it.misapplied,
-       n.sort_name
-from instance i
-       join instance_type it on i.instance_type_id = it.id
-       join name n on i.name_id = n.id
-       join name_status ns on n.name_status_id = ns.id
-       join reference r on i.reference_id = r.id
-where i.id = instanceid
-  and it.relationship;
-$$;
-
--- if this is a relationship instance what are we a synonym of as text
-
-drop function if exists apni_synonym_text(bigint);
-create function apni_synonym_text(instanceid bigint)
-  returns text
-language sql
-as $$
-select string_agg('  ' ||
-                  syn.instance_type ||
-                  ': ' ||
-                  syn.full_name ||
-                  (case
-                     when syn.name_status = 'legitimate' then ''
-                     else ' ' || syn.name_status end) ||
-                  (case
-                     when syn.misapplied
-                             then 'by ' || syn.citation
-                     else '' end), E'\n')
-from apni_synonym(instanceid) syn;
-$$;
-
--- apni ordered references for a name
-
-drop function if exists apni_ordered_refrences(bigint);
-create function apni_ordered_refrences(nameid bigint)
-  returns TABLE(instance_id   bigint,
-                instance_type text,
-                citation      text,
-                citation_html text,
-                year          int,
-                pages         text,
-                page          text)
-language sql
-as $$
-select i.id, it.name, r.citation, r.citation_html, r.year, r.pages, coalesce(i.page, citedby.page, '-')
-from instance i
-       join reference r on i.reference_id = r.id
-       join instance_type it on i.instance_type_id = it.id
-       left outer join instance citedby on i.cited_by_id = citedby.id
-where i.name_id = nameid
-group by r.id, i.id, it.id, citedby.id
-order by r.year, it.protologue, it.primary_instance, r.citation, r.pages, i.page, r.id;
-$$;
-
--- get the synonyms of an instance as html to store in the tree in apni synonymy order
-
-drop function if exists synonym_as_html(bigint);
+drop function if exists synonym_as_html( bigint );
 create function synonym_as_html(instanceid bigint)
   returns TABLE(html text)
 language sql
 as $$
 SELECT CASE
          WHEN it.nomenclatural
-                 THEN '<nom>' || full_name_html || ' <type>' || it.name || '</type></nom>'
+                 THEN '<nom>' || synonym.full_name_html || ' <type>' || it.name || '</type></nom>'
          WHEN it.taxonomic
-                 THEN '<tax>' || full_name_html || ' <type>' || it.name || '</type></tax>'
+                 THEN '<tax>' || synonym.full_name_html || ' <type>' || it.name || '</type></tax>'
          WHEN it.misapplied
-                 THEN '<mis>' || full_name_html || ' <type>' || it.name || '</type> by <citation>' ||
-                      citation_html
+                 THEN '<mis>' || synonym.full_name_html || ' <type>' || it.name || '</type> by <citation>' ||
+                      cites_ref.citation_html
                         ||
                       '</citation></mis>'
          WHEN it.synonym
-                 THEN '<syn>' || full_name_html || ' <type>' || it.name || '</type></syn>'
+                 THEN '<syn>' || synonym.full_name_html || ' <type>' || it.name || '</type></syn>'
          ELSE ''
            END
-FROM apni_ordered_synonymy(instanceid)
-       join instance_type it on instance_type_id = it.id
+FROM Instance i,
+     Instance syn_inst
+       JOIN instance_type it ON syn_inst.instance_type_id = it.id
+       JOIN instance cites_inst ON syn_inst.cites_id = cites_inst.id
+       JOIN reference cites_ref ON cites_inst.reference_id = cites_ref.id
+    ,
+     NAME synonym
+WHERE syn_inst.cited_by_id = i.id
+  AND i.id = instanceid
+  AND synonym.id = syn_inst.name_id
+ORDER BY it.nomenclatural DESC, it.taxonomic DESC, it.misapplied DESC, synonym.simple_name, cites_ref.year ASC,
+         cites_inst.id ASC, synonym.id ASC;
 $$;
 
 DROP FUNCTION IF EXISTS synonyms_as_html( BIGINT );
@@ -2757,7 +2569,6 @@ SELECT '<synonyms>' || string_agg(html, '') || '</synonyms>'
 FROM synonym_as_html(instance_id) AS html;
 $$;
 
--- build JSONB representation of synonyms inside a shard
 DROP FUNCTION IF EXISTS synonyms_as_jsonb( BIGINT, TEXT );
 CREATE FUNCTION synonyms_as_jsonb(instance_id BIGINT, host TEXT)
   RETURNS JSONB
