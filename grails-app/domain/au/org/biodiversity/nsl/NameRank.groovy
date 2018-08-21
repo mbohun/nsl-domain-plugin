@@ -56,7 +56,7 @@ class NameRank {
 
     static constraints = {
         abbrev maxSize: 20
-        name maxSize: 50, unique: ['name', 'nameGroup']
+        name maxSize: 50 //note unique name + nameGroup constraint defined in sql elsewhere because GORM/Hibernate doesn't give it a unique constraint name.
         sortOrder min: 0, max: 500
         parentRank nullable: true
         rdfId maxSize: 50, nullable: true

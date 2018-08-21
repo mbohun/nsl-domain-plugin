@@ -1,25 +1,5 @@
 --drop old tree stuff
 
-revoke all on tree_arrangement from web;
-revoke all on tree_link from web;
-revoke all on tree_event from web;
-revoke all on tree_node from web;
-revoke all on tree_uri_ns from web;
-revoke all on tree_value_uri from web;
-revoke all on name_tree_path from web;
-revoke all on tree_value_uri from web;
-revoke all on name_or_synonym_vw from web;
-
-revoke all on tree_arrangement from read_only;
-revoke all on tree_link from read_only;
-revoke all on tree_event from read_only;
-revoke all on tree_node from read_only;
-revoke all on tree_uri_ns from read_only;
-revoke all on tree_value_uri from read_only;
-revoke all on name_tree_path from read_only;
-revoke all on tree_value_uri from read_only;
-revoke all on name_or_synonym_vw from read_only;
-
 drop index if exists by_root_id;
 drop index if exists idx_node_current_a;
 drop index if exists idx_node_current_b;
@@ -151,22 +131,22 @@ alter table name drop column trash;
 alter table name drop column why_is_this_here_id;
 
 --create new name_rank display_name column
-alter table name_rank
-  add column display_name text not null;
+alter table name_rank drop column if exists display_name;
+alter table name_rank add column display_name text;
+update name_rank set display_name = name;
+alter table name_rank alter column display_name set not null;
 
-alter table name_rank drop constraint if exists unique_name;
-alter table name_rank
-  add constraint unique_name  unique (name_group_id, name);
+alter table name_rank drop constraint if exists nr_unique_name;
+alter table name_rank add constraint nr_unique_name unique (name_group_id, name);
 
 -- change constraint on name_type and name_status
-alter table name_type drop constraint if exists unique_name;
-alter table name_type
-  add constraint unique_name  unique (name_group_id, name);
+alter table name_type drop constraint if exists UK_314uhkq8i7r46050kd1nfrs95;
+alter table name_type drop constraint if exists nt_unique_name;
+alter table name_type add constraint nt_unique_name unique (name_group_id, name);
 
-alter table name_status drop constraint if exists unique_name;
-alter table if exists name_status
-  add constraint unique_name  unique (name_group_id, name);
-
+alter table name_status drop constraint if exists UK_se7crmfnhjmyvirp3p9hiqerx;
+alter table name_status drop constraint if exists ns_unique_name;
+alter table name_status add constraint ns_unique_name unique (name_group_id, name);
 -- version
 UPDATE db_version
 SET version = 27
