@@ -106,25 +106,6 @@ CREATE VIEW public.name_details_vw AS
     LEFT JOIN name sname ON ((syn.name_id = sname.id)))
   WHERE (n.duplicate_of_id IS NULL);
 
-DROP VIEW IF EXISTS public.name_or_synonym_vw;
-CREATE VIEW public.name_or_synonym_vw AS
-  SELECT
-    0                       AS id,
-    '' :: CHARACTER VARYING AS simple_name,
-    '' :: CHARACTER VARYING AS full_name,
-    '' :: CHARACTER VARYING AS type_code,
-    0                       AS instance_id,
-    0                       AS tree_node_id,
-    0                       AS accepted_id,
-    '' :: CHARACTER VARYING AS accepted_full_name,
-    0                       AS name_status_id,
-    0                       AS reference_id,
-    0                       AS name_rank_id,
-    '' :: CHARACTER VARYING AS sort_name
-  FROM name
-  WHERE (1 = 0);
-
-
 CREATE OR REPLACE VIEW instance_resource_vw AS
   SELECT
     site.name                 site_name,

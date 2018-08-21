@@ -62,8 +62,6 @@ class Reference {
 
     Namespace namespace
 
-    Boolean trash = false
-
     static hasMany = [
             instances               : Instance,
             referencesForDuplicateOf: Reference,
@@ -84,7 +82,6 @@ class Reference {
         id generator: 'native', params: [sequence: 'nsl_global_seq'], defaultValue: "nextval('nsl_global_seq')"
         version column: 'lock_version', defaultValue: "0"
         validRecord defaultvalue: "false"
-        trash defaultvalue: "false"
 
         sourceId index: 'Ref_Source_Index'
         sourceIdString index: 'Ref_Source_String_Index'

@@ -53,7 +53,7 @@ class NameType {
     }
 
     static constraints = {
-        name unique: true
+        name unique: ['name', 'nameGroup']
         sortOrder min: 0, max: 500
         connector maxSize: 1, nullable: true
         rdfId maxSize: 50, nullable: true

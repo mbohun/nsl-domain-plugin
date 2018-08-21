@@ -44,8 +44,6 @@ class Instance {
     String createdBy
     Timestamp createdAt
 
-    Boolean trash = false
-
     static hasMany = [
             instancesForCitedBy: Instance,
             instancesForCites  : Instance,
@@ -70,7 +68,6 @@ class Instance {
         version column: 'lock_version', defaultValue: "0"
         validRecord defaultvalue: "false"
         draft defaultvalue: "false"
-        trash defaultvalue: "false"
 
         sourceId index: 'Instance_Source_Index'
         sourceIdString index: 'Instance_Source_String_Index'

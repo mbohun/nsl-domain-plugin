@@ -47,8 +47,6 @@ class Name {
 
     Author sanctioningAuthor
 
-    WhyIsThisHere whyIsThisHere
-
     Boolean validRecord = false
 
     Long sourceDupOfId
@@ -63,8 +61,6 @@ class Name {
     Timestamp updatedAt
     String createdBy
     Timestamp createdAt
-
-    Boolean trash = false
 
     static hasMany = [
             instances     : Instance,
@@ -84,7 +80,6 @@ class Name {
         id generator: 'native', params: [sequence: 'nsl_global_seq'], defaultValue: "nextval('nsl_global_seq')"
         version column: 'lock_version', defaultValue: "0"
         validRecord defaultvalue: "false"
-        trash defaultvalue: "false"
         orthVar defaultvalue: "false"
 
         nameElement index: 'Name_Name_Element_Index'
@@ -105,7 +100,6 @@ class Name {
         exAuthor index: 'Name_exAuthor_Index'
         exBaseAuthor index: 'Name_exBaseAuthor_Index'
         sanctioningAuthor index: 'Name_sanctioningAuthor_Index'
-        whyIsThisHere index: "Name_whyIsThisHere_Index"
         parent index: "name_parent_id_Index"
         secondParent index: "name_second_parent_id_Index"
         namePath sqlType: 'text', index: "name_name_path_Index", defaultValue: ""
@@ -137,7 +131,6 @@ class Name {
         parent nullable: true
         secondParent nullable: true
         family nullable: true
-        whyIsThisHere nullable: true
         verbatimRank nullable: true, maxSize: 50
     }
 

@@ -47,7 +47,7 @@ class NameStatus {
     }
 
     static constraints = {
-        name nullable: true, maxSize: 50, unique: true
+        name nullable: true, maxSize: 50, unique: ['name', 'nameGroup']
         rdfId maxSize: 50, nullable: true
         descriptionHtml nullable: true
     }

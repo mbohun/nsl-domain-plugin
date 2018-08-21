@@ -22,6 +22,7 @@ class NameRank {
 
     String abbrev
     String name
+    String displayName
     Boolean deprecated = false
     Boolean visibleInName = true
     Boolean useVerbatimRank = false
@@ -50,11 +51,12 @@ class NameRank {
         major defaultvalue: "false"
         hasParent defaultValue: "false"
         descriptionHtml sqlType: 'text'
+        displayName sqlType: 'text'
     }
 
     static constraints = {
         abbrev maxSize: 20
-        name maxSize: 50
+        name maxSize: 50, unique: ['name', 'nameGroup']
         sortOrder min: 0, max: 500
         parentRank nullable: true
         rdfId maxSize: 50, nullable: true

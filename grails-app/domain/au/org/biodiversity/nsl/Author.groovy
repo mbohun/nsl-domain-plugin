@@ -37,8 +37,6 @@ class Author {
     String sourceIdString
     Long sourceId
 
-    Boolean trash = false
-
     Namespace namespace
 
     static hasMany = [namesForAuthor           : Name,
@@ -65,7 +63,6 @@ class Author {
         id generator: 'native', params: [sequence: 'nsl_global_seq'], defaultValue: "nextval('nsl_global_seq')"
         version column: 'lock_version', defaultValue: "0"
         validRecord defaultvalue: "false"
-        trash defaultvalue: "false"
 
         sourceId index: 'Auth_Source_Index'
         sourceIdString index: 'Auth_Source_String_Index'

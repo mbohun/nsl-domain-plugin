@@ -27,8 +27,7 @@ class NameGroup {
     static hasMany = [
             nameRanks              : NameRank,
             nameStatuses           : NameStatus,
-            nameTypes              : NameType,
-            nomenclaturalEventTypes: NomenclaturalEventType
+            nameTypes              : NameType
     ]
 
     static mapping = {
