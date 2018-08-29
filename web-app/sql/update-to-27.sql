@@ -123,12 +123,12 @@ drop table if exists nomenclatural_event_type cascade;
 drop table if exists user_query cascade;
 drop table if exists why_is_this_here cascade;
 
-alter table author drop column trash;
-alter table reference drop column trash;
-alter table instance drop column trash;
-alter table instance_note drop column trash;
-alter table name drop column trash;
-alter table name drop column why_is_this_here_id;
+alter table author drop column if exists trash;
+alter table reference drop column if exists trash;
+alter table instance drop column if exists trash;
+alter table instance_note drop column if exists trash;
+alter table name drop column if exists trash;
+alter table name drop column if exists why_is_this_here_id;
 
 --create new name_rank display_name column
 alter table name_rank drop column if exists display_name;
