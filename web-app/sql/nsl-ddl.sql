@@ -95,9 +95,6 @@
     alter table if exists name 
         drop constraint if exists FK_5gp2lfblqq94c4ud3340iml0l;
 
-    alter table if exists name 
-        drop constraint if exists FK_dqhn53mdh0n77xhsw7l5dgd38;
-
     alter table if exists name_rank 
         drop constraint if exists FK_p3lpayfbl9s3hshhoycfj82b9;
 
@@ -121,9 +118,6 @@
 
     alter table if exists name_type 
         drop constraint if exists FK_5r3o78sgdbxsf525hmm3t44gv;
-
-    alter table if exists nomenclatural_event_type 
-        drop constraint if exists FK_ql5g85814a9y57c1ifd0nkq3v;
 
     alter table if exists ref_type 
         drop constraint if exists FK_51alfoe7eobwh60yfx45y22ay;
@@ -158,74 +152,8 @@
     alter table if exists tree 
         drop constraint if exists FK_48skgw51tamg6ud4qa8oh0ycm;
 
-    alter table if exists tree_arrangement 
-        drop constraint if exists FK_akuqsiv75wpw6mk3m8gj6g30m;
-
-    alter table if exists tree_arrangement 
-        drop constraint if exists FK_skqp6co7fy5lcq0qts3yghy02;
-
-    alter table if exists tree_arrangement 
-        drop constraint if exists FK_fvfq13j3dqv994o9vg54yj5kk;
-
     alter table if exists tree_element 
         drop constraint if exists FK_5sv181ivf7oybb6hud16ptmo5;
-
-    alter table if exists tree_event 
-        drop constraint if exists FK_7y8cj9fpsh1sblm744xuq6i1g;
-
-    alter table if exists tree_link 
-        drop constraint if exists FK_tgankaahxgr4p0mw4opafah05;
-
-    alter table if exists tree_link 
-        drop constraint if exists FK_kqshktm171nwvk38ot4d12w6b;
-
-    alter table if exists tree_link 
-        drop constraint if exists FK_2dk33tolvn16lfmp25nk2584y;
-
-    alter table if exists tree_node 
-        drop constraint if exists FK_nlq0qddnhgx65iojhj2xm8tay;
-
-    alter table if exists tree_node 
-        drop constraint if exists FK_1g9477sa8plad5cxkxmiuh5b;
-
-    alter table if exists tree_node 
-        drop constraint if exists FK_eqw4xo7vty6e4tq8hy34c51om;
-
-    alter table if exists tree_node 
-        drop constraint if exists FK_gc6f9ykh7eaflvty9tr6n4cb6;
-
-    alter table if exists tree_node 
-        drop constraint if exists FK_sbuntfo4jfai44yjh9o09vu6s;
-
-    alter table if exists tree_node 
-        drop constraint if exists FK_budb70h51jhcxe7qbtpea0hi2;
-
-    alter table if exists tree_node 
-        drop constraint if exists FK_pc0tkp9bgp1cxull530y60v46;
-
-    alter table if exists tree_node 
-        drop constraint if exists FK_4y1qy9beekbv71e9i6hto6hun;
-
-    alter table if exists tree_node 
-        drop constraint if exists FK_t6kkvm8ubsiw6fqg473j0gjga;
-
-    alter table if exists tree_node 
-        drop constraint if exists FK_16c4wgya68bwotwn6f50dhw69;
-
-    alter table if exists tree_node 
-        drop constraint if exists FK_oge4ibjd3ff3oyshexl6set2u;
-
-    alter table if exists tree_uri_ns 
-        drop constraint if exists FK_q9k8he941kvl07j2htmqxq35v;
-
-    alter table if exists tree_value_uri 
-        drop constraint if exists FK_ds3bc89iy6q3ts4ts85mqiys;
-
-    alter table if exists tree_value_uri 
-        drop constraint if exists FK_djkn41tin6shkjuut9nam9xvn;
-
-    alter table if exists tree_value_uri 
-        drop constraint if exists FK_nw785lqesvg8ntfaper0tw2vs;
 
     alter table if exists tree_version 
         drop constraint if exists FK_tiniptsqbb5fgygt1idm1isfy;
@@ -254,8 +182,6 @@
 
     drop table if exists event_record cascade;
 
-    drop table if exists help_topic cascade;
-
     drop table if exists id_mapper cascade;
 
     drop table if exists instance cascade;
@@ -269,8 +195,6 @@
     drop table if exists instance_type cascade;
 
     drop table if exists language cascade;
-
-    drop table if exists locale cascade;
 
     drop table if exists name cascade;
 
@@ -290,8 +214,6 @@
 
     drop table if exists namespace cascade;
 
-    drop table if exists nomenclatural_event_type cascade;
-
     drop table if exists notification cascade;
 
     drop table if exists ref_author_role cascade;
@@ -308,27 +230,11 @@
 
     drop table if exists tree cascade;
 
-    drop table if exists tree_arrangement cascade;
-
     drop table if exists tree_element cascade;
-
-    drop table if exists tree_event cascade;
-
-    drop table if exists tree_link cascade;
-
-    drop table if exists tree_node cascade;
-
-    drop table if exists tree_uri_ns cascade;
-
-    drop table if exists tree_value_uri cascade;
 
     drop table if exists tree_version cascade;
 
     drop table if exists tree_version_element cascade;
-
-    drop table if exists user_query cascade;
-
-    drop table if exists why_is_this_here cascade;
 
     drop sequence hibernate_sequence;
     create sequence hibernate_sequence;
@@ -352,7 +258,6 @@
         source_id int8,
         source_id_string varchar(100),
         source_system varchar(50),
-        trash boolean default false not null,
         updated_at timestamp with time zone not null,
         updated_by varchar(255) not null,
         valid_record boolean default false not null,
@@ -422,20 +327,6 @@
         primary key (id)
     );
 
-    create table help_topic (
-        id int8 default nextval('nsl_global_seq') not null,
-        lock_version int8 default 0 not null,
-        created_at timestamp not null,
-        created_by varchar(4000) not null,
-        marked_up_text text not null,
-        name varchar(4000) not null,
-        sort_order int4 default 0 not null,
-        trash boolean default false not null,
-        updated_at timestamp not null,
-        updated_by varchar(4000) not null,
-        primary key (id)
-    );
-
     create table id_mapper (
         id int8 not null,
         from_id int8 not null,
@@ -465,7 +356,6 @@
         source_id int8,
         source_id_string varchar(100),
         source_system varchar(50),
-        trash boolean default false not null,
         updated_at timestamp with time zone not null,
         updated_by varchar(1000) not null,
         valid_record boolean default false not null,
@@ -484,7 +374,6 @@
         source_id int8,
         source_id_string varchar(100),
         source_system varchar(50),
-        trash boolean default false not null,
         updated_at timestamp with time zone not null,
         updated_by varchar(50) not null,
         value varchar(4000) not null,
@@ -544,13 +433,6 @@
         primary key (id)
     );
 
-    create table locale (
-        id int8 default nextval('nsl_global_seq') not null,
-        lock_version int8 default 0 not null,
-        locale_name_string varchar(50) not null,
-        primary key (id)
-    );
-
     create table name (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
@@ -582,12 +464,10 @@
         source_id_string varchar(100),
         source_system varchar(50),
         status_summary varchar(50),
-        trash boolean default false not null,
         updated_at timestamp with time zone not null,
         updated_by varchar(50) not null,
         valid_record boolean default false not null,
         verbatim_rank varchar(50),
-        why_is_this_here_id int8,
         primary key (id)
     );
 
@@ -616,6 +496,7 @@
         abbrev varchar(20) not null,
         deprecated boolean default false not null,
         description_html text,
+        display_name text not null,
         has_parent boolean default false not null,
         italicize boolean default false not null,
         major boolean default false not null,
@@ -689,16 +570,6 @@
         primary key (id)
     );
 
-    create table nomenclatural_event_type (
-        id int8 default nextval('nsl_global_seq') not null,
-        lock_version int8 default 0 not null,
-        description_html text,
-        name_group_id int8 not null,
-        nomenclatural_event_type varchar(50),
-        rdf_id varchar(50),
-        primary key (id)
-    );
-
     create table notification (
         id int8 not null,
         version int8 not null,
@@ -760,7 +631,6 @@
         source_system varchar(50),
         title varchar(2000) not null,
         tl2 varchar(30),
-        trash boolean default false not null,
         updated_at timestamp with time zone not null,
         updated_by varchar(1000) not null,
         valid_record boolean default false not null,
@@ -822,22 +692,6 @@
         primary key (id)
     );
 
-    create table tree_arrangement (
-        id int8 default nextval('nsl_global_seq') not null,
-        lock_version int8 default 0 not null,
-        tree_type bpchar not null,
-        base_arrangement_id int8,
-        description varchar(255),
-        label varchar(50),
-        namespace_id int8,
-        node_id int8,
-        owner varchar(255),
-        shared boolean,
-        is_synthetic bpchar not null,
-        title varchar(50),
-        primary key (id)
-    );
-
     create table tree_element (
         id int8 default nextval('nsl_global_seq') not null,
         lock_version int8 default 0 not null,
@@ -858,85 +712,6 @@
         synonyms_html Text not null,
         updated_at timestamp with time zone not null,
         updated_by varchar(255) not null,
-        primary key (id)
-    );
-
-    create table tree_event (
-        id int8 default nextval('nsl_global_seq') not null,
-        lock_version int8 default 0 not null,
-        auth_user varchar(255) not null,
-        namespace_id int8,
-        note varchar(255),
-        time_stamp timestamp with time zone not null,
-        primary key (id)
-    );
-
-    create table tree_link (
-        id int8 default nextval('nsl_global_seq') not null,
-        lock_version int8 default 0 not null,
-        link_seq int4 not null,
-        subnode_id int8 not null,
-        supernode_id int8 not null,
-        is_synthetic bpchar not null,
-        type_uri_id_part varchar(255),
-        type_uri_ns_part_id int8 not null,
-        versioning_method bpchar not null,
-        primary key (id)
-    );
-
-    create table tree_node (
-        id int8 default nextval('nsl_global_seq') not null,
-        lock_version int8 default 0 not null,
-        checked_in_at_id int8,
-        instance_id int8,
-        internal_type bpchar not null,
-        literal varchar(4096),
-        name_id int8,
-        name_uri_id_part varchar(255),
-        name_uri_ns_part_id int8,
-        next_node_id int8,
-        prev_node_id int8,
-        replaced_at_id int8,
-        resource_uri_id_part varchar(255),
-        resource_uri_ns_part_id int8,
-        tree_arrangement_id int8,
-        is_synthetic bpchar not null,
-        taxon_uri_id_part varchar(255),
-        taxon_uri_ns_part_id int8,
-        type_uri_id_part varchar(255),
-        type_uri_ns_part_id int8 not null,
-        primary key (id)
-    );
-
-    create table tree_uri_ns (
-        id int8 default nextval('nsl_global_seq') not null,
-        lock_version int8 default 0 not null,
-        description varchar(255),
-        id_mapper_namespace_id int8,
-        id_mapper_system varchar(255),
-        label varchar(20) not null,
-        owner_uri_id_part varchar(255),
-        owner_uri_ns_part_id int8,
-        title varchar(255),
-        uri varchar(255),
-        primary key (id)
-    );
-
-    create table tree_value_uri (
-        id int8 default nextval('nsl_global_seq') not null,
-        lock_version int8 default 0 not null,
-        deprecated boolean default false not null,
-        description varchar(2048),
-        is_multi_valued boolean default false not null,
-        is_resource boolean default false not null,
-        label varchar(20) not null,
-        link_uri_id_part varchar(255) not null,
-        link_uri_ns_part_id int8 not null,
-        node_uri_id_part varchar(255) not null,
-        node_uri_ns_part_id int8 not null,
-        root_id int8 not null,
-        sort_order int4 not null,
-        title varchar(50) not null,
         primary key (id)
     );
 
@@ -968,32 +743,6 @@
         updated_at timestamp with time zone not null,
         updated_by varchar(255) not null,
         primary key (element_link)
-    );
-
-    create table user_query (
-        id int8 default nextval('nsl_global_seq') not null,
-        lock_version int8 default 0 not null,
-        created_at timestamp with time zone not null,
-        query_completed boolean default false not null,
-        query_started boolean default false not null,
-        record_count numeric(19, 2) not null,
-        search_finished_at timestamp with time zone,
-        search_info varchar(500),
-        search_model varchar(4000),
-        search_result text,
-        search_started_at timestamp with time zone,
-        search_terms varchar(4000),
-        trash boolean default false not null,
-        updated_at timestamp with time zone not null,
-        primary key (id)
-    );
-
-    create table why_is_this_here (
-        id int8 default nextval('nsl_global_seq') not null,
-        lock_version int8 default 0 not null,
-        name varchar(50) not null,
-        sort_order int4 default 0 not null,
-        primary key (id)
     );
 
     alter table if exists author 
@@ -1073,9 +822,6 @@
     alter table if exists language 
         add constraint UK_g8hr207ijpxlwu10pewyo65gv  unique (name);
 
-    alter table if exists locale 
-        add constraint UK_qjkskvl9hx0w78truoyq9teju  unique (locale_name_string);
-
     create index Name_author_Index on name (author_id);
 
     create index Name_baseAuthor_Index on name (base_author_id);
@@ -1110,16 +856,11 @@
 
     create index Name_System_Index on name (source_system);
 
-    create index Name_whyIsThisHere_Index on name (why_is_this_here_id);
-
     alter table if exists name_category 
         add constraint UK_rxqxoenedjdjyd4x7c98s59io  unique (name);
 
     alter table if exists name_group 
         add constraint UK_5185nbyw5hkxqyyqgylfn2o6d  unique (name);
-
-    alter table if exists name_status 
-        add constraint UK_se7crmfnhjmyvirp3p9hiqerx  unique (name);
 
     alter table if exists name_tag 
         add constraint UK_o4su6hi7vh0yqs4c1dw0fsf1e  unique (name);
@@ -1127,9 +868,6 @@
     create index Name_Tag_Name_Index on name_tag_name (name_id);
 
     create index Name_Tag_Tag_Index on name_tag_name (tag_id);
-
-    alter table if exists name_type 
-        add constraint UK_314uhkq8i7r46050kd1nfrs95  unique (name);
 
     alter table if exists namespace 
         add constraint UK_eq2y9mghytirkcofquanv5frf  unique (name);
@@ -1163,10 +901,6 @@
     alter table if exists tree 
         add constraint UK_92xj3n7tgp4h7abxijoo7skmp  unique (name);
 
-    create index tree_arrangement_label on tree_arrangement (label, namespace_id);
-
-    create index tree_arrangement_node on tree_arrangement (node_id);
-
     create index tree_element_instance_index on tree_element (instance_id);
 
     create index tree_element_name_index on tree_element (name_id);
@@ -1174,52 +908,6 @@
     create index tree_element_previous_index on tree_element (previous_element_id);
 
     create index tree_simple_name_index on tree_element (simple_name);
-
-    create index tree_link_subnode on tree_link (subnode_id);
-
-    create index tree_link_supernode on tree_link (supernode_id);
-
-    create index idx_tree_node_instance_id on tree_node (instance_id);
-
-    create index idx_tree_node_instance_id_in on tree_node (instance_id, tree_arrangement_id);
-
-    create index idx_tree_node_literal on tree_node (literal);
-
-    create index idx_tree_node_name_id on tree_node (name_id);
-
-    create index idx_tree_node_name_id_in on tree_node (name_id, tree_arrangement_id);
-
-    create index idx_tree_node_name on tree_node (name_uri_id_part, name_uri_ns_part_id);
-
-    create index idx_tree_node_name_in on tree_node (name_uri_id_part, name_uri_ns_part_id, tree_arrangement_id);
-
-    create index tree_node_next on tree_node (next_node_id);
-
-    create index tree_node_prev on tree_node (prev_node_id);
-
-    create index idx_tree_node_resource on tree_node (resource_uri_id_part, resource_uri_ns_part_id);
-
-    create index idx_tree_node_resource_in on tree_node (resource_uri_id_part, resource_uri_ns_part_id, tree_arrangement_id);
-
-    create index idx_tree_node_taxon_in on tree_node (tree_arrangement_id, taxon_uri_id_part, taxon_uri_ns_part_id);
-
-    create index idx_tree_node_taxon on tree_node (taxon_uri_id_part, taxon_uri_ns_part_id);
-
-    alter table if exists tree_uri_ns 
-        add constraint UK_5smmen5o34hs50jxd247k81ia  unique (label);
-
-    alter table if exists tree_uri_ns 
-        add constraint UK_70p0ys3l5v6s9dqrpjr3u3rrf  unique (uri);
-
-    create index idx_tree_uri_ns_label on tree_uri_ns (label);
-
-    create index idx_tree_uri_ns_uri on tree_uri_ns (uri);
-
-    create index link_uri_index on tree_value_uri (link_uri_id_part, link_uri_ns_part_id, root_id);
-
-    create index node_uri_index on tree_value_uri (node_uri_id_part, node_uri_ns_part_id, root_id);
-
-    create index by_root_id on tree_value_uri (root_id);
 
     create index tree_version_element_link_index on tree_version_element (element_link);
 
@@ -1236,9 +924,6 @@
     create index tree_path_index on tree_version_element (tree_path);
 
     create index tree_version_element_version_index on tree_version_element (tree_version_id);
-
-    alter table if exists why_is_this_here 
-        add constraint UK_sv1q1i7xve7xgmkwvmdbeo1mb  unique (name);
 
     alter table if exists author 
         add constraint FK_6a4p11f1bt171w09oo06m0wag 
@@ -1400,11 +1085,6 @@
         foreign key (second_parent_id) 
         references name;
 
-    alter table if exists name 
-        add constraint FK_dqhn53mdh0n77xhsw7l5dgd38 
-        foreign key (why_is_this_here_id) 
-        references why_is_this_here;
-
     alter table if exists name_rank 
         add constraint FK_p3lpayfbl9s3hshhoycfj82b9 
         foreign key (name_group_id) 
@@ -1442,11 +1122,6 @@
 
     alter table if exists name_type 
         add constraint FK_5r3o78sgdbxsf525hmm3t44gv 
-        foreign key (name_group_id) 
-        references name_group;
-
-    alter table if exists nomenclatural_event_type 
-        add constraint FK_ql5g85814a9y57c1ifd0nkq3v 
         foreign key (name_group_id) 
         references name_group;
 
@@ -1505,120 +1180,10 @@
         foreign key (default_draft_tree_version_id) 
         references tree_version;
 
-    alter table if exists tree_arrangement 
-        add constraint FK_akuqsiv75wpw6mk3m8gj6g30m 
-        foreign key (base_arrangement_id) 
-        references tree_arrangement;
-
-    alter table if exists tree_arrangement 
-        add constraint FK_skqp6co7fy5lcq0qts3yghy02 
-        foreign key (namespace_id) 
-        references namespace;
-
-    alter table if exists tree_arrangement 
-        add constraint FK_fvfq13j3dqv994o9vg54yj5kk 
-        foreign key (node_id) 
-        references tree_node;
-
     alter table if exists tree_element 
         add constraint FK_5sv181ivf7oybb6hud16ptmo5 
         foreign key (previous_element_id) 
         references tree_element;
-
-    alter table if exists tree_event 
-        add constraint FK_7y8cj9fpsh1sblm744xuq6i1g 
-        foreign key (namespace_id) 
-        references namespace;
-
-    alter table if exists tree_link 
-        add constraint FK_tgankaahxgr4p0mw4opafah05 
-        foreign key (subnode_id) 
-        references tree_node;
-
-    alter table if exists tree_link 
-        add constraint FK_kqshktm171nwvk38ot4d12w6b 
-        foreign key (supernode_id) 
-        references tree_node;
-
-    alter table if exists tree_link 
-        add constraint FK_2dk33tolvn16lfmp25nk2584y 
-        foreign key (type_uri_ns_part_id) 
-        references tree_uri_ns;
-
-    alter table if exists tree_node 
-        add constraint FK_nlq0qddnhgx65iojhj2xm8tay 
-        foreign key (checked_in_at_id) 
-        references tree_event;
-
-    alter table if exists tree_node 
-        add constraint FK_1g9477sa8plad5cxkxmiuh5b 
-        foreign key (instance_id) 
-        references instance;
-
-    alter table if exists tree_node 
-        add constraint FK_eqw4xo7vty6e4tq8hy34c51om 
-        foreign key (name_id) 
-        references name;
-
-    alter table if exists tree_node 
-        add constraint FK_gc6f9ykh7eaflvty9tr6n4cb6 
-        foreign key (name_uri_ns_part_id) 
-        references tree_uri_ns;
-
-    alter table if exists tree_node 
-        add constraint FK_sbuntfo4jfai44yjh9o09vu6s 
-        foreign key (next_node_id) 
-        references tree_node;
-
-    alter table if exists tree_node 
-        add constraint FK_budb70h51jhcxe7qbtpea0hi2 
-        foreign key (prev_node_id) 
-        references tree_node;
-
-    alter table if exists tree_node 
-        add constraint FK_pc0tkp9bgp1cxull530y60v46 
-        foreign key (replaced_at_id) 
-        references tree_event;
-
-    alter table if exists tree_node 
-        add constraint FK_4y1qy9beekbv71e9i6hto6hun 
-        foreign key (resource_uri_ns_part_id) 
-        references tree_uri_ns;
-
-    alter table if exists tree_node 
-        add constraint FK_t6kkvm8ubsiw6fqg473j0gjga 
-        foreign key (tree_arrangement_id) 
-        references tree_arrangement;
-
-    alter table if exists tree_node 
-        add constraint FK_16c4wgya68bwotwn6f50dhw69 
-        foreign key (taxon_uri_ns_part_id) 
-        references tree_uri_ns;
-
-    alter table if exists tree_node 
-        add constraint FK_oge4ibjd3ff3oyshexl6set2u 
-        foreign key (type_uri_ns_part_id) 
-        references tree_uri_ns;
-
-    alter table if exists tree_uri_ns 
-        add constraint FK_q9k8he941kvl07j2htmqxq35v 
-        foreign key (owner_uri_ns_part_id) 
-        references tree_uri_ns;
-
-    alter table if exists tree_value_uri 
-        add constraint FK_ds3bc89iy6q3ts4ts85mqiys 
-        foreign key (link_uri_ns_part_id) 
-        references tree_uri_ns;
-
-    alter table if exists tree_value_uri 
-        add constraint FK_djkn41tin6shkjuut9nam9xvn 
-        foreign key (node_uri_ns_part_id) 
-        references tree_uri_ns;
-
-    alter table if exists tree_value_uri 
-        add constraint FK_nw785lqesvg8ntfaper0tw2vs 
-        foreign key (root_id) 
-        references tree_arrangement;
 
     alter table if exists tree_version 
         add constraint FK_tiniptsqbb5fgygt1idm1isfy 
@@ -1901,631 +1466,6 @@ $body$;
 -- select audit.audit_table('name');
 -- select audit.audit_table('reference');
 
--- boatree-indexes-and-constraints.sql
--- boatree indexes and constraints
--- this script assumes that we are using POSTGRES
-
--- Namespace
--- Event
--- Arrangement
-
-ALTER TABLE tree_arrangement
-  ADD CONSTRAINT chk_tree_arrangement_type CHECK (tree_type IN ('E', 'P', 'U', 'Z'));
-
-ALTER TABLE tree_arrangement
-  ADD CONSTRAINT chk_classification_has_label CHECK (
-  tree_type NOT IN ('E', 'P')
-  OR (
-    label IS NOT NULL
-  )
-);
-
--- workspaces are built on a base classification tree
-alter table tree_arrangement
-  add constraint chk_work_trees_have_base_trees check (tree_type <> 'U' or base_arrangement_id is not null);
-
--- Node
-
-ALTER TABLE tree_node
-  ADD CONSTRAINT chk_arrangement_synthetic_yn CHECK (is_synthetic IN ('N', 'Y'));
-ALTER TABLE tree_node
-  ADD CONSTRAINT chk_internal_type_enum CHECK (internal_type IN ('S', 'Z', 'T', 'D', 'V'));
-
-ALTER TABLE tree_node
-  ADD CONSTRAINT chk_internal_type_S CHECK (
-  internal_type <> 'S'
-  OR (
-    name_uri_ns_part_id IS NULL
-    AND taxon_uri_ns_part_id IS NULL
-    AND resource_uri_ns_part_id IS NULL
-    AND literal IS NULL
-  )
-);
-
-ALTER TABLE tree_node
-  ADD CONSTRAINT chk_internal_type_T CHECK (
-  internal_type <> 'T'
-  OR (
-    literal IS NULL
-  )
-);
-
-ALTER TABLE tree_node
-  ADD CONSTRAINT chk_internal_type_D CHECK (
-  internal_type <> 'D'
-  OR (
-    name_uri_ns_part_id IS NULL
-    AND taxon_uri_ns_part_id IS NULL
-    AND literal IS NULL
-  )
-);
-
-ALTER TABLE tree_node
-  ADD CONSTRAINT chk_internal_type_V CHECK (
-  internal_type <> 'V'
-  OR (
-    name_uri_ns_part_id IS NULL
-    AND taxon_uri_ns_part_id IS NULL
-    AND (
-      (resource_uri_ns_part_id IS NOT NULL AND literal IS NULL)
-      OR
-      (resource_uri_ns_part_id IS NULL AND literal IS NOT NULL)
-    )
-  )
-);
-
-ALTER TABLE tree_node
-  ADD CONSTRAINT chk_tree_node_synthetic_yn CHECK (is_synthetic IN ('N', 'Y'));
-
-ALTER TABLE tree_node
-  ADD CONSTRAINT chk_tree_node_name_matches CHECK (name_id IS NULL OR cast(name_id AS VARCHAR) = name_uri_id_part);
-
-ALTER TABLE tree_node
-  ADD CONSTRAINT chk_tree_node_instance_matches CHECK (instance_id IS NULL OR
-                                                       cast(instance_id AS VARCHAR) = taxon_uri_id_part);
-
--- Link
-
--- a node may only have one link for each link_seq number
-CREATE UNIQUE INDEX idx_tree_link_seq
-  ON tree_link (supernode_id, link_seq);
-ALTER TABLE tree_link
-  ADD CONSTRAINT chk_tree_link_vmethod CHECK (versioning_method IN ('F', 'V', 'T'));
-ALTER TABLE tree_link
-  ADD CONSTRAINT chk_tree_link_synthetic_yn CHECK (is_synthetic IN ('N', 'Y'));
-ALTER TABLE tree_link
-  ADD CONSTRAINT chk_tree_link_sup_not_end CHECK (supernode_id <> 0);
-ALTER TABLE tree_link
-  ADD CONSTRAINT chk_tree_link_sub_not_end CHECK (subnode_id <> 0);
-
--- a name may appear only once as a current name in any tree
--- this makes our trees less general ... but matches how we use them these days
-ALTER TABLE tree_node
-  ADD CONSTRAINT current_name_only_once
-  EXCLUDE (tree_arrangement_id with =, name_id with = )
-  WHERE (name_id is not null and replaced_at_id is null);
-
--- fixing the column ordering in these indexes. Big effects on performance.
-
-DROP INDEX IF EXISTS idx_tree_node_taxon_in;
-CREATE INDEX idx_tree_node_taxon_in
-  ON tree_node (taxon_uri_id_part, taxon_uri_ns_part_id, tree_arrangement_id);
-
-DROP INDEX IF EXISTS idx_tree_node_name_in;
-CREATE INDEX idx_tree_node_name_in
-  ON tree_node (name_uri_id_part, name_uri_ns_part_id, tree_arrangement_id);
-
-DROP INDEX IF EXISTS idx_tree_node_resource_in;
-CREATE INDEX idx_tree_node_resource_in
-  ON tree_node (resource_uri_id_part, resource_uri_ns_part_id, tree_arrangement_id);
-
-DROP INDEX IF EXISTS idx_tree_node_name_id_in;
-CREATE INDEX idx_tree_node_name_id_in
-  ON tree_node (name_id, tree_arrangement_id);
-
-DROP INDEX IF EXISTS idx_tree_node_instance_id_in;
-CREATE INDEX idx_tree_node_instance_id_in
-  ON tree_node (instance_id, tree_arrangement_id);
-
--- indexes to speed up queries against the current tree
-DROP INDEX IF EXISTS idx_node_current_name_a;
-CREATE INDEX idx_node_current_name_a
-  ON tree_node (name_id, tree_arrangement_id)
-  WHERE replaced_at_id IS NULL;
-
-DROP INDEX IF EXISTS idx_node_current_name_b;
-CREATE INDEX idx_node_current_name_b
-  ON tree_node (name_id, tree_arrangement_id)
-  WHERE next_node_id IS NULL;
-
-DROP INDEX IF EXISTS idx_node_current_instance_a;
-CREATE INDEX idx_node_current_instance_a
-  ON tree_node (instance_id, tree_arrangement_id)
-  WHERE replaced_at_id IS NULL;
-
-DROP INDEX IF EXISTS idx_node_current_instance_b;
-CREATE INDEX idx_node_current_instance_b
-  ON tree_node (instance_id, tree_arrangement_id)
-  WHERE next_node_id IS NULL;
-
-DROP INDEX IF EXISTS idx_node_current_a;
-CREATE INDEX idx_node_current_a
-  ON tree_node (tree_arrangement_id)
-  WHERE replaced_at_id IS NULL;
-
-DROP INDEX IF EXISTS idx_node_current_b;
-CREATE INDEX idx_node_current_b
-  ON tree_node (tree_arrangement_id)
-  WHERE next_node_id IS NULL;
--- boatree-setup-data.sql
--- boatree setup data
--- This script sets up the base data for the boatree app. This includes the 'end' tree, out in-house namespaces, and the empty nsl/apc/afd trees
---
-
-delete from tree_link;
-update tree_arrangement set node_id = null;
-delete from tree_node;
-delete from tree_arrangement;
-delete from tree_event;
-delete from tree_uri_ns;
-
-
--- THESE IDS ARE SYSTEM-WIDE CONSTANTS. THEY MAY APPEAR AS MAGIC NUMBERS IN CODE.
--- LABELS ARE ALSO MAGIC NUMBERS, USUALLY FETCHED BY THE tree_get_ns_id() FUNCTION.
--- It's 12:03 AM, and the labels I pick right now are what we are stuck with forever. I'll make 'em short.
-
--- I use ID zero because the 'no namespace' namespace is a null object. Its purpose is so that we don't have to outer join
--- every time we write a query that (for instance) constructs the taxon_uri for a node
--- we include this explicitly so that we dont have to outer join all over the shop.
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	0, 1,
-	'', 
-	'none', 'no namespace',
-	'No namespace - the ID contains the full URI.',
-	0, null,
-	null, null
-);
-
--- we include this exoplicitly so that the null tree and node URI reliably have ids (1,0)
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	1, 1,
-	'http://biodiversity.org.au/voc/boatree/BOATREE#', 
-	'boatree-voc',
-	'BOATREE',
-	'Top level BOATREE vocabulary.',
-	0, 'http://biodiversity.org.au/voc/boatree/BOATREE',
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/boatree/voc/', 
-	'voc', 'voc namespace',
-	'Namespace of the vocabularies served by this instance.',
-	0, null,
-	null, null
-);
-
-update tree_uri_ns
-set owner_uri_ns_part_id = (select id from tree_uri_ns where label = 'voc'),
-	owner_uri_id_part = 'voc'
-where label = 'voc';
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/boatree/voc/ns#', 
-	'ns', 'uri_ns namespace',
-	'Namespace of the uri namespaces.',
-	(select id from tree_uri_ns where label = 'voc'), 'ns',
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/boatree/classification/', 
-	'clsf', 'classification namespace',
-	'Namespace for top-level public trees, by text identifier.',
-	(select id from tree_uri_ns where label = 'voc'), 'classification',
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/boatree/arrangement/', 
-	'arr', 'arrangement namespace',
-	'Namespace for all arrangemnts, by physical id.',
-	0, null,
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/boatree/node/', 
-	'node', 'arrangement node namespace',
-	'Namespace for arrangement nodes.',
-	0, null,
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://www.w3.org/2001/XMLSchema#', 
-	'xs', 'XML Schema',
-	'Base datatypes.',
-	0, 'http://www.w3.org/1999/02/22-rdf-syntax-ns',
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://www.w3.org/1999/02/22-rdf-syntax-ns#', 
-	'rdf', 'rdf namespace',
-	'Namespace for rdf.',
-	0, 'http://www.w3.org/1999/02/22-rdf-syntax-ns',
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://www.w3.org/2000/01/rdf-schema#', 
-	'rdfs', 'rdf schema namespace',
-	'Namespace for rdf schema.',
-	0, 'http://www.w3.org/2000/01/rdf-schema',
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://purl.org/dc/elements/1.1/', 
-	'dc', 'dublin core',
-	'Namespace for Dublin Core.',
-	0, 'http://purl.org/dc/elements/1.1',
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://purl.org/dc/terms/', 
-	'dcterms', 'dublin core terms',
-	'Namespace for Dublin Core terms.',
-	0, 'http://purl.org/dc/terms',
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://www.w3.org/2002/07/owl#', 
-	'owl', 'Web Ontology Language',
-	'Namespace for Web Ontology Language (OWL).',
-	0, 'http://www.w3.org/2002/07/owl',
-	null, null
-);
-
--- not sure about these. Is Greg's stuff keeping the apni ids? Do we need a new namespace for
--- APC names/taxa?
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/apni.name/', 
-	'apni-name', 'APNI name', 
-	'An APNI name.',
-	0, null,
-	1, 'PLANT_NAME'
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/apni.taxon/', 
-	'apni-taxon', 'APNI taxon',
-	'An APNI taxon.',
-	0, null,
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/afd.name/', 
-	'afd-name', 'AFD name', 
-	'An AFD name.',
-	0, null,
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/afd.taxon/', 
-	'afd-taxon', 'AFD taxon',
-	'An AFD taxon.',
-	0, null,
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/nsl.name/', 
-	'nsl-name', 'NSL name',
-	'An NSL name.',
-	0, null,
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/nsl.instance/', 
-	'nsl-instance', 'NSL instance',
-	'An NSL instance.',
-	0, null,
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/voc/apc/APC#', 
-	'apc-voc', 'APC vocabulary',
-	'Vocabulary terms relating specifically to the APC tree.',
-	0, null,
-	null, null
-);
-
-insert into tree_uri_ns(id,lock_version,uri,label,title,description,owner_uri_ns_part_id,owner_uri_id_part,id_mapper_namespace_id,id_mapper_system) values (
-	nextval('nsl_global_seq'), 1, 
-	'http://biodiversity.org.au/voc/apc/concept/', 
-	'apc-concept', 'APC placement',
-	'APC_CONCEPT.APC_ID from APNI.',
-	0, null,
-	null, null
-);
-
--- create the end node. global across all graphs that make use of this structure and ontology
--- the physical id of the end tree and the node are both zero.
--- THIS IS A  MAGIC NUMBER AND MAY APPEAR IN CODE.
-
--- the end node is a null object. It means "this node has been replaced and is no longer current, but is has not been replaced by anything".
--- If I did not have an end node, then I would have to keep a "status" field on the node table - I'd be spreading the info over two fields, two
--- rdf and json properties, and creating a situation where inconsistent data becomes possible.
-
-insert into tree_arrangement(id, lock_version, tree_type, is_synthetic, label, description) 
-values (0, 1, 'E', 'N', 'END-TREE', 'The END tree. This tree is the same abstract object across all instances of this data structure.');
-
-insert into tree_node(id, internal_type, lock_version, is_synthetic, tree_arrangement_id, type_uri_ns_part_id, type_uri_id_part) 
-values (0, 'S', 1, 'N', 0, 1, 'EndNode');
-
-update tree_arrangement set node_id = 0;
-
--- create TMP tree (used for testing, dev)
-
-insert into tree_arrangement(id, lock_version, tree_type, is_synthetic, label, description)
-values (nextval('nsl_global_seq'), 1, 'P', 'N', 'TMP','Temp classification for testing forms');
-
-insert into tree_node(id, internal_type, lock_version, is_synthetic, tree_arrangement_id, type_uri_ns_part_id, type_uri_id_part) 
-values (
-	nextval('nsl_global_seq'), 'S', 1, 'N',
-	(select id from tree_arrangement where tree_type = 'P' and label = 'TMP'),
-	(select id from tree_uri_ns where label='boatree-voc'), 'classification-node'
-);
-
-update tree_arrangement set node_id = currval('nsl_global_seq') 
-where tree_type = 'P' and label = 'TMP';
-
-insert into tree_node(id, internal_type, lock_version, is_synthetic, tree_arrangement_id, type_uri_ns_part_id, type_uri_id_part) 
-values (
-	nextval('nsl_global_seq'), 'T', 1, 'N',
-	(select id from tree_arrangement where tree_type = 'P' and label = 'TMP'),
-	(select id from tree_uri_ns where label='boatree-voc'), 'classification-root'
-);
-
--- link all classification root nodes to the classifictaion node nodes. Note that the classifications created above (AFD, NSL, APC, TMP)
--- are not complete until this step is done.
-
-insert into tree_link(id, lock_version, is_synthetic, supernode_id, subnode_id,  type_uri_ns_part_id, type_uri_id_part, versioning_method, link_seq)
-select
-	nextval('nsl_global_seq'), 1, 'N',
-	t.node_id, r_node.id,
-	(select id from tree_uri_ns where label='boatree-voc'), 'classification-root-link',
-	'T', 1
-from tree_arrangement t, tree_node r_node
-where
-t.id = r_node.tree_arrangement_id
-and r_node.type_uri_id_part = 'classification-root';
-
--- finally, create a tree event for this current load and set it as the event for the various setup operations
--- that we have just done
--- I will use 'NSL-SCHEMA' as the username for now
-
--- zero event for the creation of the end node and tree
-
-insert into tree_event (id, lock_version, time_stamp, auth_user, note)
-values (0, 1, now(), 'NSL SCHEMA', 'Event zero - construction of end node');
-
-update tree_node set checked_in_at_id = 0 where id = 0;
-
--- event for the creation of the site-specific AFD, APC, NSL and TMP trees
-
-insert into tree_event (id, lock_version, time_stamp, auth_user, note)
-values (nextval('nsl_global_seq'), 1, now(), 'NSL SCHEMA', 'Initial trees');
-
-update tree_node set checked_in_at_id = currval('nsl_global_seq') where id <> 0;
-
-
--- I am assuming that we are using the APNI shard.
-
-update tree_event set namespace_id = (select id from namespace where name = 'APNI') where id <> 0;
-
-update tree_arrangement set namespace_id = (select id from namespace where name = 'APNI') where id <> 0;
-
-commit;
-
--- boatree-stored-procedures.sql
-CREATE OR REPLACE FUNCTION is_instance_in_tree(pinstance instance.id%TYPE, ptree tree_arrangement.id%TYPE) RETURNS boolean AS $$
-DECLARE
-  -- declarations
-  ct integer;
-  base_id tree_arrangement.id%TYPE;
-BEGIN
-  -- OK. Is this instance directly in the tree as a current node?
-
-  select count(*) into ct
-  from tree_node n
-  where n.instance_id = pinstance
-        and n.tree_arrangement_id = ptree
-        and n.next_node_id is null;
-
-  if ct <> 0 then
-    return true;
-  end if;
-
-  -- is the tree derived from some other tree?
-
-  select base_arrangement_id into base_id from tree_arrangement a where a.id = ptree;
-
-  if base_id is null then
-    return false;
-  end if;
-
-  -- right. This tree is derived from another tree. That means that the instance might be in that
-  -- other tree and adopted to this one. here's where we need to do a treewalk.
-  -- this code assumes that the tree will have at least one node belonging to it at the root, which currently
-  -- is the case.
-
-  with recursive treewalk as (
-    select n.id as node_id, n.tree_arrangement_id
-    from tree_node n
-    where n.instance_id = pinstance
-          and n.tree_arrangement_id = base_id
-          and n.next_node_id is null
-    union all
-    select n.id as node_id, n.tree_arrangement_id
-    from treewalk
-      join tree_link l on treewalk.node_id = l.subnode_id
-      join tree_node n on l.supernode_id = n.id
-    where treewalk.tree_arrangement_id <> ptree -- clip search here
-          and n.next_node_id is null
-          and n.tree_arrangement_id in (ptree, base_id)
-  )
-  select count(node_id) into ct from treewalk where treewalk.tree_arrangement_id = ptree;
-
-  return ct <> 0;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION find_name_in_tree(pname name.id%TYPE, ptree tree_arrangement.id%TYPE) RETURNS tree_link.id%TYPE AS $$
-DECLARE
-  -- declarations
-  ct integer;
-  base_id tree_arrangement.id%TYPE;
-  link_id tree_link.id%TYPE;
-BEGIN
-  -- if this is a simple tree, then we can just look for the tree link directly.
-  -- if it is a tree based on another tree, then we must do a treewalk
-
-  select base_arrangement_id into base_id from tree_arrangement a where a.id = ptree;
-
-  begin
-    IF base_id is null then
-      -- ok. look for the name as a current node in the tree, and find the link to its current parent.
-
-      select l.id INTO STRICT link_id
-      from tree_node c
-        join tree_link l on c.id = l.subnode_id
-        join tree_node p on l.supernode_id = p.id
-      where c.name_id = pname
-            and c.tree_arrangement_id = ptree
-            and c.next_node_id is null
-            and p.tree_arrangement_id = ptree
-            and p.next_node_id is null;
-    ELSE
-      -- ok. we need to do a treewalk. As always, this gets nasty.
-
-      with RECURSIVE walk as (
-        select l.id as stem_link, l.id as leaf_link, p.tree_arrangement_id = ptree as foundit
-        from tree_node c
-          join tree_link l on c.id = l.subnode_id
-          join tree_node p on l.supernode_id = p.id
-        where
-          c.name_id = pname
-          and (c.tree_arrangement_id = ptree or c.tree_arrangement_id = base_id)
-          and c.next_node_id is null
-          and (p.tree_arrangement_id = ptree or p.tree_arrangement_id = base_id)
-          and p.next_node_id is null
-        UNION ALL
-        SELECT
-          superlink.id as stem_link, walk.leaf_link, p.tree_arrangement_id = ptree as foundit
-        FROM walk
-          JOIN tree_link sublink on walk.stem_link = sublink.id
-          join tree_link superlink on sublink.supernode_id = superlink.subnode_id
-          join tree_node p on superlink.supernode_id = p.id
-        where not walk.foundit -- clip the search
-              and (p.tree_arrangement_id = ptree or p.tree_arrangement_id = base_id)
-              and p.next_node_id is null
-      )
-      select leaf_link INTO STRICT link_id from walk where foundit;
-
-    END IF;
-
-    return link_id;
-
-    EXCEPTION
-    WHEN NO_DATA_FOUND THEN
-      raise notice 'no data found';
-      return null;
-    WHEN TOO_MANY_ROWS THEN
-      raise notice 'too many rows';
-      RAISE 'Multiple placements of name % in tree %', pname, ptree USING ERRCODE = 'unique_violation';
-  end;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION current_workspace_taxonomic_nodes(workspace_id BIGINT)
-  RETURNS TABLE(node_id BIGINT, instance_id BIGINT, name_id BIGINT) AS $$
-WITH RECURSIVE treewalk AS (
-  SELECT
-    workspace.node_id             AS node_id,
-    NULL :: BIGINT                AS instance_id,
-    NULL :: BIGINT                AS name_id,
-    workspace.id                  AS workspace_id,
-    workspace.base_arrangement_id AS base_id
-  FROM tree_arrangement workspace
-  WHERE workspace.id = workspace_id
-  UNION ALL
-  SELECT
-    node.id AS node_id,
-    node.instance_id,
-    node.name_id,
-    treewalk.workspace_id,
-    treewalk.base_id
-  FROM treewalk
-    JOIN tree_link link ON link.supernode_id = treewalk.node_id
-    JOIN tree_node node ON link.subnode_id = node.id
-  WHERE node.next_node_id IS NULL
-        AND node.internal_type = 'T'
-        AND node.tree_arrangement_id IN (treewalk.workspace_id, treewalk.base_id)
-)
-SELECT
-  node_id,
-  instance_id,
-  name_id
-FROM treewalk
-$$ LANGUAGE SQL;
-
-CREATE OR REPLACE FUNCTION draft_nodes_below_this_node(node_id BIGINT)
-  RETURNS TABLE(node_id BIGINT) AS $$
-WITH RECURSIVE treewalk AS (
-  SELECT
-    node_id
-  UNION ALL
-  SELECT
-    node.id AS node_id
-  FROM treewalk
-    JOIN tree_link link ON link.supernode_id = treewalk.node_id
-    JOIN tree_node node ON link.subnode_id = node.id
-  WHERE node.checked_in_at_id is null
-)
-SELECT
-  node_id
-FROM treewalk
-$$ LANGUAGE SQL;
-
 -- functions.sql
 drop function if exists synonym_as_html( bigint );
 create function synonym_as_html(instanceid bigint)
@@ -2533,31 +1473,31 @@ create function synonym_as_html(instanceid bigint)
 language sql
 as $$
 SELECT CASE
-       WHEN it.nomenclatural
-         THEN '<nom>' || synonym.full_name_html || ' <type>' || it.name || '</type></nom>'
-       WHEN it.taxonomic
-         THEN '<tax>' || synonym.full_name_html || ' <type>' || it.name || '</type></tax>'
-       WHEN it.misapplied
-         THEN '<mis>' || synonym.full_name_html || ' <type>' || it.name || '</type> by <citation>' ||
-              cites_ref.citation_html
-              ||
-              '</citation></mis>'
-       WHEN it.synonym
-         THEN '<syn>' || synonym.full_name_html || ' <type>' || it.name || '</type></syn>'
-       ELSE ''
-       END
+         WHEN it.nomenclatural
+                 THEN '<nom>' || synonym.full_name_html || ' <type>' || it.name || '</type></nom>'
+         WHEN it.taxonomic
+                 THEN '<tax>' || synonym.full_name_html || ' <type>' || it.name || '</type></tax>'
+         WHEN it.misapplied
+                 THEN '<mis>' || synonym.full_name_html || ' <type>' || it.name || '</type> by <citation>' ||
+                      cites_ref.citation_html
+                        ||
+                      '</citation></mis>'
+         WHEN it.synonym
+                 THEN '<syn>' || synonym.full_name_html || ' <type>' || it.name || '</type></syn>'
+         ELSE ''
+           END
 FROM Instance i,
-  Instance syn_inst
-  JOIN instance_type it ON syn_inst.instance_type_id = it.id
-  JOIN instance cites_inst ON syn_inst.cites_id = cites_inst.id
-  JOIN reference cites_ref ON cites_inst.reference_id = cites_ref.id
-  ,
-  NAME synonym
+     Instance syn_inst
+       JOIN instance_type it ON syn_inst.instance_type_id = it.id
+       JOIN instance cites_inst ON syn_inst.cites_id = cites_inst.id
+       JOIN reference cites_ref ON cites_inst.reference_id = cites_ref.id
+    ,
+     NAME synonym
 WHERE syn_inst.cited_by_id = i.id
-      AND i.id = instanceid
-      AND synonym.id = syn_inst.name_id
+  AND i.id = instanceid
+  AND synonym.id = syn_inst.name_id
 ORDER BY it.nomenclatural DESC, it.taxonomic DESC, it.misapplied DESC, synonym.simple_name, cites_ref.year ASC,
-  cites_inst.id ASC, synonym.id ASC;
+         cites_inst.id ASC, synonym.id ASC;
 $$;
 
 DROP FUNCTION IF EXISTS synonyms_as_html( BIGINT );
@@ -2576,38 +1516,38 @@ LANGUAGE SQL
 AS $$
 SELECT jsonb_build_object('list',
                           coalesce(
-                              jsonb_agg(jsonb_build_object(
-                                            'host', host,
-                                            'instance_id', syn_inst.id,
-                                            'instance_link',
-                                            '/instance/apni/' || syn_inst.id,
-                                            'concept_link',
-                                            '/instance/apni/' || cites_inst.id,
-                                            'simple_name', synonym.simple_name,
-                                            'type', it.name,
-                                            'name_id', synonym.id :: BIGINT,
-                                            'name_link',
-                                            '/name/apni/' || synonym.id,
-                                            'full_name_html', synonym.full_name_html,
-                                            'nom', it.nomenclatural,
-                                            'tax', it.taxonomic,
-                                            'mis', it.misapplied,
-                                            'cites', cites_ref.citation_html,
-                                            'cites_link',
-                                            '/reference/apni/' || cites_ref.id,
-                                            'year', cites_ref.year
-                                        )), '[]' :: JSONB)
-)
+                            jsonb_agg(jsonb_build_object(
+                                        'host', host,
+                                        'instance_id', syn_inst.id,
+                                        'instance_link',
+                                        '/instance/apni/' || syn_inst.id,
+                                        'concept_link',
+                                        '/instance/apni/' || cites_inst.id,
+                                        'simple_name', synonym.simple_name,
+                                        'type', it.name,
+                                        'name_id', synonym.id :: BIGINT,
+                                        'name_link',
+                                        '/name/apni/' || synonym.id,
+                                        'full_name_html', synonym.full_name_html,
+                                        'nom', it.nomenclatural,
+                                        'tax', it.taxonomic,
+                                        'mis', it.misapplied,
+                                        'cites', cites_ref.citation_html,
+                                        'cites_link',
+                                        '/reference/apni/' || cites_ref.id,
+                                        'year', cites_ref.year
+                                          )), '[]' :: JSONB)
+           )
 FROM Instance i,
-  Instance syn_inst
-  JOIN instance_type it ON syn_inst.instance_type_id = it.id
-  JOIN instance cites_inst ON syn_inst.cites_id = cites_inst.id
-  JOIN reference cites_ref ON cites_inst.reference_id = cites_ref.id
-  ,
-  name synonym
+     Instance syn_inst
+       JOIN instance_type it ON syn_inst.instance_type_id = it.id
+       JOIN instance cites_inst ON syn_inst.cites_id = cites_inst.id
+       JOIN reference cites_ref ON cites_inst.reference_id = cites_ref.id
+    ,
+     name synonym
 WHERE i.id = instance_id
-      AND syn_inst.cited_by_id = i.id
-      AND synonym.id = syn_inst.name_id;
+  AND syn_inst.cited_by_id = i.id
+  AND synonym.id = syn_inst.name_id;
 $$;
 
 -- other-setup.sql
@@ -2632,6 +1572,17 @@ CREATE INDEX ref_citation_text_index
   ON reference USING GIN (to_tsvector('english' :: REGCONFIG, f_unaccent(
       coalesce((citation) :: TEXT, '' :: TEXT))));
 
+-- add unique constraint on name_rank, name_type and name_status name+nameGroup
+-- GORM/Hibernate mapping doesn't set a unique constraint name so it fails in postgresql
+alter table name_rank drop constraint if exists nr_unique_name;
+alter table name_rank add constraint nr_unique_name unique (name_group_id, name);
+
+alter table name_type drop constraint if exists nt_unique_name;
+alter table name_type add constraint nt_unique_name unique (name_group_id, name);
+
+alter table name_status drop constraint if exists ns_unique_name;
+alter table name_status add constraint ns_unique_name unique (name_group_id, name);
+
 -- pg_trgm indexs for like and regex queries NSL-1773
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE INDEX name_lower_full_name_gin_trgm
@@ -2652,7 +1603,7 @@ CREATE INDEX tree_synonyms_index
 ALTER TABLE tree
   ADD CONSTRAINT draft_not_current CHECK (current_tree_version_id <> default_draft_tree_version_id);
 --
-INSERT INTO db_version (id, version) VALUES (1, 26);
+INSERT INTO db_version (id, version) VALUES (1, 27);
 
 -- populate-lookup-tables.sql
 -- Populate lookup tables (currently botanical)
@@ -3244,49 +2195,6 @@ INSERT INTO public.ref_type (id, lock_version, name, parent_id, parent_optional,
 INSERT INTO public.ref_type (id, lock_version, name, parent_id, parent_optional, description_html, rdf_id) VALUES (nextval('nsl_global_seq'), 1, 'Unknown', null, true, '(description of <b>Unknown</b>)', 'unknown');
 UPDATE public.ref_type SET parent_id = id WHERE name = 'Unknown'; --self parent
 
-INSERT INTO TREE_VALUE_URI (
-  root_id,
-  link_uri_ns_part_id,
-  link_uri_id_part,
-  node_uri_ns_part_id,
-  node_uri_id_part,
-  label, title, is_multi_valued, is_resource, sort_order
-)
-VALUES (
-  (SELECT id
-   FROM tree_arrangement
-   WHERE label = '${classificationTreeName}'),
-  (SELECT id
-   FROM tree_uri_ns
-   WHERE label = 'apc-voc'), 'distribution',
-  (SELECT id
-   FROM tree_uri_ns
-   WHERE label = 'apc-voc'), 'distributionstring',
-  'apc-distribution', 'APC Distribution',
-  FALSE, FALSE, 1
-);
-
-INSERT INTO TREE_VALUE_URI (
-  root_id,
-  link_uri_ns_part_id,
-  link_uri_id_part,
-  node_uri_ns_part_id,
-  node_uri_id_part,
-  label, title, is_multi_valued, is_resource, sort_order
-) VALUES (
-  (SELECT id
-   FROM tree_arrangement
-   WHERE label = '${classificationTreeName}'),
-  (SELECT id
-   FROM tree_uri_ns
-   WHERE label = 'apc-voc'), 'comment',
-  (SELECT id
-   FROM tree_uri_ns
-   WHERE label = 'xs'), 'string',
-  'apc-comment',
-  'APC Comment',
-  FALSE, FALSE, 1
-);
 
 -- populate-shardconfig.sql
 -- default APNI values for shard config - please change for new shards
@@ -3519,25 +2427,6 @@ CREATE VIEW public.name_details_vw AS
     LEFT JOIN name sname ON ((syn.name_id = sname.id)))
   WHERE (n.duplicate_of_id IS NULL);
 
-DROP VIEW IF EXISTS public.name_or_synonym_vw;
-CREATE VIEW public.name_or_synonym_vw AS
-  SELECT
-    0                       AS id,
-    '' :: CHARACTER VARYING AS simple_name,
-    '' :: CHARACTER VARYING AS full_name,
-    '' :: CHARACTER VARYING AS type_code,
-    0                       AS instance_id,
-    0                       AS tree_node_id,
-    0                       AS accepted_id,
-    '' :: CHARACTER VARYING AS accepted_full_name,
-    0                       AS name_status_id,
-    0                       AS reference_id,
-    0                       AS name_rank_id,
-    '' :: CHARACTER VARYING AS sort_name
-  FROM name
-  WHERE (1 = 0);
-
-
 CREATE OR REPLACE VIEW instance_resource_vw AS
   SELECT
     site.name                 site_name,
@@ -3728,13 +2617,6 @@ EXECUTE PROCEDURE instance_notification();
 
 -- z-grants.sql
 -- grant to the web user as required
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_arrangement TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_link TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_event TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_node TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_uri_ns TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_value_uri TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON name_tree_path TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON id_mapper TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON author TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON delayed_jobs TO web;
@@ -3763,26 +2645,20 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON notification TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON name_tag TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON name_tag_name TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON comment TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_value_uri TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_version TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_version_element TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_element TO web;
+
 GRANT SELECT, UPDATE ON nsl_global_seq TO web;
 GRANT SELECT, UPDATE ON hibernate_sequence TO web;
 GRANT SELECT ON shard_config TO web;
 
-GRANT SELECT ON accepted_name_vw TO web;
-GRANT SELECT ON accepted_synonym_vw TO web;
 GRANT SELECT ON instance_resource_vw TO web;
 GRANT SELECT ON name_detail_synonyms_vw TO web;
 GRANT SELECT ON name_details_vw TO web;
 GRANT SELECT ON name_detail_commons_vw TO web;
-GRANT SELECT ON name_or_synonym_vw TO web;
 
-GRANT SELECT ON tree_arrangement TO read_only;
-GRANT SELECT ON tree_link TO read_only;
-GRANT SELECT ON tree_event TO read_only;
-GRANT SELECT ON tree_node TO read_only;
-GRANT SELECT ON tree_uri_ns TO read_only;
-GRANT SELECT ON tree_value_uri TO read_only;
-GRANT SELECT ON name_tree_path TO read_only;
 GRANT SELECT ON id_mapper TO read_only;
 GRANT SELECT ON author TO read_only;
 GRANT SELECT ON delayed_jobs TO read_only;
@@ -3812,12 +2688,12 @@ GRANT SELECT ON name_tag TO read_only;
 GRANT SELECT ON name_tag_name TO read_only;
 GRANT SELECT ON comment TO read_only;
 GRANT SELECT ON shard_config TO read_only;
-GRANT SELECT ON tree_value_uri TO read_only;
+GRANT SELECT ON tree TO read_only;
+GRANT SELECT ON tree_version TO read_only;
+GRANT SELECT ON tree_version_element TO read_only;
+GRANT SELECT ON tree_element TO read_only;
 
-GRANT SELECT ON accepted_name_vw TO read_only;
-GRANT SELECT ON accepted_synonym_vw TO read_only;
 GRANT SELECT ON instance_resource_vw TO read_only;
 GRANT SELECT ON name_detail_synonyms_vw TO read_only;
 GRANT SELECT ON name_details_vw TO read_only;
 GRANT SELECT ON name_detail_commons_vw TO read_only;
-GRANT SELECT ON name_or_synonym_vw TO read_only;

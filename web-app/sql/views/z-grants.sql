@@ -1,11 +1,4 @@
 -- grant to the web user as required
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_arrangement TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_link TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_event TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_node TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_uri_ns TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_value_uri TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON name_tree_path TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON id_mapper TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON author TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON delayed_jobs TO web;
@@ -34,26 +27,20 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON notification TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON name_tag TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON name_tag_name TO web;
 GRANT SELECT, INSERT, UPDATE, DELETE ON comment TO web;
-GRANT SELECT, INSERT, UPDATE, DELETE ON tree_value_uri TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_version TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_version_element TO web;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tree_element TO web;
+
 GRANT SELECT, UPDATE ON nsl_global_seq TO web;
 GRANT SELECT, UPDATE ON hibernate_sequence TO web;
 GRANT SELECT ON shard_config TO web;
 
-GRANT SELECT ON accepted_name_vw TO web;
-GRANT SELECT ON accepted_synonym_vw TO web;
 GRANT SELECT ON instance_resource_vw TO web;
 GRANT SELECT ON name_detail_synonyms_vw TO web;
 GRANT SELECT ON name_details_vw TO web;
 GRANT SELECT ON name_detail_commons_vw TO web;
-GRANT SELECT ON name_or_synonym_vw TO web;
 
-GRANT SELECT ON tree_arrangement TO read_only;
-GRANT SELECT ON tree_link TO read_only;
-GRANT SELECT ON tree_event TO read_only;
-GRANT SELECT ON tree_node TO read_only;
-GRANT SELECT ON tree_uri_ns TO read_only;
-GRANT SELECT ON tree_value_uri TO read_only;
-GRANT SELECT ON name_tree_path TO read_only;
 GRANT SELECT ON id_mapper TO read_only;
 GRANT SELECT ON author TO read_only;
 GRANT SELECT ON delayed_jobs TO read_only;
@@ -83,12 +70,12 @@ GRANT SELECT ON name_tag TO read_only;
 GRANT SELECT ON name_tag_name TO read_only;
 GRANT SELECT ON comment TO read_only;
 GRANT SELECT ON shard_config TO read_only;
-GRANT SELECT ON tree_value_uri TO read_only;
+GRANT SELECT ON tree TO read_only;
+GRANT SELECT ON tree_version TO read_only;
+GRANT SELECT ON tree_version_element TO read_only;
+GRANT SELECT ON tree_element TO read_only;
 
-GRANT SELECT ON accepted_name_vw TO read_only;
-GRANT SELECT ON accepted_synonym_vw TO read_only;
 GRANT SELECT ON instance_resource_vw TO read_only;
 GRANT SELECT ON name_detail_synonyms_vw TO read_only;
 GRANT SELECT ON name_details_vw TO read_only;
 GRANT SELECT ON name_detail_commons_vw TO read_only;
-GRANT SELECT ON name_or_synonym_vw TO read_only;

@@ -19,6 +19,17 @@ CREATE INDEX ref_citation_text_index
   ON reference USING GIN (to_tsvector('english' :: REGCONFIG, f_unaccent(
       coalesce((citation) :: TEXT, '' :: TEXT))));
 
+-- add unique constraint on name_rank, name_type and name_status name+nameGroup
+-- GORM/Hibernate mapping doesn't set a unique constraint name so it fails in postgresql
+alter table name_rank drop constraint if exists nr_unique_name;
+alter table name_rank add constraint nr_unique_name unique (name_group_id, name);
+
+alter table name_type drop constraint if exists nt_unique_name;
+alter table name_type add constraint nt_unique_name unique (name_group_id, name);
+
+alter table name_status drop constraint if exists ns_unique_name;
+alter table name_status add constraint ns_unique_name unique (name_group_id, name);
+
 -- pg_trgm indexs for like and regex queries NSL-1773
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE INDEX name_lower_full_name_gin_trgm
@@ -39,4 +50,4 @@ CREATE INDEX tree_synonyms_index
 ALTER TABLE tree
   ADD CONSTRAINT draft_not_current CHECK (current_tree_version_id <> default_draft_tree_version_id);
 --
-INSERT INTO db_version (id, version) VALUES (1, 26);
+INSERT INTO db_version (id, version) VALUES (1, 27);

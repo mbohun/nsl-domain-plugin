@@ -53,7 +53,7 @@ class NameType {
     }
 
     static constraints = {
-        name unique: true
+        //note unique name + nameGroup constraint defined in sql elsewhere because GORM/Hibernate doesn't give it a unique constraint name.
         sortOrder min: 0, max: 500
         connector maxSize: 1, nullable: true
         rdfId maxSize: 50, nullable: true

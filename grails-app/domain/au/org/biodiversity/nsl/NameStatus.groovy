@@ -47,7 +47,7 @@ class NameStatus {
     }
 
     static constraints = {
-        name nullable: true, maxSize: 50, unique: true
+        name nullable: true, maxSize: 50 //note unique constraint defined in sql elsewhere because GORM/Hibernate doesn't give it a unique constraint name.
         rdfId maxSize: 50, nullable: true
         descriptionHtml nullable: true
     }

@@ -34,8 +34,6 @@ class InstanceNote {
 
     Namespace namespace
 
-    Boolean trash = false
-
     static belongsTo = [Instance, InstanceNoteKey]
 
     static mapping = {
@@ -43,8 +41,6 @@ class InstanceNote {
 
         id generator: 'native', params: [sequence: 'nsl_global_seq'], defaultValue: "nextval('nsl_global_seq')"
         version column: 'lock_version', defaultValue: "0"
-
-        trash defaultvalue: "false"
 
         sourceId index: 'Note_Source_Index'
         sourceIdString index: 'Note_Source_String_Index'
