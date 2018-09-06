@@ -1,3 +1,5 @@
+## nsl-domain-plugin [![Build Status](https://travis-ci.org/mbohun/nsl-domain-plugin.svg?branch=add_support_for-travis-ci.org)](https://travis-ci.org/mbohun/nsl-domain-plugin)
+
 This is a grails plugin for the NSL project that maps the Domain objects of NSL. It is used to generate and update the
 schema for the NSL.
 
