@@ -46,12 +46,8 @@ grails.project.dependency.resolution = {
     log "warn" // log level of Ivy resolver, either 'error', 'warn', 'info', 'debug' or 'verbose'
 
     repositories {
-
-        mavenLocal()
-        mavenRepo(id: "anbg", url: "http://appsdev1-ibis.it.csiro.au:8085/repository/maven-central/")
-        mavenRepo(id: "anbg", url: "http://appsdev1-ibis.it.csiro.au:8085/repository/grails-plugins/")
-        grailsHome()
-        mavenCentral()
+        mavenRepo(url: "https://repo.grails.org/grails/plugins")
+        mavenRepo(url: "https://repo1.maven.org/maven2")
 
     }
 
