@@ -1,3 +1,5 @@
+## nsl-domain-plugin [![CircleCI](https://circleci.com/gh/mbohun/nsl-domain-plugin/tree/add_support_for-circleci.com.svg?style=svg)](https://circleci.com/gh/mbohun/nsl-domain-plugin/tree/add_support_for-circleci.com)
+
 This is a grails plugin for the NSL project that maps the Domain objects of NSL. It is used to generate and update the
 schema for the NSL.
 
